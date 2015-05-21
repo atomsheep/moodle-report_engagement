@@ -1,0 +1,48 @@
+ul.snippet_list{
+	list-style-type: none;
+}
+
+li.snippet_item{
+	cursor: pointer;
+	padding: 5px;
+	margin: 0 0 5px 0;
+	border-left: thin solid black;
+}
+
+div.snippet_selector{
+	height: 15em; 
+	overflow-y: scroll; 
+	word-wrap: normal; 
+	display: none;
+	background: #EEEEEE;
+	border-radius: 4px;
+	border: thin solid #CCCCCC;
+}
+
+li.snippet_category{
+}
+
+li.snippet_category div {
+	font-weight: bold;
+}
+
+div.report_engagement_detail {
+	display: none;
+	font-size: smallest;
+}
+
+div.chk_indicator {
+	text-align: center;
+}
+
+div.message_preview_current {
+	display: block;
+}
+
+div.message_preview_hidden {
+	display: none;
+}
+
+td.mailer_log_cell {
+	vertical-align: top;
+}

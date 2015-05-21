@@ -1,0 +1,191 @@
+{
+    "colors": [
+        {
+            "id": 0,
+            "name": "Red"
+        },
+        {
+            "id": 1,
+            "name": "Yellow"
+        },
+        {
+            "id": 2,
+            "name": "Green"
+        }
+    ],
+    "categories": [
+        {
+            "id": 0,
+            "name": "[* name of LMS *] Interaction",
+			"engagement_mapping": "login"
+        },
+        {
+            "id": 1,
+            "name": "Assessments",
+			"engagement_mapping": "assessment"
+        },
+        {
+            "id": 2,
+            "name": "Discussion forum",
+			"engagement_mapping": "forum"
+        },
+        {
+            "id": 3,
+            "name": "Grades",
+			"engagement_mapping": "gradebook"
+        },
+        {
+            "id": 4,
+            "name": "Encouragement"
+        }
+    ],
+    "snippets": [
+        {
+            "id": 0,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                0
+            ],
+			"summary": "Spend more time",
+            "text": "You need to spend more time in [* name of LMS *] [reading posts, watching video, contributing to discussions, accessing assignment guidelines]."
+        },
+        {
+            "id": 1,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                0
+            ],
+			"summary": "Engaging in LMS",
+            "text": "Engaging in [* name of LMS *] is an important component in passing this course."
+        },
+        {
+            "id": 2,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                1,
+				3
+            ],
+			"summary": "Complete on time",
+            "text": "Be sure to complete [assignments, assessments] in [* name of LMS *] on time to earn the most points possible."
+        },
+        {
+            "id": 3,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                2
+            ],
+			"summary": "Forum compulsory",
+            "text": "The online discussion board is an important component of this course and your participation is necessary."
+        },
+        {
+            "id": 4,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                2
+            ],
+			"summary": "Read and respond",
+            "text": "Remember you not only need to make your initial posting in the online discussion board but you need to read and respond to [a number] of your classmates' as well."
+        },
+        {
+            "id": 5,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                1,
+				3
+            ],
+			"summary": "Credit for discussion",
+            "text": "In order to receive full credit for the online discussion board, you must post more than a few words in your replies to classmates."
+        },
+        {
+            "id": 6,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                1
+            ],
+			"summary": "Access resources",
+            "text": "Make sure to review the content pages posted in [* name of LMS *] such as [lecture notes, PDF's, PPoints, web links]"
+        },
+        {
+            "id": 7,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                1,
+				3
+            ],
+			"summary": "Missing assignments",
+            "text": "Make sure to address any missing assignments as soon as possible."
+        },
+        {
+            "id": 8,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                4
+            ],
+			"summary": "Library",
+            "text": "The library is always a good resource, both online and in person. [* library URL *]"
+        },
+        {
+            "id": 9,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                4
+            ],
+			"summary": "Please see me",
+            "text": "If you need help from me, please see me in my office, [office location]. I am in from [h:mm] to [h:mm] on [days]."
+        },
+        {
+            "id": 10,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                4
+            ],
+			"summary": "Keep it up",
+            "text": "We have some challenging [tests, projects, group work, topics] ahead and you will need to maintain a strong work ethic to keep your grade up."
+        },
+        {
+            "id": 11,
+            "colors": [
+                0,
+                1
+            ],
+            "categories": [
+                4
+            ],
+			"summary": "Department resources",
+            "text": "Our department has excellent resources such as [insert name] that are designed to help students be successful."
+        }
+    ]
+}
