@@ -113,3 +113,155 @@ function report_engagement_update_indicator($courseid, $new_weights, $configdata
         }
     }
 }
+
+/**
+ * This function logs a sent message to the database and returns its id.
+ *
+ * @param string $subject The plain text subject line of the message.
+ * @param string $message The text of the message.
+ * @param string $type The type of message, can be 'email', 'sms', etc
+ */
+function message_send_log_message($subject, $message, $type){
+	global $DB;
+	$data = new stdClass();
+	$data->messagesubject = base64_encode($subject);
+	$data->messagebody = base64_encode($message);
+	$data->messagetype = $type;
+	return $DB->insert_record('report_engagement_messagelog', $data, true);	
+} 
+ 
+ /**
+ * This function logs a send event to the database.
+ *
+ * @param int $messageid The id of the message
+ * @param string $destination The destination address e.g. email, phone number, etc
+ * @param int $recipientid The Moodle userid of the recipient
+ * @param int $senderid The Moodle userid of the sender, will default to current user if not provided
+ * @param int $courseid The Moodle courseid of the course, will default to current course if not provided
+ *
+ */
+function message_send_log_send($messageid, $destination, $recipientid, $senderid = null, $courseid = null){
+	global $DB, $USER, $COURSE;
+	if (!isset($senderid)) {
+		$senderid = $USER->id;
+	}
+	if (!isset($courseid)) {
+		$courseid = $COURSE->id;
+	}
+	$data = new stdClass();
+	$data->timesent = time();
+	$data->messageid = $messageid;
+	$data->destinationaddress = $destination;
+	$data->recipientid = $recipientid;
+	$data->senderid = $senderid;
+	$data->courseid = $courseid;
+	return $DB->insert_record('report_engagement_sentlog', $data);	
+}
+ 
+/**
+ * This function saves a message and its description to the database.
+ *
+ * @param string $description The short description of the message
+ * @param string $message The message text itself, should be base64 encoded already
+ * @param int $userid Optional - the Moodle userid of the user, defaults to currently logged in user
+ * @return int The id of the new row in the database
+ */
+function my_message_save($description, $message, $userid = null) {
+	global $DB, $USER;
+	if (!isset($userid)) {
+		$userid = $USER->id;
+	}
+	$data = new stdClass();
+	$data->userid = $userid;
+	$data->messagesummary = base64_encode($description);
+	$data->messagetext = $message;
+	return $DB->insert_record('report_engagement_mymessages', $data);	
+}
+
+/**
+ * This function retrieves saved 'My Messages' for the user from the database
+ *
+ * @param int $userid Optional - the Moodle userid of the user, defaults to currently logged in user
+ * @return object The database record
+ */
+function my_messages_get($userid = null){
+	global $DB, $USER;
+	if (!isset($userid)) {
+		$userid = $USER->id;
+	}
+	return $DB->get_records('report_engagement_mymessages', array('userid' => $userid));
+}
+
+/**
+ * This function replaces the variables in a message with their actual values belonging to a specified user.
+ *
+ * @param string $message The text that contains needles (the variables) to replace
+ * @param int $userid The Moodle userid of the user whose data will be filled in place of the variables
+ * @return string The text with replacements
+ */
+function message_variables_replace($message, $userid) {
+	global $DB;
+	$user = $DB->get_record('user', array('id'=>$userid));
+	$out = $message;
+	$out = str_replace("{#FIRSTNAME#}", $user->firstname, $out);
+	$out = str_replace("{#LASTNAME#}", $user->lastname, $out);
+	$out = str_replace("{#FULLNAME#}", fullname($user), $out);
+	return $out;
+}
+
+/**
+ * This function replaces the variables in a message with their actual values belonging to a specified user.
+ *
+ * @param string $message The text that contains needles (the variables) to replace
+ * @param int $userid The Moodle userid of the user whose data will be filled in place of the variables
+ * @return string The text with replacements
+ */
+function message_variables_get_array() {
+	return array(
+		"{#FIRSTNAME#}" => get_string('message_variables_firstname', 'report_engagement'),
+		"{#LASTNAME#}" => get_string('message_variables_lastname', 'report_engagement'),
+		"{#FULLNAME#}" => get_string('message_variables_fullname', 'report_engagement'),
+	);
+}
+
+/**
+ * This function calls email_to_user to send the specified email to the specified user.
+ *
+ * @param array $message Elements message and subject
+ * @param int $recipientid The Moodle userid of the recipient of the email
+ * @param int $senderid The Moodle userid of the sender of the email
+ * @return object An object containing a recipient object and the return value of email_to_user
+ */
+function message_send_customised_email($message, $recipientid, $senderid, $replytoid) {
+	global $DB, $USER;
+	if (!isset($senderid)) {
+		$senderid = $USER->id;
+	}
+	if (!isset($replytoid)) {
+		$replytoid = $USER->id;
+	}
+	$recipient = $DB->get_record('user', array('id'=>$recipientid));
+	$recipient->email = 'danny.liu@mq.edu.au';	// DEBUG ONLY
+	$sender = $DB->get_record('user', array('id'=>$senderid));
+	$replyto = $DB->get_record('user', array('id'=>$replytoid));
+	$email_body = $message['message'];
+	$email_subject = $message['subject']; 
+	// Prepare return variable
+	$result = new stdClass();
+	$result->recipient = $recipient;
+	// Try send email
+	try {
+		//$result->result = email_to_user($recipient, $sender, $email_subject, $email_body, $email_body, '', '', true, $replyto->email, fullname($replyto));
+		$result->result = true; // DEBUG ONLY
+		return $result;
+	} catch (Exception $e) {
+		$result->result = false;
+		return $result;
+	}
+	// try email_to_user 
+	// http://articlebin.michaelmilette.com/sending-custom-emails-in-moodle-using-the-email_to_user-function/
+	// https://github.com/moodle/moodle/blob/d302ba231ff20d744be953f92d4c687703c36332/lib/moodlelib.php
+	// examples in the above file
+	// example https://github.com/moodle/moodle/blob/b6a76cd7cdf588b8d31440d072930906fd4b357b/user/edit.php
+}
+

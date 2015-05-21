@@ -30,5 +30,41 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="report_engagement_sentlog" COMMENT="Log of messages sent">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="timesent" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Epoch time when this send event occurred"/>
+        <FIELD NAME="messageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id of corresponding message"/>
+        <FIELD NAME="destinationaddress" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The destination address such as email address or phone number"/>
+        <FIELD NAME="senderid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="userid of user who initiated the send event"/>
+        <FIELD NAME="recipientid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="userid of the recipient of send event"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id of course from which this message was sent"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="report_engagement_messagelog" COMMENT="Log of messages sent">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="messagesubject" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Subject line of message"/>
+        <FIELD NAME="messagebody" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Body of message"/>
+        <FIELD NAME="messagetype" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Type of message"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="report_engagement_mymessages" COMMENT="Saved customised messages">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User id that the message belongs to"/>
+        <FIELD NAME="messagetext" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Text of message"/>
+        <FIELD NAME="messagesummary" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Short description or summary for the message"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
   </TABLES>
 </XMLDB>
