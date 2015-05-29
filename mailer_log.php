@@ -116,7 +116,7 @@ $html = "";
 // Show title
 $html .= html_writer::tag('h2', $page_title);
 if (count($messages)) {
-	$html .= html_writer::start_tag('table', array('id'=>'message_table'));
+	$html .= html_writer::start_tag('table', array('id'=>'message_table', 'class'=>'row-border display compact'));
 		$html .= html_writer::start_tag('thead');
 			$html .= html_writer::start_tag('tr');
 				$html .= html_writer::tag('th', get_string('mailer_log_message_sent', 'report_engagement'));
