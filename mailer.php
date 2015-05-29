@@ -578,7 +578,7 @@ if ($postdata) {
 			// Message doesn't exist yet, so populate with default
 			//$data["message_$pattern"] = array('text' => $defaultmessages[$pattern]);
 			$data["message_$pattern"] = $defaultmessages[$pattern];
-			}
+		}
 		$mform->set_data($data);
 		// Set subject
 		if (isset($postdata->{"subject_encoded_$pattern"})) {
