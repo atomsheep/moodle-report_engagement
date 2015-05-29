@@ -79,11 +79,19 @@ if ($uid && $id) {
 	$page_title = get_string('mailer_log_user', 'report_engagement');
 } else if ($mid && $id) {
 	// Showing for just one message
-	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? AND sl.messageid = ?", array($id, $mid));
+	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
+								JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+								JOIN {user} u ON u.id = sl.recipientid
+								WHERE sl.courseid = ? AND sl.messageid = ?
+								ORDER BY u.firstname ASC", array($id, $mid));
 	$page_title = get_string('mailer_log_message', 'report_engagement');
 } else {
 	// Showing all messages sent in this course
-	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? ORDER BY sl.timesent DESC", array($id));
+	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
+								JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+								JOIN {user} u ON u.id = sl.recipientid
+								WHERE sl.courseid = ? 
+								ORDER BY sl.timesent DESC, u.firstname ASC", array($id));
 	$page_title = get_string('mailer_log_course', 'report_engagement');
 }
 
