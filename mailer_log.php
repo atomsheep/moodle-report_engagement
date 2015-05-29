@@ -113,6 +113,8 @@ if ($uid) {
 // Render data // TODO: refactor into renderer
 $html = "";
 
+$_MAX_RECIPIENTS_TO_SHOW = 5;
+
 // Show title
 $html .= html_writer::tag('h2', $page_title);
 if (count($messages)) {
@@ -136,13 +138,21 @@ if (count($messages)) {
 					$html .= html_writer::tag('td', $message->sender->email, array('class'=>'mailer_log_cell'));
 					// Recipients
 					$recipient_list = "";
+					$n = 0;
 					foreach ($recipients[$messageid] as $recipient) {
-						$recipient_list .= html_writer::tag('div', fullname($recipient) . ' ' .
-							html_writer::tag('a', html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/user'), 'class'=>'icon', 'title'=>get_string('mailer_log_viewbyuser', 'report_engagement'))), array("href"=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'uid' => $recipient->id)))));
+						if ($n < $_MAX_RECIPIENTS_TO_SHOW || $mid) {
+							$recipient_list .= html_writer::tag('div', fullname($recipient) . ' ' .
+								html_writer::tag('a', html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/user'), 'class'=>'icon', 'title'=>get_string('mailer_log_viewbyuser', 'report_engagement'))), array("href"=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'uid' => $recipient->id)))));
+						} else {
+							$recipient_list .= html_writer::tag('div', html_writer::tag('a', count($recipients[$messageid]) - $_MAX_RECIPIENTS_TO_SHOW, array('href'=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))) . ' ' . 
+								get_string('mailer_log_message_otherrecipients', 'report_engagement'));
+							break;
+						}
+						$n += 1;
 					}
 					if ($uid) {
 						$recipient_list .= html_writer::tag('div', html_writer::tag('a', $count_recipients_all[$messageid] - 1, array('href'=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))) . ' ' . 
-							get_string('mailer_log_message_otherrecipients', 'report_engagement')); //  
+							get_string('mailer_log_message_otherrecipients', 'report_engagement')); 
 					}
 					$html .= html_writer::tag('td', $recipient_list, array('class'=>'mailer_log_cell'));
 					// Subject
