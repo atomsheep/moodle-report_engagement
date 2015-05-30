@@ -271,7 +271,7 @@ class report_engagement_mailer_form extends moodleform {
 				$send_results = array();
 				$mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_header', 'report_engagement')));
 				foreach ($message_send_results[$pattern] as $userid => $result) {
-					$mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_recipient', 'report_engagement', $result->recipient).' '.($result->result ? get_string('message_sent_notification_success', 'report_engagement') : get_string('message_sent_notification_failed', 'report_engagement'))));
+					$mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_recipient', 'report_engagement', $result->recipient).' '.($result->result ? get_string('message_sent_notification_success', 'report_engagement') : get_string('message_sent_notification_failed', 'report_engagement', "($result->message)"))));
 				}
 				$mform->addElement('html', html_writer::tag('br'));
 			} else {

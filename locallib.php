@@ -234,6 +234,7 @@ function message_variables_get_array() {
  */
 function message_send_customised_email($message, $recipientid, $senderid, $replytoid) {
 	global $DB, $USER;
+	require_once('email/emaillib.php');
 	if (!isset($senderid)) {
 		$senderid = $USER->id;
 	}
@@ -250,14 +251,19 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	$result = new stdClass();
 	$result->recipient = $recipient;
 	// Try send email
-	try {
-		//$result->result = email_to_user($recipient, $sender, $email_subject, $email_body, $email_body, '', '', true, $replyto->email, fullname($replyto));
-		$result->result = true; // DEBUG ONLY
-		return $result;
-	} catch (Exception $e) {
-		$result->result = false;
-		return $result;
-	}
+	$email = new report_engagement_email_message;
+	$email->recipient_address = $recipient->email;
+	$email->recipient_name = fullname($recipient);
+	$email->sender_address = $sender->email;
+	$email->sender_name = fullname($sender);
+	$email->replyto_address = $replyto->email;
+	$email->replyto_name = fullname($replyto);
+	$email->email_subject = $email_subject;
+	$email->email_body = $email_body;
+	$res = $email->send_email();
+	$result->result = $res->result;
+	$result->message = isset($res->message) ? $res->message : null;
+	return $result;
 	// try email_to_user 
 	// http://articlebin.michaelmilette.com/sending-custom-emails-in-moodle-using-the-email_to_user-function/
 	// https://github.com/moodle/moodle/blob/d302ba231ff20d744be953f92d4c687703c36332/lib/moodlelib.php

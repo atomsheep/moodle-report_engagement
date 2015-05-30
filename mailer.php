@@ -507,18 +507,12 @@ if ($action == 'composing') {
 				$messageid = message_send_log_message($subject_decoded[$pattern], $message_decoded[$pattern], 'email');
 				$n += 1;
 			}
-			// Try send the message
-			try {
-				$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoids[$pattern]);
-				if ($message_send_results[$pattern][$userid]->result == true) {
-					// Log send event to database
-					$user = $DB->get_record('user', array('id'=>$userid));
-					message_send_log_send($messageid, $user->email, $user->id, $senderids[$pattern]);					
-				}
-			} catch (Exception $e) {
-				//var_dump("send error for $userid");
-				//var_dump($message);
-				//var_dump($e);
+			// Send messages
+			$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoids[$pattern]);
+			if ($message_send_results[$pattern][$userid]->result == true) {
+				// Log send event to database
+				$user = $DB->get_record('user', array('id'=>$userid));
+				message_send_log_send($messageid, $user->email, $user->id, $senderids[$pattern]);					
 			}
 		}
 	}
