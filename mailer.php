@@ -320,7 +320,7 @@ foreach ($data as $userid => $record) {
 		$view_messages_url = new moodle_url('/report/engagement/mailer_log.php', array('id' => $course->id, 'uid' => $userid));
 		$most_recent_message = end($messages_sent);
 		$days_ago = (time() - $most_recent_message->timesent) / 60 / 60 / 24;
-		$jsrow[get_string('report_messagessent', 'report_engagement')] = "<a href='$view_messages_url' target='_blank'>".count($messages_sent)."</a><br />".get_string('report_gradebook_percentrisk', 'report_engagement', sprintf("%d", $days_ago));
+		$jsrow[get_string('report_messagessent', 'report_engagement')] = "<a href='$view_messages_url' target='_blank'>".count($messages_sent)."</a><br />".get_string('report_messagelog_daysago', 'report_engagement', sprintf("%d", $days_ago));
 	} else {
 		$jsrow[get_string('report_messagessent', 'report_engagement')] = count($messages_sent);
 	}
