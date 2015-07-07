@@ -35,50 +35,19 @@ function xmldb_report_engagement_upgrade($oldversion) {
 	}
 	
     if ($oldversion < 2015052102) {
-
-        // Define table report_engagement_sentlog to be created.
-        $table = new xmldb_table('report_engagement_sentlog');
-        // Adding fields to table report_engagement_sentlog.
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('timesent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('messageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('destinationaddress', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('senderid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('recipientid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        // Adding keys to table report_engagement_sentlog.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         // Conditionally launch create table for report_engagement_sentlog.
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
-        }
+		if (!$dbman->table_exists('report_engagement_sentlog')) {
+			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_sentlog');
+		}
 		
-        // Define table report_engagement_messagelog to be created.
-        $table = new xmldb_table('report_engagement_messagelog');
-        // Adding fields to table report_engagement_messagelog.
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('messagesubject', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('messagebody', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('messagetype', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
-        // Adding keys to table report_engagement_messagelog.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         // Conditionally launch create table for report_engagement_messagelog.
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
+        if (!$dbman->table_exists('report_engagement_messagelog')) {
+			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_messagelog');
         }
 
-        // Define table report_engagement_mymessages to be created.
-        $table = new xmldb_table('report_engagement_mymessages');
-        // Adding fields to table report_engagement_mymessages.
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('messagetext', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('messagesummary', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        // Adding keys to table report_engagement_mymessages.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         // Conditionally launch create table for report_engagement_mymessages.
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
+        if (!$dbman->table_exists('report_engagement_mymessages')) {
+			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_mymessages');
         }
 		
         // Engagement savepoint reached.
