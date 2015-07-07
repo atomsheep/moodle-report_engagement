@@ -72,6 +72,8 @@ class report_engagement_email_message {
 	private function send_email_gmail(){
 		
 		require('config.php');
+		if (!isset($_CONFIG_MAILER_GMAIL)) return null;
+		
 		require_once('PHPMailer/PHPMailerAutoload.php');
 			
 		$mail = new PHPMailer;
@@ -110,8 +112,10 @@ class report_engagement_email_message {
 	private function send_email_custom(){
 	
 		require('config.php');
+		if (!isset($_CONFIG_MAILER_CUSTOM)) return null;
+		
 		require_once('PHPMailer/PHPMailerAutoload.php');
-			
+		
 		$mail = new PHPMailer;
 		
 		$mail->isSMTP();
@@ -142,12 +146,14 @@ class report_engagement_email_message {
 		}	
 		
 		return $result;
-			
+
 	}
 	
 	private function send_email_mandrill(){
 	
 		require('config.php');
+		if (!isset($_CONFIG_MAILER_MANDRILL)) return null;
+		
 		require_once('mandrill/Mandrill.php');
 		
 		$res = new stdClass();
