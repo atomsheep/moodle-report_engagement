@@ -68,15 +68,23 @@ $string['message_will_be_sent_count_above'] = 'as listed above';
 $string['student_plural'] = 'students';
 $string['student_singular'] = 'students';
 $string['message_sender'] = 'Sender';
-$string['message_sender_help'] = 'The sender of the message';
+$string['message_sender_help'] = 'The person and email address that the email to the student will appear to come from.';
 $string['message_replyto'] = 'Reply to';
-$string['message_replyto_help'] = 'The reply-to address';
+$string['message_replyto_help'] = 'The default person and email address that receives replies when a student replies to a message.';
 $string['message_subject'] = 'Message subject';
-$string['message_subject_help'] = 'Subject line of the message';
+$string['message_subject_help'] = 'The subject of the email.';
 $string['message_body'] = 'Message body';
-$string['message_body_help'] = 'Body text of the message';
+$string['message_body_help'] = 'The message body of the email. Text between curly braces needs to obey specific conventions - these are available in the snippets below under "variables".';
 $string['message_snippets'] = 'Message snippets';
-$string['message_snippets_help'] = 'Choose snippets to use in your message. Choose the snippet type, then click the snippet to insert it into your message.';
+$string['message_snippets_help'] = 'Choose a type of snippet to include, find one that you like, and click it to insert the snippet into the message body at the cursor.
+
+*Variables*: A variable represents information that that system will automatically add to your message.
+
+*Suggested snippets*: Text for messages relating to the indicator or indicators that you have selected.
+
+*Other snippets*: Text for messages not relating to the indicator or indicators that you have selected. You might want to have a look at these if you want some more ideas about what to write.
+
+*My saved messages*: Text for messages that you have saved to your message bank.';
 $string['message_snippets_variables'] = 'Variables';
 $string['message_snippets_suggested'] = 'Suggested snippets';
 $string['message_snippets_other'] = 'Other snippets';
@@ -84,25 +92,31 @@ $string['message_snippets_my'] = 'My saved messages';
 $string['message_savemy'] = 'Save message';
 $string['message_savemy_chk'] = 'Save to my message bank';
 $string['message_savemy_description'] = 'Short description:';
-$string['message_savemy_help'] = 'Choose to save this message to your private message bank so you can use the message later';
+$string['message_savemy_help'] = 'If you wish to save your message for future use, tick the checkbox and enter a short phrase to help you identify this message in the future. Your saved messages will be available for your own use in other courses.';
 $string['message_recipient_preview'] = 'Recipient';
-$string['message_subject_preview'] = 'Subject preview';
-$string['message_body_preview'] = 'Message preview';
+$string['message_subject_preview'] = 'Subject preview (read-only)';
+$string['message_subject_preview_help'] = 'Preview of the subject of the email. Since this is a preview, this field is read-only. To edit, click the edit button to go back.';
+$string['message_body_preview'] = 'Message preview (read-only)';
+$string['message_body_preview_help'] = 'Preview of the actual message body of the email which will be sent. Since this is a preview, this field is read-only. To edit, click the edit button to go back.';
 $string['message_go_back_edit'] = 'Go back and edit message';
+$string['message_go_back_edit_help'] = 'Navigates to the previous screen, which allows you to edit this message.';
 $string['message_go_back_edit_plural'] = 'Go back and edit messages';
+$string['message_go_back_edit_plural_help'] = 'Navigates to the previous screen, which allows you to edit messages.';
 $string['message_check_all'] = 'Toggle all visible checkboxes for';
-$string['message_check_all_help'] = 'Toggles the checkboxes in the table for each indicator';
+$string['message_check_all_help'] = 'Click each button to toggle the checked status of all the checkboxes for that indicator that are visible in the table.';
 $string['message_header_compose'] = 'Compose messages';
 $string['message_submit_compose'] = 'Compose messages for selected people';
 $string['message_header_preview'] = 'Preview messages';
 $string['message_submit_preview'] = 'Preview messages before sending';
 $string['message_preview_buttons'] = 'Navigate message previews';
+$string['message_preview_buttons_help'] = 'Select either previous message or next message to scroll through each student email for that group. ';
 $string['message_preview_button_back'] = '<< Previous message';
 $string['message_preview_button_forward'] = 'Next message >>';
 $string['message_header_send'] = 'Send messages';
 $string['message_submit_send'] = 'Send messages now';
 $string['message_table_extradetails'] = 'Extra details in table';
 $string['message_table_showhide'] = 'Show/hide';
+$string['message_table_showhide_help'] = 'Toggle this checkbox to show or hide extra details in the table.';
 $string['message_header_groupwith'] = 'Group with: ';
 $string['message_sent_notification_header'] = 'Message sent to:';
 $string['message_sent_notification_recipient'] = '{$a->email}';

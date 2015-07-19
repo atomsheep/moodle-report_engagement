@@ -114,6 +114,7 @@ class report_engagement_mailer_form extends moodleform {
 			$toggles = array();
 			$toggles[] =& $mform->createElement('checkbox', "toggle_details_$pattern", '', get_string('message_table_extradetails', 'report_engagement'));
 			$mform->addGroup($toggles, "toggles_$pattern", get_string('message_table_showhide', 'report_engagement'), array(' '), false);
+			$mform->addHelpButton("toggles_$pattern", 'message_table_showhide', 'report_engagement');
 			$mform->addElement('html', "<br />");
 			// Display options for each group
 			if ($subsets && $action == 'composing') {
@@ -230,6 +231,7 @@ class report_engagement_mailer_form extends moodleform {
 				$preview_nav[] =& $mform->createElement('button', "button_preview_nav_back_$pattern", get_string('message_preview_button_back', 'report_engagement'), array('data-pattern'=>"$pattern", 'data-direction'=>'back'));
 				$preview_nav[] =& $mform->createElement('button', "button_preview_nav_forward_$pattern", get_string('message_preview_button_forward', 'report_engagement'), array('data-pattern'=>"$pattern", 'data-direction'=>'forward'));
 				$mform->addGroup($preview_nav, "preview_nav_$pattern", get_string('message_preview_buttons', 'report_engagement'), array(' '), false);
+				$mform->addHelpButton("preview_nav_$pattern", 'message_preview_buttons', 'report_engagement');
 				// Sender and replyto
 				$mform->addElement('static', '', get_string('message_sender', 'report_engagement'), reset($sender_previews[$pattern]));
 				$mform->addElement('hidden', "sender_$pattern", key($sender_previews[$pattern]));
@@ -251,12 +253,15 @@ class report_engagement_mailer_form extends moodleform {
 					$mform->addElement('html', html_writer::start_tag('div', array('class'=>$class, 'data-userid'=>"$userid")));
 						$mform->addElement('static', "recipient_preview_$pattern", get_string('message_recipient_preview', 'report_engagement'), $message_preview->recipient->email);
 						$mform->addElement('static', "subject_preview_$pattern", get_string('message_subject_preview', 'report_engagement'), $message_preview->subject);
+						$mform->addHelpButton("subject_preview_$pattern", 'message_subject_preview', 'report_engagement');
 						$mform->addElement('textarea', "message_preview_$pattern", get_string('message_body_preview', 'report_engagement'), array('rows'=>12, 'cols'=>80, 'readonly'=>'readonly'))->setValue($message_preview->message);
+						$mform->addHelpButton("message_preview_$pattern", 'message_body_preview', 'report_engagement');
 					$mform->addElement('html', html_writer::end_tag('div'));
 				}
 				$mform->addElement('html', html_writer::end_tag('div'));
 				// Action button
 				$mform->addElement('button', "button_back_$pattern", get_string('message_go_back_edit', 'report_engagement'), array('onclick'=>'go_back_to_composing()'));
+				$mform->addHelpButton("button_back_$pattern", 'message_go_back_edit', 'report_engagement');
 				// Re-show my messages settings // TODO: refactor for DRY
 				$savemy = array();
 				$savemy[] =& $mform->createElement('static', '', '', get_string('message_savemy_chk', 'report_engagement'));
@@ -310,6 +315,7 @@ class report_engagement_mailer_form extends moodleform {
 		} else if ($subsets && $action == 'previewing') {
 			$mform->addElement('header', 'header_send', get_string('message_header_send', 'report_engagement'));
 			$mform->addElement('button', 'button_back', get_string('message_go_back_edit_plural', 'report_engagement'), array('onclick'=>'go_back_to_composing()'));
+			$mform->addHelpButton('button_back', 'message_go_back_edit_plural', 'report_engagement');
 			$mform->addElement('submit', 'submit_send', get_string('message_submit_send', 'report_engagement'));
 		}
 		// scripts
