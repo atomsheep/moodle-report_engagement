@@ -233,7 +233,7 @@ function message_variables_get_array() {
  * @return object An object containing a recipient object and the return value of email_to_user
  */
 function message_send_customised_email($message, $recipientid, $senderid, $replytoid) {
-	global $DB, $USER;
+	global $DB, $USER, $COURSE;
 	require_once('email/emaillib.php');
 	if (!isset($senderid)) {
 		$senderid = $USER->id;
@@ -241,8 +241,27 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	if (!isset($replytoid)) {
 		$replytoid = $USER->id;
 	}
+	
+	
 	$recipient = $DB->get_record('user', array('id'=>$recipientid));
-	$recipient->email = 'danny.liu@mq.edu.au';	// DEBUG ONLY
+	
+	// Temporary dev hack to whitelist courseids that can send
+	$mailer_settings_json = json_decode(file_get_contents('mailer_settings.txt'));
+	foreach ($mailer_settings_json->whitelist as $whitelisted) {
+		if ($whitelisted->courseid == $COURSE->id) {
+			$report_engagement_mailer_whitelisted = $whitelisted;
+			break;
+		}
+	}
+	if (!isset($report_engagement_mailer_whitelisted)) {
+		echo("Error - this course has not been whitelisted for sending messages. No messages will be sent.");
+		die();
+	}
+	if (isset($report_engagement_mailer_whitelisted->override_recipient->enabled) && $report_engagement_mailer_whitelisted->override_recipient->enabled) {
+		$recipient->email = $report_engagement_mailer_whitelisted->override_recipient->mbox;
+	}
+	// End dev hack
+	
 	$sender = $DB->get_record('user', array('id'=>$senderid));
 	$replyto = $DB->get_record('user', array('id'=>$replytoid));
 	$email_body = $message['message'];
