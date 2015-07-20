@@ -42,7 +42,7 @@ class report_engagement_renderer extends plugin_renderer_base {
      * @access public
      * @return void
      */
-    public function course_report($indicators, $data) {
+    public function course_report($indicators, $data, $download) {
         global $DB, $COURSE;
         if (empty($data)) {
             return '';
@@ -53,39 +53,61 @@ class report_engagement_renderer extends plugin_renderer_base {
 		
         $table = new flexible_table('engagement-course-report');
         $table->define_baseurl(new moodle_url('/report/engagement/index.php', array('id' => $COURSE->id)));
+		
+		$table->is_downloading($download, 'report_engagement_export_' . $COURSE->id, 'export_' . $COURSE->id);
+		
         $headers = array();
         $columns = array();
+		$headers_download = array();
+		$columns_download = array();
         $headers[] = get_string('username');
         $columns[] = 'username';
+        $headers_download[] = 'username';
+        $columns_download[] = 'username';
         foreach ($indicators as $indicator) {
             $headers[] = get_string('pluginname', "engagementindicator_$indicator");
+            $headers_download[] = get_string('pluginname', "engagementindicator_$indicator") . '_weighted';
+            $headers_download[] = get_string('pluginname', "engagementindicator_$indicator") . '_raw';
             $columns[] = "indicator_$indicator";
+            $columns_download[] = "indicator_$indicator" . '_weighted';
+            $columns_download[] = "indicator_$indicator" . '_raw';
         }
         $headers[] = get_string('total');
         $columns[] = 'total';
-        $table->define_headers($headers);
-        $table->define_columns($columns);
-
-        $table->sortable(true, 'total', SORT_DESC);
-        $table->no_sorting('username');
-
-        $table->column_class('username', 'student');
-        foreach ($indicators as $indicator) {
-            $table->column_class("indicator_$indicator", 'indicator');
-        }
-        $table->column_class('total', 'total');
-
-        $table->set_attribute('id', 'engagement-course-report');
-        $table->set_attribute('class', 'generaltable generalbox boxaligncenter boxwidthwide');
+        $headers_download[] = 'total';
+        $columns_download[] = 'total';
+		if ($table->is_downloading()) {
+			$table->define_headers($headers_download);
+			$table->define_columns($columns_download);
+		} else {
+			$table->define_headers($headers);
+			$table->define_columns($columns);
+		}
+		
+		if (!$table->is_downloading()) {
+			$table->sortable(true, 'total', SORT_DESC);
+			$table->no_sorting('username');
+			$table->column_class('username', 'student');
+			foreach ($indicators as $indicator) {
+				$table->column_class("indicator_$indicator", 'indicator');
+			}
+			$table->column_class('total', 'total');
+			$table->set_attribute('id', 'engagement-course-report');
+			$table->set_attribute('class', 'generaltable generalbox boxaligncenter boxwidthwide');
+		}
         $table->setup();
 
         foreach ($data as $user => $ind_data) {
             $row = array();
-
-            $displayname = fullname($DB->get_record('user', array('id' => $user)));
-
-            $url = new moodle_url('/report/engagement/index.php', array('id' => $COURSE->id, 'userid' => $user));
-            $row[] = html_writer::link($url, $displayname);
+			
+			$student_record = $DB->get_record('user', array('id' => $user));
+			if ($table->is_downloading()) {
+				$row[] = $student_record->username;
+			} else {
+				$displayname = fullname($student_record);
+				$url = new moodle_url('/report/engagement/index.php', array('id' => $COURSE->id, 'userid' => $user));
+				$row[] = html_writer::link($url, $displayname);
+			}
             $total = 0;
             $total_raw = 0;
             foreach ($indicators as $indicator) {
@@ -98,7 +120,12 @@ class report_engagement_renderer extends plugin_renderer_base {
                 }
                 $weighted_value = sprintf("%.0f%%", $ind_value * $weight * 100);
                 $raw_value = sprintf("%.0f%%", 100 * $ind_value);
-                $row[] = $weighted_value . " ($raw_value)";
+				if ($table->is_downloading()) {
+					$row[] = $weighted_value;
+					$row[] = $raw_value;
+				} else {
+					$row[] = $weighted_value . " ($raw_value)";
+				}
                 $total += $ind_value * $weight;
                 $total_raw += $ind_value;
             }

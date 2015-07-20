@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/report/engagement/locallib.php');
 
 $id = required_param('id', PARAM_INT); // Course ID.
 $userid = optional_param('userid', 0, PARAM_INT);
+$download = optional_param('download', '', PARAM_ALPHA);
 
 $pageparams = array('id' => $id);
 if ($userid) {
@@ -66,7 +67,9 @@ $stradministration = get_string('administration');
 $strreports = get_string('reports');
 $renderer = $PAGE->get_renderer('report_engagement');
 
-echo $OUTPUT->header();
+if ($download == '') {
+	echo $OUTPUT->header();
+}
 
 $heading = $userid ? 'userreport' : 'coursereport_heading';
 $info = new stdClass();
@@ -74,7 +77,9 @@ $info->course = $course->shortname;
 if (isset($user)) {
     $info->user = fullname($user);
 }
-echo $OUTPUT->heading(get_string($heading, 'report_engagement', $info));
+if ($download == '') {
+	echo $OUTPUT->heading(get_string($heading, 'report_engagement', $info));
+}
 
 $pluginman = core_plugin_manager::instance();
 $indicators = get_plugin_list('engagementindicator');
@@ -116,7 +121,7 @@ if (!$userid) { // Course report.
         uasort($data, 'report_engagement_sort_risks');
     }
 
-    echo $renderer->course_report(array_keys($indicators), $data);
+    echo $renderer->course_report(array_keys($indicators), $data, $download);
 } else { // User report.
     foreach ($indicators as $name => $path) {
         if (file_exists("$path/indicator.class.php")) {
@@ -133,4 +138,6 @@ if (!$userid) { // Course report.
     echo $renderer->user_report(array_keys($indicators), $data);
 }
 
-echo $OUTPUT->footer();
+if ($download == '') {
+	echo $OUTPUT->footer();
+}
