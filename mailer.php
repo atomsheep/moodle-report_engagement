@@ -337,7 +337,7 @@ foreach (array_keys($jstable[0]) as $key) {
 		$c -= 1;
 		// otherwise do nothing
 	} elseif ($c <= count($indicators)) {
-		$js_columns[] = ucfirst(substr($chk_column_headers[$c - 1], 0, 5)) . (strlen($chk_column_headers[$c - 1]) > 5 ? "." : "");
+		$js_columns[] = ucfirst(substr($chk_column_headers[$c - 1], 0, 5)) . (strlen($chk_column_headers[$c - 1]) > 5 ? "." : "") . $OUTPUT->help_icon('mailer_column_header', "engagementindicator_{$chk_column_headers[$c - 1]}");
 	} else {
 		$js_columns[] = $key;
 	}
