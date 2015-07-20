@@ -25,6 +25,7 @@
 $string['engagement:manage'] = 'Manage engagement analytics report';
 $string['engagement:view'] = 'View engagement analytics report';
 $string['coursereport'] = 'Engagement for course: {$a->course}';
+$string['coursereport_heading'] = 'Engagement for course: {$a->course}';
 $string['indicator'] = 'Indicator';
 $string['indicator_help'] = 'In the textboxes, enter the percentage contribution (whole number between 0-100) of the risk rating from each indicator to the total risk rating. The totals in this section must add to 100.';
 

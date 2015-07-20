@@ -68,7 +68,7 @@ $renderer = $PAGE->get_renderer('report_engagement');
 
 echo $OUTPUT->header();
 
-$heading = $userid ? 'userreport' : 'coursereport';
+$heading = $userid ? 'userreport' : 'coursereport_heading';
 $info = new stdClass();
 $info->course = $course->shortname;
 if (isset($user)) {
