@@ -140,7 +140,7 @@ $string['report_header_selectmessagetypes'] = 'Select message type(s)';
 $string['report_header_data'] = 'Data';
 
 $string['message_default_greeting'] = 'Dear {#FIRSTNAME#},'.chr(13).chr(13);
-$string['message_default_closing'] = 'Kind regards,'.chr(13).'[Your name here]'.chr(13).'[Building] [Room]'.chr(13).'[Other contact details]';
+$string['message_default_closing'] = 'Kind regards';
 
 $string['message_variables_firstname'] = 'First name';
 $string['message_variables_lastname'] = 'Last name';
