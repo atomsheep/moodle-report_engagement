@@ -121,7 +121,7 @@ $string['message_table_showhide_help'] = 'Toggle this checkbox to show or hide e
 $string['message_header_groupwith'] = 'Group with: ';
 $string['message_sent_notification_header'] = 'Message sent to:';
 $string['message_sent_notification_recipient'] = '{$a->email}';
-$string['message_sent_notification_success'] = '[success {$a}]';
+$string['message_sent_notification_success'] = '[{$a}]';
 $string['message_sent_notification_failed'] = '[FAILED {$a}]';
 
 $string['report_readposts'] = '{$a} read posts';

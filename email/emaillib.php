@@ -174,7 +174,8 @@ class report_engagement_email_message {
 				),
 				'headers' => array('Reply-To' => $this->replyto_address),
 			);
-			$result = $mandrill->messages->send($message);
+			$async = true;
+			$result = $mandrill->messages->send($message, $async);
 			$res->message = $result[0]['status'];
 			$res->result = true;
 		} catch (Exception $e) {
