@@ -196,6 +196,9 @@ foreach ($indicators as $name => $path) {
 								$data[$userid]["indicator_$name"]['numberoverduesubmitted'] += 1;
 								$data[$userid]["indicator_$name"]['totallateinterval'] += $interval;
 							}
+						} else if ($assessment->due > time()) {
+							// Not due yet
+							
 						} else {
 							$data[$userid]["indicator_$name"]['numberoverduenotsubmitted'] += 1;
 							$data[$userid]["indicator_$name"]['overdueassessments'][] = $assessment->description;
