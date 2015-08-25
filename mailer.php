@@ -161,22 +161,26 @@ foreach ($indicators as $name => $path) {
 		switch ($name) {
 			case 'forum':
 				foreach ($rawdata->posts as $userid => $record) {
-					$data[$userid]["indicator_$name"]['total'] = $record['total']; // total postings (not readings)
-					$data[$userid]["indicator_$name"]['new'] = $record['new'];
-					$data[$userid]["indicator_$name"]['replies'] = $record['replies'];
-					$data[$userid]["indicator_$name"]['read'] = $record['read'];
+					if (array_key_exists($userid, $data)) {
+						$data[$userid]["indicator_$name"]['total'] = $record['total']; // total postings (not readings)
+						$data[$userid]["indicator_$name"]['new'] = $record['new'];
+						$data[$userid]["indicator_$name"]['replies'] = $record['replies'];
+						$data[$userid]["indicator_$name"]['read'] = $record['read'];
+					}
 				}
 				break;
 			case 'login':
 				foreach ($rawdata as $userid => $record) {
-					$data[$userid]["indicator_$name"]['totaltimes'] = count($record['lengths']);
-					$data[$userid]["indicator_$name"]['lastlogin'] = $record['lastlogin'];
-					if ($record['total'] > 0) {
-						$data[$userid]["indicator_$name"]['averagesessionlength'] = array_sum($record['lengths']) / count($record['lengths']);
-						$data[$userid]["indicator_$name"]['averageperweek'] = array_sum($record['weeks']) / count($record['weeks']);
-					} else {
-						$data[$userid]["indicator_$name"]['averagesessionlength'] = "";
-						$data[$userid]["indicator_$name"]['averageperweek'] = "";					
+					if (array_key_exists($userid, $data)) {
+						$data[$userid]["indicator_$name"]['totaltimes'] = count($record['lengths']);
+						$data[$userid]["indicator_$name"]['lastlogin'] = $record['lastlogin'];
+						if ($record['total'] > 0) {
+							$data[$userid]["indicator_$name"]['averagesessionlength'] = array_sum($record['lengths']) / count($record['lengths']);
+							$data[$userid]["indicator_$name"]['averageperweek'] = array_sum($record['weeks']) / count($record['weeks']);
+						} else {
+							$data[$userid]["indicator_$name"]['averagesessionlength'] = "";
+							$data[$userid]["indicator_$name"]['averageperweek'] = "";					
+						}
 					}
 				}
 				break;
