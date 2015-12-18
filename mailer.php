@@ -540,8 +540,8 @@ $mformdata['subsets'] = $subsets;
 $mformdata['jstable'] = $jstable;
 $mformdata['js_columns'] = $js_columns;
 $mformdata['chk_column_headers'] = $chk_column_headers;
-$mformdata['defaultsort'] = json_encode(array(array(count($indicators)*2+1, 'desc'))); // default sort by total descending
-$mformdata['html_num_fmt_cols'] = json_encode(array(5,6,7,8));
+$mformdata['defaultsort'] = json_encode(array(array(count($js_columns) - 2, 'desc'))); // default sort by total descending
+$mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($js_columns) - 3));
 $mformdata['friendlypatterns'] = $friendlypatterns;
 if ($action == 'composing') {
 	$mformdata['defaultmessages'] = $defaultmessages;
