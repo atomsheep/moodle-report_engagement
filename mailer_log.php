@@ -120,24 +120,29 @@ if ($uid) {
 
 // Render data // TODO: refactor into renderer
 $html = "";
-
+$html_table_export = []; // for export table
 $_MAX_RECIPIENTS_TO_SHOW = 5;
 
 // Show title
 $html .= html_writer::tag('h2', $page_title);
+// Show table
 if (count($messages)) {
+	$html_table_export[] = html_writer::start_tag('div', array('class'=>'hidden'));
+	$html_table_export[] = html_writer::start_tag('table', array('id'=>'export_table'));
 	$html .= html_writer::start_tag('table', array('id'=>'message_table', 'class'=>'row-border display compact'));
-		$html .= html_writer::start_tag('thead');
-			$html .= html_writer::start_tag('tr');
-				$html .= html_writer::tag('th', get_string('mailer_log_message_sent', 'report_engagement'));
-				$html .= html_writer::tag('th', get_string('mailer_log_message_from', 'report_engagement'));
-				$html .= html_writer::tag('th', get_string('mailer_log_message_recipients', 'report_engagement'));
-				$html .= html_writer::tag('th', get_string('mailer_log_message_subject', 'report_engagement'));
-				$html .= html_writer::tag('th', get_string('mailer_log_message_body', 'report_engagement'));
-			$html .= html_writer::end_tag('tr');
-		$html .= html_writer::end_tag('thead');
-		$html .= html_writer::start_tag('tbody');
+		$html .= $html_table_export[] = html_writer::start_tag('thead');
+			$html .= $html_table_export[] = html_writer::start_tag('tr');
+				$html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_sent', 'report_engagement'));
+				$html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_from', 'report_engagement'));
+				$html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_recipients', 'report_engagement'));
+				$html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_id', 'report_engagement'));
+				$html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_subject', 'report_engagement'));
+				$html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_body', 'report_engagement'));
+			$html .= $html_table_export[] = html_writer::end_tag('tr');
+		$html .= $html_table_export[] = html_writer::end_tag('thead');
+		$html .= $html_table_export[] = html_writer::start_tag('tbody');
 			foreach ($messages as $messageid => $message) {
+				// Display table
 				$view_message_url = new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid));
 				$html .= html_writer::start_tag('tr');
 					// Sent date
@@ -177,29 +182,67 @@ if (count($messages)) {
 					}
 					$html .= html_writer::tag('td', $message_body, array('class'=>'mailer_log_cell'));
 				$html .= html_writer::end_tag('tr');
+				// Export table
+				$message_subject_export = base64_decode($message->subject);
+				$message_body_export = base64_decode($message->body);
+				foreach ($recipients[$messageid] as $recipient) {
+					$html_table_export[] = html_writer::start_tag('tr');
+					$html_table_export[] = html_writer::tag('td', date("j F Y g:i a", $message->timesent));
+					$html_table_export[] = html_writer::tag('td', $message->sender->email);
+					$html_table_export[] = html_writer::tag('td', $recipient->email);
+					$html_table_export[] = html_writer::tag('td', $messageid);
+					$html_table_export[] = html_writer::tag('td', message_variables_replace($message_subject_export));
+					$html_table_export[] = html_writer::tag('td', message_variables_replace($message_body_export, $recipient->id));
+					$html_table_export[] = html_writer::end_tag('tr');
+				}
 			}
-		$html .= html_writer::end_tag('tbody');
-	$html .= html_writer::end_tag('table');
+		$html .= $html_table_export[] = html_writer::end_tag('tbody');
+	$html .= $html_table_export[] = html_writer::end_tag('table');
+	$html_table_export[] = html_writer::end_tag('div');
 } else {
 	$html .= html_writer::tag('h3', get_string('mailer_log_nomessages', 'report_engagement'));
 }
-
+// Return html for heading and main table
 echo $html;
+// Return html for export table
+echo(join('', $html_table_export));
 
+// Scripts
 $button_mailer_log_label_csv = get_string('button_mailer_log_label_csv', 'report_engagement');
 $button_mailer_log_fname_csv = get_string('button_mailer_log_fname_csv', 'report_engagement');
 $js = "
 	<script>
 		$(document).ready(function(){
-			$('#message_table').DataTable({
+			var export_table = $('#export_table').DataTable({
+				'dom':'Bt',
+				'buttons': [ {
+					'extend':'csvHtml5',
+					'title':'$button_mailer_log_fname_csv'
+				} ]
+			});
+			var message_table = $('#message_table').DataTable({
 				'lengthMenu':[ [5, 10, 50, 100, -1] , [5, 10, 50, 100, 'All'] ],
 				'dom': 'Blfrtip',
-				'buttons': [ {'extend':'csvHtml5', 'text':'$button_mailer_log_label_csv', 'title':'$button_mailer_log_fname_csv'} ]
+				'buttons': [ {
+					'extend':'csvHtml5',
+					'text':'$button_mailer_log_label_csv'
+				} ]
+			});
+			message_table.button(0).action(function(){
+				console.log('bello');
+				export_table.button(0).trigger();
 			});
 		});
 	</script>
 ";
 echo($js);
+
+$html_table_export[] = "
+	<script>
+		$(document).ready(function(){
+		});
+	</script>
+";
 
 echo $OUTPUT->footer();
 

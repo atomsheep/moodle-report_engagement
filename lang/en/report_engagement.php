@@ -63,6 +63,7 @@ $string['mailer_log_message_sent'] = 'Sent: ';
 $string['mailer_log_message_subject'] = 'Subject: ';
 $string['mailer_log_message_body'] = 'Message: ';
 $string['mailer_log_message_recipients'] = 'Recipients: ';
+$string['mailer_log_message_id'] = 'Message ID: ';
 $string['mailer_log_nomessages'] = 'No messages logged';
 $string['mailer_log_message_otherrecipients'] = 'other users';
 $string['mailer_log_viewbymessage'] = 'View by message';
