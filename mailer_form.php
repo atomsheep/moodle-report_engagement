@@ -388,33 +388,6 @@ class report_engagement_mailer_form extends moodleform {
 							var content = JSON.parse($(this).attr('data-content'));
 							ta.insertText('\\n' + content + '\\n', ta[0].selectionStart);
 						});
-						/*
-						$('select[name^=message_snippet_suggested_], select[name^=message_snippet_other_]').on('change', function(){
-							//$('textarea[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').val(snippet_data.snippets[$(this).val()].text);
-							$('div[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').html(snippet_data.snippets[$(this).val()].text);
-						});
-						$('select[name^=message_snippet_variables_]').on('change', function(){
-							//$('textarea[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').val($(this).val());
-							$('div[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').html($(this).val());
-						});
-						$('select[name^=message_snippet_my_]').on('change', function(){
-							//$('textarea[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').val(my_messages_data[$(this).val()]);
-							$('div[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').html(my_messages_data[$(this).val()]);
-						});
-						*/
-						/*
-						$('textarea[id^=message_snippet_preview_]').on('click', function(){
-							$(this).select();
-							$('span[id=message_snippet_helper_' + $(this).attr('data-pattern') + ']').show('fast').delay(4000).hide('fast');
-						});
-						*/
-						/*
-						$('button[id^=message_snippet_insert_]').on('click', function(event){
-							event.preventDefault();
-							//insertTextAtCursor($('textarea[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').val());
-							insertTextAtCursor($('div[id=message_snippet_preview_' + $(this).attr('data-pattern') + ']').html());
-						});
-						*/
 					});
 				</script>
 			";
