@@ -296,7 +296,9 @@ class report_engagement_mailer_form extends moodleform {
 							'columnDefs': [
 								{ 'type':'num-html', 'targets':$html_num_fmt_cols }
 							],
-							'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ]
+							'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
+							'dom': 'Blfrtip',
+							'buttons': ['csvHtml5']
 						}).on('draw', function(){
 							$('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
 						});
