@@ -48,6 +48,10 @@ $string['queryenddatetime'] = 'Ignore data after';
 $string['querylimitset'] = 'Query limit set: ';
 
 $string['mailer'] = 'Mailer';
+$string['button_mailer_label_csv'] = 'Download as CSV';
+$string['button_mailer_fname_csv'] = 'engagement_report';
+$string['button_mailer_log_label_csv'] = 'Download as CSV';
+$string['button_mailer_log_fname_csv'] = 'mailer_log';
 $string['mailer_message_log'] = 'Mailer message log';
 $string['mailer_log_user'] = 'Messages received by ';
 $string['mailer_log_message'] = 'Recipients of message';

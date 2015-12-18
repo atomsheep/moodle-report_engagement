@@ -288,6 +288,8 @@ class report_engagement_mailer_form extends moodleform {
 				$mform->addHelpButton("check_all", 'message_check_all', 'report_engagement');
 			}
 			// Script to prepare DataTable
+			$button_mailer_label_csv = get_string('button_mailer_label_csv', 'report_engagement');
+			$button_mailer_fname_csv = get_string('button_mailer_fname_csv', 'report_engagement');
 			$js_sub = "
 				<script>
 					$(document).ready(function(){
@@ -298,7 +300,7 @@ class report_engagement_mailer_form extends moodleform {
 							],
 							'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
 							'dom': 'Blfrtip',
-							'buttons': ['csvHtml5']
+							'buttons': [ {'extend':'csvHtml5', 'text':'$button_mailer_label_csv', 'title':'$button_mailer_fname_csv'} ]
 						}).on('draw', function(){
 							$('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
 						});

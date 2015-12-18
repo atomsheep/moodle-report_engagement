@@ -186,13 +186,15 @@ if (count($messages)) {
 
 echo $html;
 
+$button_mailer_log_label_csv = get_string('button_mailer_log_label_csv', 'report_engagement');
+$button_mailer_log_fname_csv = get_string('button_mailer_log_fname_csv', 'report_engagement');
 $js = "
 	<script>
 		$(document).ready(function(){
 			$('#message_table').DataTable({
 				'lengthMenu':[ [5, 10, 50, 100, -1] , [5, 10, 50, 100, 'All'] ],
 				'dom': 'Blfrtip',
-				'buttons': ['csvHtml5']
+				'buttons': [ {'extend':'csvHtml5', 'text':'$button_mailer_log_label_csv', 'title':'$button_mailer_log_fname_csv'} ]
 			});
 		});
 	</script>
