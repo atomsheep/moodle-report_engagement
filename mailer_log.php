@@ -190,7 +190,9 @@ $js = "
 	<script>
 		$(document).ready(function(){
 			$('#message_table').DataTable({
-				'lengthMenu':[ [5, 10, 50, 100, -1] , [5, 10, 50, 100, 'All'] ]
+				'lengthMenu':[ [5, 10, 50, 100, -1] , [5, 10, 50, 100, 'All'] ],
+				'dom': 'Blfrtip',
+				'buttons': ['csvHtml5']
 			});
 		});
 	</script>
