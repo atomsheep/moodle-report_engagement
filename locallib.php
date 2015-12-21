@@ -238,14 +238,16 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	if (!isset($senderid)) {
 		$senderid = $USER->id;
 	}
-	if (!isset($replytoid)) {
+	/*if (!isset($replytoid)) {
 		$replytoid = $USER->id;
+	}*/
+	if (!isset($replytoaddress)) {
+		$replytoaddress = $USER->email;
 	}
-	
 	
 	$recipient = $DB->get_record('user', array('id'=>$recipientid));
 	
-	// Temporary dev hack to whitelist courseids that can send
+	// Temporary dev hack to whitelist courseids that can send // TODO REMOVE
 	$mailer_settings_json = json_decode(file_get_contents('mailer_settings.txt'));
 	foreach ($mailer_settings_json->whitelist as $whitelisted) {
 		if ($whitelisted->courseid == $COURSE->id) {
@@ -263,7 +265,7 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	// End dev hack
 	
 	$sender = $DB->get_record('user', array('id'=>$senderid));
-	$replyto = $DB->get_record('user', array('id'=>$replytoid));
+	//$replyto = $DB->get_record('user', array('id'=>$replytoid));
 	$email_body = $message['message'];
 	$email_subject = $message['subject']; 
 	// Prepare return variable
@@ -275,7 +277,8 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	$email->recipient_name = fullname($recipient);
 	$email->sender_address = $sender->email;
 	$email->sender_name = fullname($sender);
-	$email->replyto_address = $replyto->email;
+	//$email->replyto_address = $replyto->email;
+	$email->replyto_address = $replytoaddress;
 	$email->replyto_name = fullname($replyto);
 	$email->email_subject = $email_subject;
 	$email->email_body = $email_body;

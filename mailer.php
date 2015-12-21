@@ -480,8 +480,9 @@ if ($action == 'composing') {
 	foreach ($patterns as $pattern => $userids) {
 		$sender = $DB->get_record('user', array('id'=>$postdata->{"sender_$pattern"}));
 		$sender_previews[$pattern][$postdata->{"sender_$pattern"}] = fullname($sender) . " &lt;$sender->email&gt;";
-		$replyto = $DB->get_record('user', array('id'=>$postdata->{"replyto_$pattern"}));
-		$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = fullname($replyto) . " &lt;$replyto->email&gt;";
+		//$replyto = $DB->get_record('user', array('id'=>$postdata->{"replyto_$pattern"}));
+		//$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = fullname($replyto) . " &lt;$replyto->email&gt;";
+		$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = $postdata->{"replyto_$pattern"};
 	}
 } else if ($action == 'sending') {
 	$messages = array();
@@ -489,7 +490,8 @@ if ($action == 'composing') {
 	$message_decoded = array();
 	$subject_decoded = array();
 	$senderids = array();
-	$replytoids = array();
+	//$replytoids = array();
+	$replytoaddresses = array();
 	foreach ($patterns as $pattern => $userids) {
 		$message_decoded[$pattern] = base64_decode($postdata->{"message_encoded_$pattern"});
 		$subject_decoded[$pattern] = base64_decode($postdata->{"subject_encoded_$pattern"});
@@ -500,7 +502,8 @@ if ($action == 'composing') {
 			$messages[$pattern][$userid]['subject'] = message_variables_replace($subject_decoded[$pattern], $userid);
 		}
 		$senderids[$pattern] = $postdata->{"sender_$pattern"};
-		$replytoids[$pattern] = $postdata->{"replyto_$pattern"};
+		//$replytoids[$pattern] = $postdata->{"replyto_$pattern"};
+		$replytoaddresses[$pattern] = $postdata->{"replyto_$pattern"};
 	}
 	// Send messages
 	$message_send_results = array();
@@ -515,7 +518,8 @@ if ($action == 'composing') {
 				$n += 1;
 			}
 			// Send messages
-			$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoids[$pattern]);
+			//$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoids[$pattern]);
+			$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoaddresses[$pattern]);
 			if ($message_send_results[$pattern][$userid]->result == true) {
 				// Log send event to database
 				$user = $DB->get_record('user', array('id'=>$userid));
@@ -592,7 +596,8 @@ if ($postdata) {
 // Defaults for composing
 if ($action == 'composing') {
 	foreach ($patterns as $pattern => $userids) {
-		$mform->set_data(array("sender_$pattern"=>$USER->id,"replyto_$pattern"=>$USER->id));
+		//$mform->set_data(array("sender_$pattern"=>$USER->id,"replyto_$pattern"=>$USER->id));
+		$mform->set_data(array("sender_$pattern"=>$USER->id,"replyto_$pattern"=>$USER->email));
 	}
 }
 

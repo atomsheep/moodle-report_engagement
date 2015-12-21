@@ -126,7 +126,9 @@ class report_engagement_mailer_form extends moodleform {
 				$mform->addElement('select', "sender_$pattern", get_string('message_sender', 'report_engagement'), $capable_users);
 				$mform->addHelpButton("sender_$pattern", 'message_sender', 'report_engagement');
 				// - replyto
-				$mform->addElement('select', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), $capable_users);
+				//$mform->addElement('select', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), $capable_users);
+				$mform->addElement('text', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), array('size'=>50));
+				$mform->addRule("replyto_$pattern", get_string('message_replyto_error_email', 'report_engagement'), 'email', null, 'client');
 				$mform->addHelpButton("replyto_$pattern", 'message_replyto', 'report_engagement');
 				// - message subject
 				$mform->addElement('text', "subject_$pattern", get_string('message_subject', 'report_engagement'), array('size'=>50));

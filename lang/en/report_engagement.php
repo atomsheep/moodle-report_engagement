@@ -77,6 +77,7 @@ $string['message_sender'] = 'Sender';
 $string['message_sender_help'] = 'The person and email address that the email to the student will appear to come from.';
 $string['message_replyto'] = 'Reply to';
 $string['message_replyto_help'] = 'The default person and email address that receives replies when a student replies to a message.';
+$string['message_replyto_error_email'] = 'Must be valid email address';
 $string['message_subject'] = 'Message subject';
 $string['message_subject_help'] = 'The subject of the email.';
 $string['message_body'] = 'Message body';
