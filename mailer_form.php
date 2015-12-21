@@ -58,6 +58,7 @@ class report_engagement_mailer_form extends moodleform {
 			$message_previews = $this->_customdata['message_previews'];
 			$sender_previews = $this->_customdata['sender_previews'];
 			$replyto_previews = $this->_customdata['replyto_previews'];
+			$cc_previews = $this->_customdata['cc_previews'];
 			$message_previews_by_user = $this->_customdata['message_previews_by_user'];
 		} else if ($action == 'sending') {
 			$message_send_results = $this->_customdata['message_send_results'];
@@ -130,6 +131,10 @@ class report_engagement_mailer_form extends moodleform {
 				$mform->addElement('text', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), array('size'=>50));
 				$mform->addRule("replyto_$pattern", get_string('message_replyto_error_email', 'report_engagement'), 'email', null, 'client');
 				$mform->addHelpButton("replyto_$pattern", 'message_replyto', 'report_engagement');
+				// - CC
+				$mform->addElement('text', "cc_$pattern", get_string('message_cc', 'report_engagement'), array('size'=>50));
+				$mform->addRule("cc_$pattern", get_string('message_cc_error_email', 'report_engagement'), 'email', null, 'client');
+				$mform->addHelpButton("cc_$pattern", 'message_cc', 'report_engagement');
 				// - message subject
 				$mform->addElement('text', "subject_$pattern", get_string('message_subject', 'report_engagement'), array('size'=>50));
 				$mform->addHelpButton("subject_$pattern", 'message_subject', 'report_engagement');
@@ -234,11 +239,13 @@ class report_engagement_mailer_form extends moodleform {
 				$preview_nav[] =& $mform->createElement('button', "button_preview_nav_forward_$pattern", get_string('message_preview_button_forward', 'report_engagement'), array('data-pattern'=>"$pattern", 'data-direction'=>'forward'));
 				$mform->addGroup($preview_nav, "preview_nav_$pattern", get_string('message_preview_buttons', 'report_engagement'), array(' '), false);
 				$mform->addHelpButton("preview_nav_$pattern", 'message_preview_buttons', 'report_engagement');
-				// Sender and replyto
+				// Sender and replyto and cc
 				$mform->addElement('static', '', get_string('message_sender', 'report_engagement'), reset($sender_previews[$pattern]));
 				$mform->addElement('hidden', "sender_$pattern", key($sender_previews[$pattern]));
 				$mform->addElement('static', '', get_string('message_replyto', 'report_engagement'), reset($replyto_previews[$pattern]));
 				$mform->addElement('hidden', "replyto_$pattern", key($replyto_previews[$pattern]));
+				$mform->addElement('static', '', get_string('message_cc', 'report_engagement'), reset($cc_previews[$pattern]));
+				$mform->addElement('hidden', "cc_$pattern", key($cc_previews[$pattern]));
 				// Encoded message subject and body
 				$mform->addElement('hidden', "subject_encoded_$pattern", $message_previews[$pattern]->subject_encoded);
 				$mform->addElement('hidden', "message_encoded_$pattern", $message_previews[$pattern]->message_encoded);

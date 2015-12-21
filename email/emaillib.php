@@ -31,7 +31,8 @@ class report_engagement_email_message {
 	public $sender_address;
 	public $sender_name;
 	public $replyto_address;
-	public $replyto_name;
+	//public $replyto_name;
+	public $cc_address;
 	public $email_subject;
 	public $email_body;
 
@@ -160,18 +161,22 @@ class report_engagement_email_message {
 		
 		try {
 			$mandrill = new Mandrill($_CONFIG_MAILER_MANDRILL['APIKEY']);
+			$to_array = array();
+			$to_array[] = array(
+				'email' => $this->recipient_address,
+				'name' => $this->recipient_name,
+				'type' => 'to');
+			if (isset($this->cc_address)) {
+				$to_array[] = array(
+					'email' => $this->cc_address,
+					'type' => 'cc');
+			};
 			$message = array(
 				'text' => $this->email_body,
 				'subject' => $this->email_subject,
 				'from_email' => $this->sender_address,
 				'from_name' => $this->sender_name,
-				'to' => array(
-					array(
-						'email' => $this->recipient_address,
-						'name' => $this->recipient_name,
-						'type' => 'to'
-					)
-				),
+				'to' => $to_array,
 				'headers' => array('Reply-To' => $this->replyto_address),
 			);
 			$async = true;

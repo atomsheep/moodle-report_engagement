@@ -230,9 +230,11 @@ function message_variables_get_array() {
  * @param array $message Elements message and subject
  * @param int $recipientid The Moodle userid of the recipient of the email
  * @param int $senderid The Moodle userid of the sender of the email
+ * @param string $replytoaddress Email address for reply-to
+ * @param string $ccaddress Email address for carbon copy
  * @return object An object containing a recipient object and the return value of email_to_user
  */
-function message_send_customised_email($message, $recipientid, $senderid, $replytoid) {
+function message_send_customised_email($message, $recipientid, $senderid, $replytoaddress, $ccaddress) {
 	global $DB, $USER, $COURSE;
 	require_once('email/emaillib.php');
 	if (!isset($senderid)) {
@@ -279,7 +281,7 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	$email->sender_name = fullname($sender);
 	//$email->replyto_address = $replyto->email;
 	$email->replyto_address = $replytoaddress;
-	$email->replyto_name = fullname($replyto);
+	//$email->replyto_name = fullname($replyto);
 	$email->email_subject = $email_subject;
 	$email->email_body = $email_body;
 	$res = $email->send_email();
