@@ -186,7 +186,7 @@ foreach ($data as $userid => $record) {
 	}
 }
 
-// Set up table
+// Set up table data
 $jstable = array();
 // $chk_disabled = $postdata && isset($patterns) ? "disabled='disabled'" : "";
 $chk_disabled = "";
@@ -468,6 +468,7 @@ $mformdata['subsets'] = $subsets;
 $mformdata['jstable'] = $jstable;
 $mformdata['js_columns'] = $js_columns;
 $mformdata['chk_column_headers'] = $chk_column_headers;
+$mformdata['display_data_raw'] = $display_data;
 $mformdata['defaultsort'] = json_encode(array(array(count($js_columns) - 2, 'desc'))); // default sort by total descending
 $mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($js_columns) - 3));
 $mformdata['friendlypatterns'] = $friendlypatterns;

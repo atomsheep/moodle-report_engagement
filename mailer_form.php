@@ -42,6 +42,7 @@ class report_engagement_mailer_form extends moodleform {
 		$jstable = $this->_customdata['jstable'];
 		$js_columns = $this->_customdata['js_columns'];		
 		$chk_column_headers = $this->_customdata['chk_column_headers'];
+		$display_data_raw = $this->_customdata['display_data_raw'];
 		$defaultsort = $this->_customdata['defaultsort'];
 		$html_num_fmt_cols = $this->_customdata['html_num_fmt_cols'];
 		
@@ -91,8 +92,14 @@ class report_engagement_mailer_form extends moodleform {
 							$tablehtml .= get_string('report_header_userinfo', 'report_engagement');
 						$tablehtml .= html_writer::end_tag('th');
 						// user data
-						$tablehtml .= html_writer::start_tag('th', array('colspan'=>(2 + count($chk_column_headers))));
-							$tablehtml .= get_string('report_header_data', 'report_engagement');
+						foreach ($display_data_raw as $name => $raw) {
+							$tablehtml .= html_writer::start_tag('th', array('colspan'=>(count($raw))));
+								$tablehtml .= ucfirst($name) . " " . get_string('report_header_data', 'report_engagement');
+							$tablehtml .= html_writer::end_tag('th');
+						}
+						// totals
+						$tablehtml .= html_writer::start_tag('th', array('colspan'=>(2)));
+							$tablehtml .= '';
 						$tablehtml .= html_writer::end_tag('th');
 					$tablehtml .= html_writer::end_tag('tr');
 					// second row - headers
