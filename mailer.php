@@ -132,6 +132,7 @@ if (data_submitted() && confirm_sesskey()) {
 // Retrieve data from databases
 $data = array();
 $riskdata = array();
+$display_data = array();
 $weightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
 foreach ($indicators as $name => $path) {
 	if (file_exists("$path/indicator.class.php")) {
@@ -155,72 +156,8 @@ foreach ($indicators as $name => $path) {
 				$data[$userid] = array();
 			}
 		}
-		foreach ($users as $userid) {
-			$data[$userid]["indicator_$name"] = [];
-		}
-		// Populate data // TODO: refactor this into individual indicator classes
-		switch ($name) {
-			case 'forum':
-				foreach ($rawdata->posts as $userid => $record) {
-					if (array_key_exists($userid, $data)) {
-						$data[$userid]["indicator_$name"]['total'] = $record['total']; // total postings (not readings)
-						$data[$userid]["indicator_$name"]['new'] = $record['new'];
-						$data[$userid]["indicator_$name"]['replies'] = $record['replies'];
-						$data[$userid]["indicator_$name"]['read'] = $record['read'];
-					}
-				}
-				break;
-			case 'login':
-				foreach ($rawdata as $userid => $record) {
-					if (array_key_exists($userid, $data)) {
-						$data[$userid]["indicator_$name"]['totaltimes'] = count($record['lengths']);
-						$data[$userid]["indicator_$name"]['lastlogin'] = $record['lastlogin'];
-						if ($record['total'] > 0) {
-							$data[$userid]["indicator_$name"]['averagesessionlength'] = array_sum($record['lengths']) / count($record['lengths']);
-							$data[$userid]["indicator_$name"]['averageperweek'] = array_sum($record['weeks']) / count($record['weeks']);
-						} else {
-							$data[$userid]["indicator_$name"]['averagesessionlength'] = "";
-							$data[$userid]["indicator_$name"]['averageperweek'] = "";					
-						}
-					}
-				}
-				break;
-			case 'assessment':
-				foreach ($rawdata->assessments as $assessment) {
-					foreach ($users as $userid) {
-						$submittime = isset($assessment->submissions[$userid]['submitted']) ? $assessment->submissions[$userid]['submitted'] : PHP_INT_MAX;
-						$timedue = isset($assessment->submissions[$userid]['due']) ? $assessment->submissions[$userid]['due'] : 1;
-						$interval = $submittime - $timedue;
-						if (isset($assessment->submissions[$userid]['submitted'])) {
-							$data[$userid]["indicator_$name"]['numbersubmissions'] += 1;
-							if ($interval > 0) {
-								$data[$userid]["indicator_$name"]['numberoverduesubmitted'] += 1;
-								$data[$userid]["indicator_$name"]['totallateinterval'] += $interval;
-							}
-						} else if ($assessment->due > time()) {
-							// Not due yet
-							
-						} else {
-							$data[$userid]["indicator_$name"]['numberoverduenotsubmitted'] += 1;
-							$data[$userid]["indicator_$name"]['overdueassessments'][] = $assessment->description;
-						}
-					}
-				}
-				break;
-			case 'gradebook':
-				foreach ($users as $userid) {
-					$obj = $indicatorrisks[$userid];
-					$data[$userid]["indicator_$name"]['risk'] = $obj->risk;
-					foreach ($obj->info as $info) {
-						if ($info->riskcontribution == '0%') {
-							$data[$userid]["indicator_$name"]['nottriggeredby'][] = $info->title . " " . $info->logic;
-						} else {
-							$data[$userid]["indicator_$name"]['triggeredby'][] = $info->title . " " . $info->logic;
-						}
-					}
-				}
-				break;
-		}
+		// fetch information to display
+		$display_data[$name] = $indicator->get_data_for_mailer();
 	}
 }
 
@@ -275,7 +212,7 @@ foreach ($data as $userid => $record) {
 			$jsrow["$c"] = "";
 		}
 	}
-	// Show users' name
+	// Show users' names
 	$studentrecord = $DB->get_record('user', array('id' => $userid));
 	$jsrow['Username'] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
 	// Show group membership
@@ -289,51 +226,9 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$c += 1;
 		$pluginname = get_string('pluginname', "engagementindicator_$name");
-		// TODO: best to eventually refactor this into individual classes
-		switch ($name) {
-			case 'forum':
-				$r = $record["indicator_$name"]['read'];
-				$r = $r ? $r : 0;
-				$p = $record["indicator_$name"]['total'];
-				$p = $p ? $p : 0;
-				$jsrow["$pluginname"] = get_string('report_readposts', 'report_engagement', $r)."<br />".get_string('report_posted', 'report_engagement', $p);
-				break;
-			case 'login':
-				$n = $record["indicator_$name"]['lastlogin'];
-				$a = $record["indicator_$name"]['averageperweek'];
-				if ($n) {
-					$d = (time() - $n) / 60 / 60 / 24.0;
-					$jsrow["$pluginname"] = sprintf("%.1d", $d).get_string('report_login_dayssince', 'report_engagement')."<br />".sprintf("%.1f", $a).get_string('report_login_perweek', 'report_engagement');
-				} else {
-					$jsrow["$pluginname"] = "";
-				}
-				break;
-			case 'assessment':
-				$n = $record["indicator_$name"]['numberoverduenotsubmitted'];
-				$n = $n ? $n : 0;
-				$s = $record["indicator_$name"]['numbersubmissions'];
-				$s = $s ? $s : 0;
-				$o = $record["indicator_$name"]['numberoverduesubmitted'];
-				$o = $o ? $o : 0;
-				$l = $record["indicator_$name"]['totallateinterval'] / 60 / 60 / 24;
-				$v = $l / $s;
-				$ov = new stdClass();
-				$ov->o = $o;
-				$ov->v = $v;
-				$a = implode('<br />', $record["indicator_$name"]['overdueassessments']);
-				$jsrow["$pluginname"] = get_string('report_assessment_overdue', 'report_engagement', $n)."<div class='report_engagement_detail'>$a</div><br />".get_string('report_assessment_submitted', 'report_engagement', $s)."<div class='report_engagement_detail'>".get_string('report_assessment_overduelate', 'report_engagement', $ov)."</div>";
-				break;
-			case 'gradebook':
-				$r = $record["indicator_$name"]['risk'];
-				$r = $r ? $r : 0;
-				$t = $record["indicator_$name"]['triggeredby'];
-				$ts = implode('&#10;', $t);
-				$t = $t ? count($t) : 0;
-				$n = $record["indicator_$name"]['nottriggeredby'];
-				$ns = implode('&#10;', $n);
-				$n = $n ? count($n) : 0;
-				$jsrow["$pluginname"] = get_string('report_gradebook_percentrisk', 'report_engagement', ($r * 100))."<br />".get_string('report_gradebook_triggered', 'report_engagement', $t)."<div class='report_engagement_detail'>$ts</div><br />".get_string('report_gradebook_nottriggered', 'report_engagement', $n)."<div class='report_engagement_detail'>$ns</div>";
-				break;
+		// Parse display data
+		foreach ($display_data[$name] as $display_column) {
+			$jsrow[$display_column['header']] = $display_column['display'][$userid];
 		}
 	}
 	// Calculate and show total risk
