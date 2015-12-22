@@ -140,6 +140,7 @@ $string['report_messagessent'] = 'Msgs <br />sent';
 $string['report_header_selectmessagetypes'] = 'Select message type(s)';
 $string['report_header_userinfo'] = 'User information';
 $string['report_header_data'] = 'Data';
+$string['report_header_totals'] = 'Totals';
 
 $string['message_default_greeting'] = 'Dear {#FIRSTNAME#},'.chr(13).chr(13);
 $string['message_default_closing'] = 'Kind regards';

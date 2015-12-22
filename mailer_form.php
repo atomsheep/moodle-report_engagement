@@ -99,7 +99,7 @@ class report_engagement_mailer_form extends moodleform {
 						}
 						// totals
 						$tablehtml .= html_writer::start_tag('th', array('colspan'=>(2)));
-							$tablehtml .= '';
+							$tablehtml .= get_string('report_header_totals', 'report_engagement');
 						$tablehtml .= html_writer::end_tag('th');
 					$tablehtml .= html_writer::end_tag('tr');
 					// second row - headers
