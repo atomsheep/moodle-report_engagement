@@ -85,7 +85,7 @@ class report_engagement_mailer_form extends moodleform {
 							$tablehtml .= html_writer::start_tag('th', array('colspan'=>count($chk_column_headers)));
 								$tablehtml .= get_string('report_header_selectmessagetypes', 'report_engagement');
 							$tablehtml .= html_writer::end_tag('th');
-							$tablehtml .= html_writer::start_tag('th', array('colspan'=>(count($chk_column_headers) + 3)));
+							$tablehtml .= html_writer::start_tag('th', array('colspan'=>(4 + count($chk_column_headers))));
 								$tablehtml .= get_string('report_header_data', 'report_engagement');
 							$tablehtml .= html_writer::end_tag('th');
 					$tablehtml .= html_writer::end_tag('tr');
