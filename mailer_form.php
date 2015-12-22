@@ -82,12 +82,18 @@ class report_engagement_mailer_form extends moodleform {
 				$tablehtml .= html_writer::start_tag('thead');
 					// first row - summary headers
 					$tablehtml .= html_writer::start_tag('tr');
-							$tablehtml .= html_writer::start_tag('th', array('colspan'=>count($chk_column_headers)));
-								$tablehtml .= get_string('report_header_selectmessagetypes', 'report_engagement');
-							$tablehtml .= html_writer::end_tag('th');
-							$tablehtml .= html_writer::start_tag('th', array('colspan'=>(4 + count($chk_column_headers))));
-								$tablehtml .= get_string('report_header_data', 'report_engagement');
-							$tablehtml .= html_writer::end_tag('th');
+						// checkboxes
+						$tablehtml .= html_writer::start_tag('th', array('colspan'=>count($chk_column_headers)));
+							$tablehtml .= get_string('report_header_selectmessagetypes', 'report_engagement');
+						$tablehtml .= html_writer::end_tag('th');
+						// user info
+						$tablehtml .= html_writer::start_tag('th', array('colspan'=>(2)));
+							$tablehtml .= get_string('report_header_userinfo', 'report_engagement');
+						$tablehtml .= html_writer::end_tag('th');
+						// user data
+						$tablehtml .= html_writer::start_tag('th', array('colspan'=>(2 + count($chk_column_headers))));
+							$tablehtml .= get_string('report_header_data', 'report_engagement');
+						$tablehtml .= html_writer::end_tag('th');
 					$tablehtml .= html_writer::end_tag('tr');
 					// second row - headers
 					$tablehtml .= html_writer::start_tag('tr');
@@ -327,6 +333,9 @@ class report_engagement_mailer_form extends moodleform {
 								if (that.search() !== this.value) {
 									that.search(this.value).draw();
 								}
+							}).on('click', function(event){
+								event.preventDefault();
+								return false;
 							});
 						});
 					});
