@@ -187,10 +187,6 @@ foreach ($indicators as $name => $path) {
 				break;
 			case 'assessment':
 				foreach ($rawdata->assessments as $assessment) {
-					/*echo("<pre>");
-					var_dump($rawdata->assessments);
-					die();
-					echo("</pre>");*/
 					foreach ($users as $userid) {
 						$submittime = isset($assessment->submissions[$userid]['submitted']) ? $assessment->submissions[$userid]['submitted'] : PHP_INT_MAX;
 						$timedue = isset($assessment->submissions[$userid]['due']) ? $assessment->submissions[$userid]['due'] : 1;
@@ -223,10 +219,6 @@ foreach ($indicators as $name => $path) {
 						}
 					}
 				}
-				/*echo("<pre>");
-				var_dump($indicatorrisks);
-				echo("</pre>");
-				die();*/
 				break;
 		}
 	}
