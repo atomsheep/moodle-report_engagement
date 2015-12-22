@@ -78,7 +78,9 @@ class report_engagement_mailer_form extends moodleform {
 			}
 			// Display table data
 			$tablehtml .= html_writer::start_tag('table', array('id'=>"data_table_$pattern", 'class'=>'row-border display compact'));
+				// thead
 				$tablehtml .= html_writer::start_tag('thead');
+					// first row - summary headers
 					$tablehtml .= html_writer::start_tag('tr');
 							$tablehtml .= html_writer::start_tag('th', array('colspan'=>count($chk_column_headers)));
 								$tablehtml .= get_string('report_header_selectmessagetypes', 'report_engagement');
@@ -87,14 +89,19 @@ class report_engagement_mailer_form extends moodleform {
 								$tablehtml .= get_string('report_header_data', 'report_engagement');
 							$tablehtml .= html_writer::end_tag('th');
 					$tablehtml .= html_writer::end_tag('tr');
+					// second row - headers
 					$tablehtml .= html_writer::start_tag('tr');
-						foreach ($js_columns as $js_column) {
+						foreach ($js_columns as $i => $js_column) {
 							$tablehtml .= html_writer::start_tag('th');
-								$tablehtml .= $js_column;
+								$tablehtml .= $js_column;;
+								if ($i >= count($chk_column_headers)) {
+									$tablehtml .= '<br /><input type="text" size="6" placeholder="' . get_string('message_table_filter_column', 'report_engagement') . '" />';
+								}
 							$tablehtml .= html_writer::end_tag('th');
 						}
 					$tablehtml .= html_writer::end_tag('tr');
 				$tablehtml .= html_writer::end_tag('thead');
+				// tbody
 				$tablehtml .= html_writer::start_tag('tbody');
 					foreach ($jstable as $row) {
 						if (($subsets && in_array($row['_userid'], $userids)) || !$subsets) {
@@ -284,6 +291,7 @@ class report_engagement_mailer_form extends moodleform {
 			} else if ($subsets && $action == 'sending') {
 				$send_results = array();
 				$mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_header', 'report_engagement')));
+				// TODO convert to table output format
 				foreach ($message_send_results[$pattern] as $userid => $result) {
 					$mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_recipient', 'report_engagement', $result->recipient).' '.($result->result ? get_string('message_sent_notification_success', 'report_engagement', $result->message) : get_string('message_sent_notification_failed', 'report_engagement', $result->message))));
 				}
@@ -302,6 +310,7 @@ class report_engagement_mailer_form extends moodleform {
 			$js_sub = "
 				<script>
 					$(document).ready(function(){
+						// Set up DataTable
 						$('#data_table_$pattern').DataTable({
 							'order':$defaultsort,
 							'columnDefs': [
@@ -312,6 +321,13 @@ class report_engagement_mailer_form extends moodleform {
 							'buttons': [ {'extend':'csvHtml5', 'text':'$button_mailer_label_csv', 'title':'$button_mailer_fname_csv'} ]
 						}).on('draw', function(){
 							$('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
+						}).columns().every(function(){
+							var that = this;
+							$('input', this.header()).on('keyup change', function(){
+								if (that.search() !== this.value) {
+									that.search(this.value).draw();
+								}
+							});
 						});
 					});
 				</script>

@@ -125,6 +125,7 @@ $string['message_preview_button_forward'] = 'Next message >>';
 $string['message_header_send'] = 'Send messages';
 $string['message_submit_send'] = 'Send messages now';
 $string['message_table_extradetails'] = 'Extra details in table';
+$string['message_table_filter_column'] = 'Filter';
 $string['message_table_showhide'] = 'Show/hide';
 $string['message_table_showhide_help'] = 'Toggle this checkbox to show or hide extra details in the table.';
 $string['message_header_groupwith'] = 'Group with: ';

@@ -71,6 +71,7 @@ foreach ($indicators as $name => $path) {
         unset($indicators[$name]);
     }
 }
+
 // Examine posted data
 if (data_submitted() && confirm_sesskey()) {
 	$postdata = data_submitted();
@@ -231,11 +232,37 @@ foreach ($indicators as $name => $path) {
 	}
 }
 
+// Parse and store group data
+$groups = groups_get_all_groups($course->id);
+// - Get groups and membership
+$group_memberships = array();
+foreach ($groups as $id => $group) {
+	$group_membership = array();
+	$group_membership['members'] = array_keys(groups_get_members($id, 'u.id'));
+	$group_membership['groupname'] = $group->name;
+	$group_membership['groupid'] = $id;
+	$group_memberships[$id] = $group_membership;
+}
+// - Parse and store by user
+$groups_by_user = array();
+foreach ($data as $userid => $record) {
+	$groups_by_user[$userid] = array();
+	foreach ($group_memberships as $groupid => $group_membership) {
+		if (array_search($userid, $group_membership['members'])) {
+			$groupinfo = array();
+			$groupinfo['groupname'] = $group_membership['groupname'];
+			$groupinfo['groupid'] = $group_membership['groupid'];
+			$groups_by_user[$userid][] = $groupinfo;
+		}
+	}
+}
+
 // Set up table
 $jstable = array();
 // $chk_disabled = $postdata && isset($patterns) ? "disabled='disabled'" : "";
 $chk_disabled = "";
 foreach ($data as $userid => $record) {
+	// Prepare table rows
 	$jsrow = array();
 	$jsrow['_userid'] = $userid;
 	// Add checkboxes
@@ -256,9 +283,15 @@ foreach ($data as $userid => $record) {
 			$jsrow["$c"] = "";
 		}
 	}
-	// Show username
+	// Show users' name
 	$studentrecord = $DB->get_record('user', array('id' => $userid));
 	$jsrow['Username'] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
+	// Show group membership
+	$groups = array();
+	foreach ($groups_by_user[$userid] as $group) {
+		$groups[] = $group['groupname'];
+	}
+	$jsrow['Groups'] = join('<br />', $groups);
 	// Show logic/information
 	$c = 0;
 	foreach ($indicators as $name => $path) {
