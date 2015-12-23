@@ -238,7 +238,7 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$totalrisk += $riskdata[$userid]["indicator_$name"]['raw'] * $riskdata[$userid]["indicator_$name"]['weight'];
 	}
-	$table_row['data'][$c] = sprintf("%d%", $totalrisk * 100);
+	$table_row['data'][$c] = sprintf("%d", $totalrisk * 100);
 	$c += 1;
 	// Calculate and show how many messages already received
 	try {
