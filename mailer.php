@@ -202,11 +202,11 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$checked = '';
 		// See if checkbox is checked in postdata
-		if ($postdata && $patterns) {
+		if (isset($postdata) && $postdata && $patterns) {
 			if (isset($postdata->{"chk_indicator_".$name."_".$userid})) $checked = "checked='checked'";
 		}
 		// Show checkbox(es) accordingly
-		if (!($postdata && $patterns) || $checked) {
+		if (!(isset($postdata) && $postdata && $patterns) || $checked) {
 			$table_row['data'][$c] = "<div class='chk_indicator'><input type='checkbox' id='chk_indicator_".$name."_".$userid."' name='chk_indicator_".$name."_".$userid."' $checked $chk_disabled data-userid='$userid' /></div>";
 		} else {
 			$table_row['data'][$c] = "";
