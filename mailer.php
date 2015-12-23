@@ -238,7 +238,7 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$totalrisk += $riskdata[$userid]["indicator_$name"]['raw'] * $riskdata[$userid]["indicator_$name"]['weight'];
 	}
-	$table_row['data'][$c] = sprintf("%d%%", $totalrisk * 100);
+	$table_row['data'][$c] = sprintf("%d%", $totalrisk * 100);
 	$c += 1;
 	// Calculate and show how many messages already received
 	try {
@@ -304,7 +304,8 @@ foreach (array_keys($indicators) as $indicator_name) {
 // Last columns are for totals etc
 $column_headers[$c] = array(
 	'html'=>get_string('report_totalrisk', 'report_engagement'),
-	'filterable'=>False
+	'filterable'=>False,
+	'heatmapdirection'=>1
 );
 $c += 1;
 $column_headers[$c] = array(

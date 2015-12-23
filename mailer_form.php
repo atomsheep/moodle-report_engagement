@@ -134,10 +134,10 @@ class report_engagement_mailer_form extends moodleform {
 			$mform->addElement('html', $tablehtml);
 			// Toggles
 			// - Details
-			$mform->addElement('checkbox', "toggle_details_$pattern", get_string('message_table_extradetails', 'report_engagement'), get_string('message_table_show_checkbox', 'report_engagement'));
+			$mform->addElement('checkbox', "toggle_details_$pattern", get_string('message_table_extradetails', 'report_engagement'), get_string('message_table_show_extradetails_checkbox', 'report_engagement'));
 			$mform->addHelpButton("toggle_details_$pattern", 'message_table_extradetails', 'report_engagement');
 			// - Heatmap
-			$mform->addElement('checkbox', "toggle_heatmap_$pattern", get_string('message_table_heatmap', 'report_engagement'), get_string('message_table_show_checkbox', 'report_engagement'));
+			$mform->addElement('checkbox', "toggle_heatmap_$pattern", get_string('message_table_heatmap', 'report_engagement'), get_string('message_table_show_heatmap_checkbox', 'report_engagement'));
 			$mform->addHelpButton("toggle_heatmap_$pattern", 'message_table_heatmap', 'report_engagement');
 			// Display options for each group
 			if ($subsets && $action == 'composing') {
@@ -517,16 +517,16 @@ class report_engagement_mailer_form extends moodleform {
 								}
 								col_maxes[col_index] = Math.max.apply(Math, col_data);
 							}
-							// Define the ending colour, which is white
-							xr = 255; // Red value
-							xg = 255; // Green value
+							// Define the ending colour
+							xr = 240; // Red value
+							xg = 240; // Green value
 							xb = 255; // Blue value
 							// Define the starting colour
 							yr = 180; // Red value
 							yg = 180; // Green value
 							yb = 255; // Blue value
 							// Declare the number of groups
-							n = 50;
+							n = 40;
 							// Loop through each data point and calculate its % value
 							datatables[pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
 								//console.log(this.data());
