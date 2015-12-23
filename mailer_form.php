@@ -107,7 +107,11 @@ class report_engagement_mailer_form extends moodleform {
 					// second row - headers
 					$tablehtml .= html_writer::start_tag('tr');
 						foreach ($column_headers as $i => $column_header) {
-							$tablehtml .= html_writer::start_tag('th');
+							if (array_key_exists('hide', $column_header) && $column_header['hide']) {
+								$tablehtml .= html_writer::start_tag('th', array('style'=>'display:none;'));
+							} else {
+								$tablehtml .= html_writer::start_tag('th');
+							}
 								$tablehtml .= $column_header['html'];
 								if (!array_key_exists('chk', $column_header) && array_key_exists('filterable', $column_header) && $column_header['filterable']) {
 									$tablehtml .= '<br /><input type="text" size="6" placeholder="' . get_string('message_table_filter_column', 'report_engagement') . '" />';
@@ -121,8 +125,12 @@ class report_engagement_mailer_form extends moodleform {
 					foreach ($table_data as $row) {
 						if (($subsets && in_array($row['userid'], $userids)) || !$subsets) {
 							$tablehtml .= html_writer::start_tag('tr');
-								foreach ($row['data'] as $cellkey => $cellvalue) {
-									$tablehtml .= html_writer::start_tag('td');
+								foreach ($row['data'] as $c => $cellvalue) {
+									if (array_key_exists('hide', $column_headers[$c]) && $column_headers[$c]['hide']) {
+										$tablehtml .= html_writer::start_tag('td', array('style'=>'display:none;'));
+									} else {
+										$tablehtml .= html_writer::start_tag('td');
+									}
 										$tablehtml .= $cellvalue;
 									$tablehtml .= html_writer::end_tag('td');
 								}

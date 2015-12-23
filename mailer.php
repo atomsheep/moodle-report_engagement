@@ -213,9 +213,12 @@ foreach ($data as $userid => $record) {
 		}
 		$c += 1;
 	}
-	// Show users' names
+	// Show user name
 	$studentrecord = $DB->get_record('user', array('id' => $userid));
 	$table_row['data'][$c] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
+	$c += 1;
+	// User email address
+	$table_row['data'][$c] = $studentrecord->email;
 	$c += 1;
 	// Show group membership
 	$groups = array();
@@ -281,6 +284,11 @@ foreach (array_keys($indicators) as $indicator_name) {
 $column_headers[$c] = array(
 	'html'=>get_string('report_username', 'report_engagement'),
 	'filterable'=>True
+);
+$c += 1;
+$column_headers[$c] = array(
+	'html'=>get_string('report_email', 'report_engagement'),
+	'hide'=>True
 );
 $c += 1;
 $column_headers[$c] = array(

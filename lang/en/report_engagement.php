@@ -139,6 +139,7 @@ $string['message_sent_notification_failed'] = '[FAILED {$a}]';
 
 $string['report_messagelog_daysago'] = '{$a} days ago';
 $string['report_username'] = 'Name';
+$string['report_email'] = 'Email';
 $string['report_groups'] = 'Groups';
 $string['report_totalrisk'] = 'Total risk';
 $string['report_messagessent'] = 'Msgs <br />sent';
