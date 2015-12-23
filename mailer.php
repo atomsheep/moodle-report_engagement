@@ -50,6 +50,8 @@ $PAGE->set_heading($course->fullname);
 
 global $DB, $USER;
 
+// Load up js
+$PAGE->requires->js(new moodle_url('/report/engagement/mailer.js'));
 // Load up jquery
 $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('ui');
@@ -187,48 +189,48 @@ foreach ($data as $userid => $record) {
 }
 
 // Set up table data
-$jstable = array();
+$table_data = array();
 // $chk_disabled = $postdata && isset($patterns) ? "disabled='disabled'" : "";
 $chk_disabled = "";
 foreach ($data as $userid => $record) {
-	// Prepare table rows
-	$jsrow = array();
-	$jsrow['_userid'] = $userid;
-	// Add checkboxes
+	// Prepare table row
+	$table_row = array();
+	$table_row['userid'] = $userid;
+	$table_row['data'] = array();
 	$c = 0;
+	// Add checkboxes
 	foreach ($indicators as $name => $path) {
-		/*
-		$r = dechex((255 * ($riskdata[$userid]["indicator_$name"]['raw'] * 100)) / 100);
-		$g = dechex((255 * (100 - ($riskdata[$userid]["indicator_$name"]['raw'] * 100))) / 100);
-		*/
-		$c += 1;
 		$checked = '';
+		// See if checkbox is checked in postdata
 		if ($postdata && $patterns) {
 			if (isset($postdata->{"chk_indicator_".$name."_".$userid})) $checked = "checked='checked'";
 		}
+		// Show checkbox(es) accordingly
 		if (!($postdata && $patterns) || $checked) {
-			$jsrow["$c"] = "<div class='chk_indicator'><input type='checkbox' id='chk_indicator_".$name."_".$userid."' name='chk_indicator_".$name."_".$userid."' $checked $chk_disabled data-userid='$userid' /></div>";
+			$table_row['data'][$c] = "<div class='chk_indicator'><input type='checkbox' id='chk_indicator_".$name."_".$userid."' name='chk_indicator_".$name."_".$userid."' $checked $chk_disabled data-userid='$userid' /></div>";
 		} else {
-			$jsrow["$c"] = "";
+			$table_row['data'][$c] = "";
 		}
+		$c += 1;
 	}
 	// Show users' names
 	$studentrecord = $DB->get_record('user', array('id' => $userid));
-	$jsrow['Username'] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
+	$table_row['data'][$c] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
+	$c += 1;
 	// Show group membership
 	$groups = array();
 	foreach ($groups_by_user[$userid] as $group) {
 		$groups[] = $group['groupname'];
 	}
-	$jsrow['Groups'] = join('<br />', $groups);
-	// Show logic/information
-	$c = 0;
+	$table_row['data'][$c] = join('<br />', $groups);
+	$c += 1;
+	// Show logic/information for each indicator
 	foreach ($indicators as $name => $path) {
-		$c += 1;
 		$pluginname = get_string('pluginname', "engagementindicator_$name");
 		// Parse display data
 		foreach ($display_data[$name] as $display_column) {
-			$jsrow[$display_column['header']] = $display_column['display'][$userid];
+			$table_row['data'][$c] = $display_column['display'][$userid];
+			$c += 1;
 		}
 	}
 	// Calculate and show total risk
@@ -236,7 +238,8 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$totalrisk += $riskdata[$userid]["indicator_$name"]['raw'] * $riskdata[$userid]["indicator_$name"]['weight'];
 	}
-	$jsrow[get_string('report_totalrisk', 'report_engagement')] = sprintf("%d%%", $totalrisk * 100);
+	$table_row['data'][$c] = sprintf("%d%%", $totalrisk * 100);
+	$c += 1;
 	// Calculate and show how many messages already received
 	try {
 		$messages_sent = $DB->get_records_sql("SELECT ml.id, sl.timesent FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? AND sl.recipientid = ? ORDER BY sl.timesent ASC", array($course->id, $userid));
@@ -247,28 +250,67 @@ foreach ($data as $userid => $record) {
 		$view_messages_url = new moodle_url('/report/engagement/mailer_log.php', array('id' => $course->id, 'uid' => $userid));
 		$most_recent_message = end($messages_sent);
 		$days_ago = (time() - $most_recent_message->timesent) / 60 / 60 / 24;
-		$jsrow[get_string('report_messagessent', 'report_engagement')] = "<a href='$view_messages_url' target='_blank'>".count($messages_sent)."</a><br />".get_string('report_messagelog_daysago', 'report_engagement', sprintf("%d", $days_ago));
+		$table_row['data'][$c] = "<a href='$view_messages_url' target='_blank'>".count($messages_sent)."</a><br />".get_string('report_messagelog_daysago', 'report_engagement', sprintf("%d", $days_ago));
+		$c += 1;
 	} else {
-		$jsrow[get_string('report_messagessent', 'report_engagement')] = count($messages_sent);
+		$table_row['data'][$c] = count($messages_sent);
+		$c += 1;
 	}
 	// Add row to table
-	$jstable[] = $jsrow;
+	$table_data[] = $table_row;
 }
 
-$c = 0;
-$js_columns = array();
+// Determine column headers and related options
+$column_headers = array();
 $chk_column_headers = array_keys($indicators);
-foreach (array_keys($jstable[0]) as $key) {
+$heatmappable_columns = array();
+$heatmappable_columns_directions = array();
+$c = 0;
+// First columns are for checkboxes
+foreach (array_keys($indicators) as $indicator_name) {
+	$column_header = [];
+	$column_header['html'] = ucfirst(substr($indicator_name, 0, 5)) . (strlen($indicator_name) > 5 ? "." : "") . $OUTPUT->help_icon('mailer_column_header', "engagementindicator_{$indicator_name}");
+	$column_header['chk'] = True;
+	$column_header['filter'] = False;
+	$column_headers[$c] = $column_header;
 	$c += 1;
-	if ($key == '_userid') {
-		$c -= 1;
-		// otherwise do nothing
-	} elseif ($c <= count($indicators)) {
-		$js_columns[] = ucfirst(substr($chk_column_headers[$c - 1], 0, 5)) . (strlen($chk_column_headers[$c - 1]) > 5 ? "." : "") . $OUTPUT->help_icon('mailer_column_header', "engagementindicator_{$chk_column_headers[$c - 1]}");
-	} else {
-		$js_columns[] = $key;
+}
+// Next columns are for user info
+$column_headers[$c] = array(
+	'html'=>get_string('report_username', 'report_engagement'),
+	'filterable'=>True
+);
+$c += 1;
+$column_headers[$c] = array(
+	'html'=>get_string('report_groups', 'report_engagement'),
+	'filterable'=>True
+);
+$c += 1;
+// Next columns are for individual indicators
+foreach (array_keys($indicators) as $indicator_name) {
+	foreach ($display_data[$indicator_name] as $display_item) {
+		$column_header = [];
+		$column_header['html'] = $display_item['header'];
+		$column_header['filterable'] = array_key_exists('filterable', $display_item) ? $display_item['filterable'] : False;
+		if (array_key_exists('heatmapdirection', $display_item)) {
+			$column_header['heatmapdirection'] = $display_item['heatmapdirection'];
+			$heatmappable_columns[] = $c;
+			$heatmappable_columns_directions[] = $display_item['heatmapdirection'];
+		}
+		$column_headers[$c] = $column_header;
+		$c += 1;
 	}
 }
+// Last columns are for totals etc
+$column_headers[$c] = array(
+	'html'=>get_string('report_totalrisk', 'report_engagement'),
+	'filterable'=>False
+);
+$c += 1;
+$column_headers[$c] = array(
+	'html'=>get_string('report_messagessent', 'report_engagement'),
+	'filterable'=>False
+);
 
 // Make friendly patterns and compose message boilerplate
 $default_message_greeting = get_string('message_default_greeting', 'report_engagement');
@@ -465,12 +507,14 @@ $mformdata['id'] = $id;
 $mformdata['action'] = $action;
 $mformdata['patterns'] = $patterns;
 $mformdata['subsets'] = $subsets;
-$mformdata['jstable'] = $jstable;
-$mformdata['js_columns'] = $js_columns;
+$mformdata['table_data'] = $table_data;
+$mformdata['column_headers'] = $column_headers;
 $mformdata['chk_column_headers'] = $chk_column_headers;
+$mformdata['heatmappable_columns'] = $heatmappable_columns;
+$mformdata['heatmappable_columns_directions'] = $heatmappable_columns_directions;
 $mformdata['display_data_raw'] = $display_data;
-$mformdata['defaultsort'] = json_encode(array(array(count($js_columns) - 2, 'desc'))); // default sort by total descending
-$mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($js_columns) - 3));
+$mformdata['defaultsort'] = json_encode(array(array(count($column_headers) - 2, 'desc'))); // default sort by total descending
+$mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($column_headers) - 3));
 $mformdata['friendlypatterns'] = $friendlypatterns;
 if ($action == 'composing') {
 	$mformdata['defaultmessages'] = $defaultmessages;

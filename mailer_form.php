@@ -39,9 +39,11 @@ class report_engagement_mailer_form extends moodleform {
 		$subsets = $this->_customdata['subsets'];
 		$action = $this->_customdata['action'];
 		
-		$jstable = $this->_customdata['jstable'];
-		$js_columns = $this->_customdata['js_columns'];		
+		$table_data = $this->_customdata['table_data'];
+		$column_headers = $this->_customdata['column_headers'];		
 		$chk_column_headers = $this->_customdata['chk_column_headers'];
+		$heatmappable_columns = json_encode($this->_customdata['heatmappable_columns']);
+		$heatmappable_columns_directions = json_encode($this->_customdata['heatmappable_columns_directions']);
 		$display_data_raw = $this->_customdata['display_data_raw'];
 		$defaultsort = $this->_customdata['defaultsort'];
 		$html_num_fmt_cols = $this->_customdata['html_num_fmt_cols'];
@@ -104,10 +106,10 @@ class report_engagement_mailer_form extends moodleform {
 					$tablehtml .= html_writer::end_tag('tr');
 					// second row - headers
 					$tablehtml .= html_writer::start_tag('tr');
-						foreach ($js_columns as $i => $js_column) {
+						foreach ($column_headers as $i => $column_header) {
 							$tablehtml .= html_writer::start_tag('th');
-								$tablehtml .= $js_column;;
-								if ($i >= count($chk_column_headers)) {
+								$tablehtml .= $column_header['html'];
+								if (!array_key_exists('chk', $column_header) && array_key_exists('filterable', $column_header) && $column_header['filterable']) {
 									$tablehtml .= '<br /><input type="text" size="6" placeholder="' . get_string('message_table_filter_column', 'report_engagement') . '" />';
 								}
 							$tablehtml .= html_writer::end_tag('th');
@@ -116,15 +118,13 @@ class report_engagement_mailer_form extends moodleform {
 				$tablehtml .= html_writer::end_tag('thead');
 				// tbody
 				$tablehtml .= html_writer::start_tag('tbody');
-					foreach ($jstable as $row) {
-						if (($subsets && in_array($row['_userid'], $userids)) || !$subsets) {
+					foreach ($table_data as $row) {
+						if (($subsets && in_array($row['userid'], $userids)) || !$subsets) {
 							$tablehtml .= html_writer::start_tag('tr');
-								foreach ($row as $cellkey => $cellvalue) {
-									if ($cellkey != '_userid') { // do not show moodle userid
-										$tablehtml .= html_writer::start_tag('td');
-											$tablehtml .= $cellvalue;
-										$tablehtml .= html_writer::end_tag('td');
-									}
+								foreach ($row['data'] as $cellkey => $cellvalue) {
+									$tablehtml .= html_writer::start_tag('td');
+										$tablehtml .= $cellvalue;
+									$tablehtml .= html_writer::end_tag('td');
 								}
 							$tablehtml .= html_writer::end_tag('tr');
 						}
@@ -132,11 +132,13 @@ class report_engagement_mailer_form extends moodleform {
 				$tablehtml .= html_writer::end_tag('tbody');
 			$tablehtml .= html_writer::end_tag('table');
 			$mform->addElement('html', $tablehtml);
-			$toggles = array();
-			$toggles[] =& $mform->createElement('checkbox', "toggle_details_$pattern", '', get_string('message_table_extradetails', 'report_engagement'));
-			$mform->addGroup($toggles, "toggles_$pattern", get_string('message_table_showhide', 'report_engagement'), array(' '), false);
-			$mform->addHelpButton("toggles_$pattern", 'message_table_showhide', 'report_engagement');
-			$mform->addElement('html', "<br />");
+			// Toggles
+			// - Details
+			$mform->addElement('checkbox', "toggle_details_$pattern", get_string('message_table_extradetails', 'report_engagement'), get_string('message_table_show_checkbox', 'report_engagement'));
+			$mform->addHelpButton("toggle_details_$pattern", 'message_table_extradetails', 'report_engagement');
+			// - Heatmap
+			$mform->addElement('checkbox', "toggle_heatmap_$pattern", get_string('message_table_heatmap', 'report_engagement'), get_string('message_table_show_checkbox', 'report_engagement'));
+			$mform->addHelpButton("toggle_heatmap_$pattern", 'message_table_heatmap', 'report_engagement');
 			// Display options for each group
 			if ($subsets && $action == 'composing') {
 				// information
@@ -324,7 +326,7 @@ class report_engagement_mailer_form extends moodleform {
 				<script>
 					$(document).ready(function(){
 						// Set up DataTable
-						$('#data_table_$pattern').DataTable({
+						datatables[$pattern] = $('#data_table_$pattern').DataTable({
 							'order':$defaultsort,
 							'columnDefs': [
 								{ 'type':'num-html', 'targets':$html_num_fmt_cols }
@@ -349,7 +351,7 @@ class report_engagement_mailer_form extends moodleform {
 				</script>
 			";
 			echo($js_sub);
-		}
+		} // end foreach ($patterns as $pattern => $userids)
 		// overall buttons
 		if (!$subsets) {
 			$mform->addElement('header', 'header_compose', get_string('message_header_compose', 'report_engagement'));
@@ -484,15 +486,70 @@ class report_engagement_mailer_form extends moodleform {
 			";
 			echo($js);
 		}
+		// Code for toggles
 		$js_all = "
 			<script>
 				$(document).ready(function(){
+					// Details show/hide toggle
 					$('input:checkbox[name^=toggle_details_]').on('click', function(event) {
 						var pattern = $(this).prop('name').replace('toggle_details_', '');
 						if (this.checked) {
 							$('table[id=data_table_' + pattern + '] div[class=report_engagement_detail]').show('fast').css('font-size', '0.67em').css('line-height', '100%');
 						} else {
 							$('table[id=data_table_' + pattern + '] div[class=report_engagement_detail]').hide('fast').css('font-size', '0.67em').css('line-height', '100%');
+						}
+					});
+					// Heatmap show/hide toggle
+					// Adapted from http://www.designchemical.com/blog/index.php/jquery/jquery-tutorial-create-a-flexible-data-heat-map/
+					$('input:checkbox[name^=toggle_heatmap_]').on('click', function(event) {
+						var pattern = $(this).prop('name').replace('toggle_heatmap_', '');
+						if (this.checked) {
+							var cols_to_calculate = $heatmappable_columns;
+							var cols_to_calculate_direction = $heatmappable_columns_directions;
+							var col_maxes = {};
+							// Calculate maxes for specified columns
+							for (i = 0; i < cols_to_calculate.length; i++) {
+								var col_data = [];
+								var col_index = cols_to_calculate[i];
+								temp_data = datatables[pattern].columns(col_index).data().eq(0);
+								for (j = 0; j < temp_data.length; j++) {
+									col_data.push($(temp_data[j]).find('.report_engagement_display').text());
+								}
+								col_maxes[col_index] = Math.max.apply(Math, col_data);
+							}
+							// Define the ending colour, which is white
+							xr = 255; // Red value
+							xg = 255; // Green value
+							xb = 255; // Blue value
+							// Define the starting colour
+							yr = 180; // Red value
+							yg = 180; // Green value
+							yb = 255; // Blue value
+							// Declare the number of groups
+							n = 50;
+							// Loop through each data point and calculate its % value
+							datatables[pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
+								//console.log(this.data());
+								var k = cols_to_calculate.indexOf(colIndex);
+								if (k >= 0) {
+									var val = parseInt($(this.data()).find('.report_engagement_display').text());
+									var colmax = col_maxes[colIndex];
+									if (cols_to_calculate_direction[k] == 1) {
+										var pos = parseInt((Math.round((val/colmax)*100)).toFixed(0));
+									} else {
+										var pos = parseInt((Math.round(((colmax - val)/colmax)*100)).toFixed(0));
+									}
+									red = parseInt((xr + (( pos * (yr - xr)) / (n-1))).toFixed(0));
+									green = parseInt((xg + (( pos * (yg - xg)) / (n-1))).toFixed(0));
+									blue = parseInt((xb + (( pos * (yb - xb)) / (n-1))).toFixed(0));
+									clr = 'rgb('+red+','+green+','+blue+')';
+									$(this.node()).css('background-color', clr);
+								}
+							});
+						} else {
+							datatables[pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
+								$(this.node()).css('background-color', '');
+							});
 						}
 					});
 				});
