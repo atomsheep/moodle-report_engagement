@@ -238,7 +238,9 @@ foreach ($data as $userid => $record) {
 	foreach ($indicators as $name => $path) {
 		$totalrisk += $riskdata[$userid]["indicator_$name"]['raw'] * $riskdata[$userid]["indicator_$name"]['weight'];
 	}
-	$table_row['data'][$c] = sprintf("%d", $totalrisk * 100);
+	$table_row['data'][$c] = '<div><span class="report_engagement_display">'.
+		sprintf("%d", $totalrisk * 100).
+		'</span></div>';
 	$c += 1;
 	// Calculate and show how many messages already received
 	try {
@@ -304,14 +306,16 @@ foreach (array_keys($indicators) as $indicator_name) {
 // Last columns are for totals etc
 $column_headers[$c] = array(
 	'html'=>get_string('report_totalrisk', 'report_engagement'),
-	'filterable'=>False,
-	'heatmapdirection'=>1
+	'filterable'=>False
 );
+$heatmappable_columns[] = $c;
+$heatmappable_columns_directions[] = 1;
 $c += 1;
 $column_headers[$c] = array(
 	'html'=>get_string('report_messagessent', 'report_engagement'),
 	'filterable'=>False
 );
+$c += 1;
 
 // Make friendly patterns and compose message boilerplate
 $default_message_greeting = get_string('message_default_greeting', 'report_engagement');
