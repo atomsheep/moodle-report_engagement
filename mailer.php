@@ -274,7 +274,7 @@ $c = 0;
 // First columns are for checkboxes
 foreach (array_keys($indicators) as $indicator_name) {
 	$column_header = [];
-	$column_header['html'] = ucfirst(substr($indicator_name, 0, 5)) . (strlen($indicator_name) > 5 ? "." : "") . $OUTPUT->help_icon('mailer_column_header', "engagementindicator_{$indicator_name}");
+	$column_header['html'] = get_string('mailer_checkbox_column_header', "engagementindicator_{$indicator_name}") . $OUTPUT->help_icon('mailer_checkbox_column_header', "engagementindicator_{$indicator_name}");
 	$column_header['chk'] = True;
 	$column_header['filter'] = False;
 	$column_headers[$c] = $column_header;
