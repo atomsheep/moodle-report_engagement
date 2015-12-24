@@ -355,6 +355,12 @@ class report_engagement_mailer_form extends moodleform {
 								return false;
 							});
 						});
+						// Easy checkbox clicking
+						$('#data_table_$pattern').on('click', 'td', function(event){
+							if (event.target.type != 'checkbox') {						
+								$(this).find('input:checkbox').trigger('click');
+							}
+						});
 					});
 				</script>
 			";
