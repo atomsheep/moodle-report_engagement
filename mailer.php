@@ -169,12 +169,12 @@ foreach ($indicators as $name => $path) {
 $groups = groups_get_all_groups($course->id);
 // - Get groups and membership
 $group_memberships = array();
-foreach ($groups as $id => $group) {
+foreach ($groups as $groupid => $group) {
 	$group_membership = array();
-	$group_membership['members'] = array_keys(groups_get_members($id, 'u.id'));
+	$group_membership['members'] = array_keys(groups_get_members($groupid, 'u.id'));
 	$group_membership['groupname'] = $group->name;
-	$group_membership['groupid'] = $id;
-	$group_memberships[$id] = $group_membership;
+	$group_membership['groupid'] = $groupid;
+	$group_memberships[$groupid] = $group_membership;
 }
 // - Parse and store by user
 $groups_by_user = array();
