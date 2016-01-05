@@ -106,7 +106,7 @@ if (data_submitted() && confirm_sesskey()) {
 				$pattern .= '0';
 			}
 		}
-		if (!$patterns[$pattern]) {
+		if (!isset($patterns[$pattern])) {
 			$patterns[$pattern] = array();
 		}
 		array_push($patterns[$pattern], $userid);

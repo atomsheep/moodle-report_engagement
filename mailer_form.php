@@ -274,13 +274,17 @@ class report_engagement_mailer_form extends moodleform {
 				// Sender and replyto and cc
 				$mform->addElement('static', '', get_string('message_sender', 'report_engagement'), reset($sender_previews[$pattern]));
 				$mform->addElement('hidden', "sender_$pattern", key($sender_previews[$pattern]));
+				$mform->setType("sender_$pattern", PARAM_TEXT);
 				$mform->addElement('static', '', get_string('message_replyto', 'report_engagement'), reset($replyto_previews[$pattern]));
 				$mform->addElement('hidden', "replyto_$pattern", key($replyto_previews[$pattern]));
+				$mform->setType("replyto_$pattern", PARAM_TEXT);
 				/*$mform->addElement('static', '', get_string('message_cc', 'report_engagement'), reset($cc_previews[$pattern]));
 				$mform->addElement('hidden', "cc_$pattern", key($cc_previews[$pattern]));*/
 				// Encoded message subject and body
 				$mform->addElement('hidden', "subject_encoded_$pattern", $message_previews[$pattern]->subject_encoded);
+				$mform->setType("subject_encoded_$pattern", PARAM_TEXT);
 				$mform->addElement('hidden', "message_encoded_$pattern", $message_previews[$pattern]->message_encoded);
+				$mform->setType("message_encoded_$pattern", PARAM_TEXT);
 				// Message subject and body and recipient
 				$mform->addElement('html', html_writer::start_tag('div', array('id'=>"message_preview_container_$pattern")));
 				foreach ($message_previews_by_user[$pattern] as $userid => $message_preview) {
