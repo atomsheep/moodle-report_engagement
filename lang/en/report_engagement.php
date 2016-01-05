@@ -25,6 +25,7 @@
 $string['engagement:manage'] = 'Manage engagement analytics report';
 $string['engagement:view'] = 'View engagement analytics report';
 $string['engagement:send'] = 'Send messages to students from engagement analytics report';
+$string['mailer_capability_nopermissions'] = 'Sorry, you do not have permission to send messages to students.';
 $string['coursereport'] = 'Engagement for course: {$a->course}';
 $string['coursereport_heading'] = 'Engagement for course: {$a->course}';
 $string['indicator'] = 'Indicator';

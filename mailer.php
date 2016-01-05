@@ -531,6 +531,7 @@ $mformdata['display_data_raw'] = $display_data;
 $mformdata['defaultsort'] = json_encode(array(array(count($column_headers) - 2, 'desc'))); // default sort by total descending
 $mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($column_headers) - 3));
 $mformdata['friendlypatterns'] = $friendlypatterns;
+$mformdata['has_capability_send'] = has_capability('report/engagement:send', $context);
 if ($action == 'composing') {
 	$mformdata['defaultmessages'] = $defaultmessages;
 	$mformdata['message_variables'] = $message_variables;

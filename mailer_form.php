@@ -48,6 +48,8 @@ class report_engagement_mailer_form extends moodleform {
 		$defaultsort = $this->_customdata['defaultsort'];
 		$html_num_fmt_cols = $this->_customdata['html_num_fmt_cols'];
 		
+		$has_capability_send = $this->_customdata['has_capability_send'];
+		
 		$friendlypatterns = $this->_customdata['friendlypatterns'];
 		if ($action == 'composing') {
 			$defaultmessages = $this->_customdata['defaultmessages'];
@@ -377,7 +379,11 @@ class report_engagement_mailer_form extends moodleform {
 			$mform->addElement('header', 'header_send', get_string('message_header_send', 'report_engagement'));
 			$mform->addElement('button', 'button_back', get_string('message_go_back_edit_plural', 'report_engagement'), array('onclick'=>'go_back_to_composing()'));
 			$mform->addHelpButton('button_back', 'message_go_back_edit_plural', 'report_engagement');
-			$mform->addElement('submit', 'submit_send', get_string('message_submit_send', 'report_engagement'));
+			if ($has_capability_send) {
+				$mform->addElement('submit', 'submit_send', get_string('message_submit_send', 'report_engagement'));
+			} else {
+				$mform->addElement('static', 'no_permission', '', get_string('mailer_capability_nopermissions', 'report_engagement'));
+			}
 		}
 		// scripts
 		if (!$subsets) {
