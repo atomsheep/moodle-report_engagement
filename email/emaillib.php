@@ -23,27 +23,25 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-
 class report_engagement_email_message {
 	
-	public $recipient_address;
-	public $recipient_name;
-	public $sender_address;
-	public $sender_name;
-	public $replyto_address;
+	public $recipient; // user object
+	public $recipient_address; // str
+	public $recipient_name; // str
+	public $sender; // user object
+	public $sender_address; // str
+	public $sender_name; // str
+	public $replyto_address; // str
 	//public $replyto_name;
-	public $cc_address;
-	public $email_subject;
-	public $email_body;
-
+	public $cc_address; // str
+	public $email_subject; // str
+	public $email_body; // str
+	
 	public function send_email(){
-		require('config.php');
+		require('config.php'); // dev hack to configure mail engine
 		switch ($_CONFIG_MAILER) {
-			case 'gmail':
-				return $this->send_email_gmail();
-				break;
-			case 'custom':
-				return $this->send_email_custom();
+			case 'moodle':
+				return $this->send_email_moodle();
 				break;
 			case 'mandrill':
 				return $this->send_email_mandrill();
@@ -51,103 +49,26 @@ class report_engagement_email_message {
 		}
 	}
 	
-	/*private function send_email_phpmail(){
-		try {
-			$to = $this->recipient_address;
-			$subject = $this->email_subject;
-			$message = $this->email_body;
-			$headers = array();
-			$headers[] = 'From: ' . $this->sender_name . "<$this->sender_address>";
-			$headers[] = 'Reply-To: ' . $this->replyto_name . "<$this->replyto_address>";
-			$headers[] = 'X-Mailer: PHP/' . phpversion();
-			return mail($to, $subject, $message, implode("\r\n", $headers));
-		} catch (Exception $e) {
-			return false;
-		}
-	}*/
-	
 	private function send_email_moodle(){
-		//$result->result = email_to_user($recipient, $sender, $email_subject, $email_body, $email_body, '', '', true, $replyto->email, fullname($replyto));
-	}
-	
-	private function send_email_gmail(){
-		
-		require('config.php');
-		if (!isset($_CONFIG_MAILER_GMAIL)) return null;
-		
-		require_once('PHPMailer/PHPMailerAutoload.php');
-			
-		$mail = new PHPMailer;
-		
-		$mail->isSMTP();
-		$mail->SMTPDebug = 2;
-		$mail->Host = $_CONFIG_MAILER_GMAIL['FQDN'];
-		$mail->SMTPAuth = $_CONFIG_MAILER_GMAIL['AUTH'];
-		$mail->Username = $_CONFIG_MAILER_GMAIL['USER'];
-		$mail->Password = $_CONFIG_MAILER_GMAIL['PASS'];
-		$mail->SMTPSecure = $_CONFIG_MAILER_GMAIL['ENCR'];
-		$mail->Port = $_CONFIG_MAILER_GMAIL['PORT'];
-
-		$mail->From = $this->sender_address;
-		$mail->FromName = $this->sender_name;
-		$mail->addAddress($this->recipient_address, $this->recipient_name);
-		$mail->addReplyTo($this->replyto_address, $this->replyto_name);
-
-		$mail->isHTML(false);
-
-		$mail->Subject = $this->email_subject;
-		$mail->Body    = $this->email_body;
-
-		$result = new stdClass();
-		if(!$mail->send()) {
-			$result->message = $mail->ErrorInfo;
-			$result->result = false;
+		$res = new stdClass();
+		if (isset($this->recipient) && isset($this->sender)) {
+			$res->result = email_to_user(
+				$this->recipient, $this->sender, 
+				$this->email_subject, $this->email_body, '', 
+				'', '', 
+				true, 
+				$this->replyto_address, ''
+			);
+			if ($res->result === true) {
+				$res->message = 'OK';
+			} else {
+				$res->message = '';
+			}
 		} else {
-			$result->result = true;
-		}	
-		
-		return $result;
-			
-	}
-	
-	private function send_email_custom(){
-	
-		require('config.php');
-		if (!isset($_CONFIG_MAILER_CUSTOM)) return null;
-		
-		require_once('PHPMailer/PHPMailerAutoload.php');
-		
-		$mail = new PHPMailer;
-		
-		$mail->isSMTP();
-		$mail->SMTPDebug = 2;
-		$mail->Host = $_CONFIG_MAILER_CUSTOM['FQDN'];
-		$mail->SMTPAuth = $_CONFIG_MAILER_CUSTOM['AUTH'];
-		$mail->Username = $_CONFIG_MAILER_CUSTOM['USER'];
-		$mail->Password = $_CONFIG_MAILER_CUSTOM['PASS'];
-		$mail->SMTPSecure = $_CONFIG_MAILER_CUSTOM['ENCR'];
-		$mail->Port = $_CONFIG_MAILER_CUSTOM['PORT'];
-
-		$mail->From = $this->sender_address;
-		$mail->FromName = $this->sender_name;
-		$mail->addAddress($this->recipient_address, $this->recipient_name);
-		$mail->addReplyTo($this->replyto_address, $this->replyto_name);
-
-		$mail->isHTML(false);
-
-		$mail->Subject = $this->email_subject;
-		$mail->Body    = $this->email_body;
-
-		$result = new stdClass();
-		if(!$mail->send()) {
-			$result->message = $mail->ErrorInfo;
-			$result->result = false;
-		} else {
-			$result->result = true;
-		}	
-		
-		return $result;
-
+			$res->result = false;
+			$res->message = '';
+		}
+		return $res;
 	}
 	
 	private function send_email_mandrill(){
