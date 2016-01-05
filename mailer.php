@@ -123,7 +123,7 @@ if (data_submitted() && confirm_sesskey()) {
 		case 'previewing':
 			$action = 'sending';
 			// check for capability
-			require_capability('report/engagement:send', $context, true);
+			require_capability('report/engagement:send', $context);
 			// continue - later logic will send messages
 			break;
 		case 'sending':
