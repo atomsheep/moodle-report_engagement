@@ -248,24 +248,6 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	}
 	
 	$recipient = $DB->get_record('user', array('id'=>$recipientid));
-	
-	// Temporary dev hack to whitelist courseids that can send // TODO REMOVE
-	$mailer_settings_json = json_decode(file_get_contents('mailer_settings.txt'));
-	foreach ($mailer_settings_json->whitelist as $whitelisted) {
-		if ($whitelisted->courseid == $COURSE->id) {
-			$report_engagement_mailer_whitelisted = $whitelisted;
-			break;
-		}
-	}
-	if (!isset($report_engagement_mailer_whitelisted)) {
-		echo("Error - this course has not been whitelisted for sending messages. No messages will be sent.");
-		die();
-	}
-	if (isset($report_engagement_mailer_whitelisted->override_recipient->enabled) && $report_engagement_mailer_whitelisted->override_recipient->enabled) {
-		$recipient->email = $report_engagement_mailer_whitelisted->override_recipient->mbox;
-	}
-	// End dev hack
-	
 	$sender = $DB->get_record('user', array('id'=>$senderid));
 	//$replyto = $DB->get_record('user', array('id'=>$replytoid));
 	$email_body = $message['message'];
