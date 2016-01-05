@@ -257,8 +257,10 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	$result->recipient = $recipient;
 	// Try send email
 	$email = new report_engagement_email_message;
+	$email->recipient = $recipient;
 	$email->recipient_address = $recipient->email;
 	$email->recipient_name = fullname($recipient);
+	$email->sender = $sender;
 	$email->sender_address = $sender->email;
 	$email->sender_name = fullname($sender);
 	//$email->replyto_address = $replyto->email;
