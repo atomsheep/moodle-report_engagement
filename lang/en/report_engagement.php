@@ -24,6 +24,7 @@
 
 $string['engagement:manage'] = 'Manage engagement analytics report';
 $string['engagement:view'] = 'View engagement analytics report';
+$string['engagement:send'] = 'Send messages to students from engagement analytics report';
 $string['coursereport'] = 'Engagement for course: {$a->course}';
 $string['coursereport_heading'] = 'Engagement for course: {$a->course}';
 $string['indicator'] = 'Indicator';

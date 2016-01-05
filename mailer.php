@@ -60,7 +60,7 @@ $PAGE->requires->jquery_plugin('report_engagement-datatables', 'report_engagemen
 
 echo $OUTPUT->header();
 
-require_capability('report/engagement:manage', $context);
+require_capability('report/engagement:view', $context);
 
 add_to_log($course->id, "course", "report engagement", "report/engagement/mailer.php?id=$course->id", $course->id);
 
@@ -122,6 +122,8 @@ if (data_submitted() && confirm_sesskey()) {
 			break;
 		case 'previewing':
 			$action = 'sending';
+			// check for capability
+			require_capability('report/engagement:send', $context, true);
 			// continue - later logic will send messages
 			break;
 		case 'sending':
