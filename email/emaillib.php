@@ -33,7 +33,7 @@ class report_engagement_email_message {
 	public $sender_name; // str
 	public $replyto_address; // str
 	//public $replyto_name;
-	public $cc_address; // str
+	//public $cc_address; // str
 	public $email_subject; // str
 	public $email_body; // str
 	
@@ -87,11 +87,11 @@ class report_engagement_email_message {
 				'email' => $this->recipient_address,
 				'name' => $this->recipient_name,
 				'type' => 'to');
-			if (isset($this->cc_address)) {
+			/*if (isset($this->cc_address)) {
 				$to_array[] = array(
 					'email' => $this->cc_address,
 					'type' => 'cc');
-			};
+			};*/
 			$message = array(
 				'text' => $this->email_body,
 				'subject' => $this->email_subject,

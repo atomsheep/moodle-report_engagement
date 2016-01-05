@@ -454,14 +454,14 @@ if ($action == 'composing') {
 	}
 	$sender_previews = array();
 	$replyto_previews = array();
-	$cc_previews = array();
+	//$cc_previews = array();
 	foreach ($patterns as $pattern => $userids) {
 		$sender = $DB->get_record('user', array('id'=>$postdata->{"sender_$pattern"}));
 		$sender_previews[$pattern][$postdata->{"sender_$pattern"}] = fullname($sender) . " &lt;$sender->email&gt;";
 		//$replyto = $DB->get_record('user', array('id'=>$postdata->{"replyto_$pattern"}));
 		//$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = fullname($replyto) . " &lt;$replyto->email&gt;";
 		$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = $postdata->{"replyto_$pattern"};
-		$cc_previews[$pattern][$postdata->{"cc_$pattern"}] = $postdata->{"cc_$pattern"};
+		//$cc_previews[$pattern][$postdata->{"cc_$pattern"}] = $postdata->{"cc_$pattern"};
 	}
 } else if ($action == 'sending') {
 	$messages = array();
@@ -471,7 +471,7 @@ if ($action == 'composing') {
 	$senderids = array();
 	//$replytoids = array();
 	$replytoaddresses = array();
-	$ccaddresses = array();
+	//$ccaddresses = array();
 	foreach ($patterns as $pattern => $userids) {
 		$message_decoded[$pattern] = base64_decode($postdata->{"message_encoded_$pattern"});
 		$subject_decoded[$pattern] = base64_decode($postdata->{"subject_encoded_$pattern"});
@@ -484,7 +484,7 @@ if ($action == 'composing') {
 		$senderids[$pattern] = $postdata->{"sender_$pattern"};
 		//$replytoids[$pattern] = $postdata->{"replyto_$pattern"};
 		$replytoaddresses[$pattern] = $postdata->{"replyto_$pattern"};
-		$ccaddresses[$pattern] = $postdata->{"cc_$pattern"};
+		//$ccaddresses[$pattern] = $postdata->{"cc_$pattern"};
 	}
 	// Send messages
 	$message_send_results = array();
@@ -544,7 +544,7 @@ if ($action == 'composing') {
 	$mformdata['message_previews'] = $message_previews;
 	$mformdata['sender_previews'] = $sender_previews;
 	$mformdata['replyto_previews'] = $replyto_previews;
-	$mformdata['cc_previews'] = $cc_previews;
+	//$mformdata['cc_previews'] = $cc_previews;
 	$mformdata['message_previews_by_user'] = $message_previews_by_user;
 } else if ($action == 'sending') {
 	$mformdata['message_send_results'] = $message_send_results;
