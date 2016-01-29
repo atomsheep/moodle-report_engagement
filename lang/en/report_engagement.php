@@ -156,3 +156,18 @@ $string['message_default_closing'] = 'Kind regards';
 $string['message_variables_firstname'] = 'First name';
 $string['message_variables_lastname'] = 'Last name';
 $string['message_variables_fullname'] = 'Full name';
+
+// default snippet strings
+$string['defaultsnippetencouragement0'] = "I can see that you are trying hard but still struggling with the unit material and may need extra help.";
+$string['defaultsnippetencouragement1'] = "We provide specialist assistance within this department that is designed to help you with your studies.";
+$string['defaultsnippetencouragement2'] = "It seems that you are making good progress in this unit. We hope that you are enjoying learning new things. Keep up the good work.";
+$string['defaultsnippetencouragement3'] = "There is an important assessment coming up, so I recommend you spend some time reviewing the unit materials in preparation.";
+$string['defaultsnippetencouragement4'] = "If you need help, please get in touch with me to arrange a time where we can meet and work to help you with this unit.";
+$string['defaultsnippetencouragement5'] = "Your academic success is important, and I would like to help you succeed in your studies. Please contact me for guidance.";
+$string['defaultsnippetencouragement6'] = "Please get in touch with your tutor to organise a consultation so that you can work together on the unit materials.";
+$string['defaultsnippetencouragement7'] = "Creating a student study group can be a great way to study for this unit.";
+$string['defaultsnippetencouragement8'] = "Taking notes and reviewing them right after class will help you remember information presented.";
+$string['defaultsnippetencouragement9'] = "Remember to keep accessing and reviewing the resources available for this unit and continue to make your own notes.";
+$string['defaultsnippetencouragement10'] = "Please don’t hesitate to ask for additional help with this unit. If you are struggling with fully understanding the unit materials or concepts, it is crucial that you seek help as soon as possible.";
+$string['defaultsnippetencouragement11'] = "We are here to help with your studies and make sure that you succeed. Please get in contact with your teaching staff for guidance.";
+

@@ -54,5 +54,19 @@ function xmldb_report_engagement_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2015052102, 'report', 'engagement');
     }
 	
+	if ($oldversion < 2016012902) {
+        // Conditionally launch create table for report_engagement_snippets.
+		if (!$dbman->table_exists('report_engagement_snippets')) {
+			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_snippets');
+		}
+		
+		// Populate snippets from lang file to DB
+		require_once(dirname(__FILE__).'/../locallib.php');
+		report_engagement_populate_snippets_from_lang('encouragement');
+		
+        // Engagement savepoint reached.
+        upgrade_plugin_savepoint(true, 2016012902, 'report', 'engagement');
+	}
+	
     return true;
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="report/engagement/db" VERSION="20150521" COMMENT="XMLDB file for Moodle report/engagement"
+<XMLDB PATH="report/engagement/db" VERSION="20160129" COMMENT="XMLDB file for Moodle report/engagement"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -61,6 +61,16 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User id that the message belongs to"/>
         <FIELD NAME="messagetext" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Text of message"/>
         <FIELD NAME="messagesummary" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Short description or summary for the message"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="report_engagement_snippets" COMMENT="Globally available message snippets">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="snippet_text" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Full text of the snippet"/>
+        <FIELD NAME="category" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="uncategorised" SEQUENCE="false" COMMENT="Typically, the name of the indicator to which this snippet applies. Might be another string."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

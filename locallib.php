@@ -279,3 +279,41 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
 	// example https://github.com/moodle/moodle/blob/b6a76cd7cdf588b8d31440d072930906fd4b357b/user/edit.php
 }
 
+/**
+ * This function fetches snippets from the lang file of the appropriate subplugin and inserts them into the database
+ *
+ * @param string $category The category (usually the name of the indicator)
+ * @return boolean Success
+ */
+function report_engagement_populate_snippets_from_lang($category) {
+	
+	global $DB;
+    $dbman = $DB->get_manager();
+	$stringman = get_string_manager();
+	
+	if ($dbman->table_exists('report_engagement_snippets')) {
+		if (!$DB->count_records('report_engagement_snippets', array('category'=>$category))) {
+			// Add default snippets
+			$records = [];
+			$counter = 0;
+			try {
+				// Incrementally check and fetch default snippets from lang file
+				do {
+					$record = new stdClass;
+					if ($stringman->string_exists("defaultsnippet$category$counter", 'report_engagement')) {
+						$record->category = $category;
+						$record->snippet_text = get_string("defaultsnippet$category$counter", 'report_engagement');
+						$counter += 1;
+						$records[] = $record;
+					} else {
+						break;
+					}
+				} while (true);
+				$DB->insert_records('report_engagement_snippets', $records);
+			} catch (Exception $e) {
+				break;
+			}
+		}
+	}
+}
+
