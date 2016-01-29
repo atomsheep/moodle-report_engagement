@@ -218,14 +218,16 @@ class report_engagement_mailer_form extends moodleform {
 								$msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
 									foreach ($other_snippets[$pattern] as $other_snippet) {
 										foreach ($other_snippet as $category => $snippets) {
-											$msgcom .= html_writer::start_tag('li', array('class'=>'snippet_category'));
-											$msgcom .= html_writer::tag('div', $category);
-											$msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-											foreach ($snippets as $variable => $label) {
-												$msgcom .= html_writer::tag('li', $label, array('data-content'=>json_encode($label), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+											if (count($snippets) > 0) {
+												$msgcom .= html_writer::start_tag('li', array('class'=>'snippet_category'));
+												$msgcom .= html_writer::tag('div', $category);
+												$msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
+												foreach ($snippets as $variable => $label) {
+													$msgcom .= html_writer::tag('li', $label, array('data-content'=>json_encode($label), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+												}
+												$msgcom .= html_writer::end_tag('ul');
+												$msgcom .= html_writer::end_tag('li');
 											}
-											$msgcom .= html_writer::end_tag('ul');
-											$msgcom .= html_writer::end_tag('li');
 										}
 									}
 								$msgcom .= html_writer::end_tag('ul');

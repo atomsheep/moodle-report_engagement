@@ -361,50 +361,21 @@ if ($action == 'composing') {
 	// Set up message components/snippets
 	// - variables
 	$message_variables = message_variables_get_array();
-	// - load snippets from file
-	$snippets_file = file_get_contents('lang/en/data.json.txt');
-	$snippets = json_decode($snippets_file);
-	$snippet_category_map = array();
-	$snippet_category_map_names = array();
-	$snippet_category_names = array();
-	foreach ($snippets->categories as $category) {
-		if (isset($category->engagement_mapping)) {
-			$snippet_category_map[$category->engagement_mapping] = $category->id;
-			$snippet_category_map_names[$category->engagement_mapping] = $category->name;
-		}
-		$snippet_category_names[$category->id] = $category->name;
-	}
-	// - suggested snippets
+	// - load snippets from database
+	$snippets = $DB->get_records('report_engagement_snippets');
+	// - snippets
 	$suggested_snippets = array();
-	$desired_categories = array();
-	foreach ($patterns as $pattern => $userids) {
-		$desired_categories[$pattern] = array();
-		foreach ($friendlypatterns[$pattern]->names as $indicator_name) {
-			$desired_categories[$pattern][] = $snippet_category_map[$indicator_name];
-		}
-		$c = 0;
-		foreach ($friendlypatterns[$pattern]->names as $indicator_name) {
-			$desired_category = $snippet_category_map[$indicator_name];
-			$suggested_snippets[$pattern][$c][$snippet_category_map_names[$indicator_name]] = array();
-			foreach ($snippets->snippets as $snippet) {
-				if (in_array($desired_category, $snippet->categories)){
-					$suggested_snippets[$pattern][$c][$snippet_category_map_names[$indicator_name]][$snippet->id] = $snippet->text;
-				}
-			}
-			$c += 1;
-		}
-	}
-	// - other snippets
 	$other_snippets = array();
-	$undesired_categories = array();
 	foreach ($patterns as $pattern => $userids) {
-		$undesired_categories[$pattern] = array_diff(array_keys($snippet_category_names), $desired_categories[$pattern]);
 		$c = 0;
-		foreach ($undesired_categories[$pattern] as $undesired_category) {
-			$other_snippets[$pattern][$c][$snippet_category_names[$undesired_category]] = array();
-			foreach ($snippets->snippets as $snippet) {
-				if (in_array($undesired_category, $snippet->categories)) {
-					$other_snippets[$pattern][$c][$snippet_category_names[$undesired_category]][$snippet->id] = $snippet->text;
+		foreach ($friendlypatterns[$pattern]->names as $indicator_name) {
+			$suggested_snippets[$pattern][$c][$indicator_name] = array();
+			$other_snippets[$pattern][$c][$indicator_name] = array();
+			foreach ($snippets as $id => $snippet) {
+				if ($snippet->category == $indicator_name){
+					$suggested_snippets[$pattern][$c][$indicator_name][$snippet->id] = $snippet->snippet_text;
+				} else {
+					$other_snippets[$pattern][$c][$snippet->category][$snippet->id] = $snippet->snippet_text;
 				}
 			}
 			$c += 1;
