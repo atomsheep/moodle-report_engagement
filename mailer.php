@@ -330,9 +330,10 @@ $c += 1;
 // Make friendly patterns and compose message boilerplate
 $default_message_greeting = get_string('message_default_greeting', 'report_engagement');
 $default_message_closing = get_string('message_default_closing', 'report_engagement');
-if (!isset($patterns) && !$postdata) {
+if (!isset($patterns) && !isset($postdata)) {
 	$patterns = array(false);
 	$subsets = false;
+	$friendlypatterns = array();
 } else {
 	$subsets = true;
 	$friendlypatterns = array();
@@ -525,7 +526,7 @@ if ($action == 'composing') {
 $mform = new report_engagement_mailer_form(null, $mformdata);
 
 // Load up form data e.g. if pressing 'back'
-if ($postdata) {
+if (isset($postdata)) {
 	// put back postdata
 	$mform->set_data($postdata);
 	// hack to put back data
