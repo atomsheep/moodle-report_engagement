@@ -126,7 +126,13 @@ foreach ($generic_settings as $name => $setting) {
 // Set form data
 $mform->set_data($data);
 
-add_to_log($course->id, 'course', 'report engagement edit', "report/engagement/edit.php?id=$id", $course->id);
+// Write to log
+$event = \report_engagement\event\settings_updated::create(array(
+	'context' => $context, 
+	'other' => array(
+		'courseid' => $id
+	)));
+$event->trigger();
 
 echo $OUTPUT->header();
 echo $message;

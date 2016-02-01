@@ -30,6 +30,9 @@ $string['coursereport'] = 'Engagement for course: {$a->course}';
 $string['coursereport_heading'] = 'Engagement for course: {$a->course}';
 $string['indicator'] = 'Indicator';
 $string['indicator_help'] = 'In the textboxes, enter the percentage contribution (whole number between 0-100) of the risk rating from each indicator to the total risk rating. The totals in this section must add to 100.';
+$string['eventreport_viewed'] = "View engagement analytics report";
+$string['eventsettings_updated'] = "Update settings for engagement analytics";
+$string['eventmessage_sent'] = "Message sent from engagement analytics";
 
 $string['manageindicators'] = 'Manage indicators';
 $string['snippetheader'] = 'Manage snippets for {$a}';

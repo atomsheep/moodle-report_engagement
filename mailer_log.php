@@ -59,8 +59,6 @@ echo $OUTPUT->header();
 
 require_capability('report/engagement:view', $context);
 
-add_to_log($course->id, "course", "report engagement", "report/engagement/mailer_log.php?id=$course->id", $course->id);
-
 // Prepare indicators
 $pluginman = core_plugin_manager::instance();
 $indicators = get_plugin_list('engagementindicator');
@@ -73,11 +71,30 @@ foreach ($indicators as $name => $path) {
 
 // Fetch data
 if ($uid && $id) {
+	// Log
+	$event = \report_engagement\event\report_viewed::create(array(
+		'context' => $context, 
+		'relateduserid' => $uid,
+		'other' => array(
+			'userid' => $uid,
+			'courseid' => $id,
+			'page' => 'mailer_log'
+		)));
+	$event->trigger();
 	// Showing all messages for one user in one course
 	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? AND sl.recipientid = ? ORDER BY sl.timesent DESC", array($id, $uid));
 	$data_all = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? ORDER BY sl.timesent DESC", array($id));
 	$page_title = get_string('mailer_log_user', 'report_engagement');
 } else if ($mid && $id) {
+	// Log
+	$event = \report_engagement\event\report_viewed::create(array(
+		'context' => $context, 
+		'other' => array(
+			'messageid' => $mid,
+			'courseid' => $id,
+			'page' => 'mailer_log'
+		)));
+	$event->trigger();
 	// Showing for just one message
 	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
 								JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
@@ -86,6 +103,15 @@ if ($uid && $id) {
 								ORDER BY u.firstname ASC", array($id, $mid));
 	$page_title = get_string('mailer_log_message', 'report_engagement');
 } else {
+	// Log
+	$event = \report_engagement\event\report_viewed::create(array(
+		'context' => $context, 
+		'other' => array(
+			'courseid' => $id,
+			'page' => 'mailer_log'
+		)));
+	$event->trigger();
+	// Showing for just one message
 	// Showing all messages sent in this course
 	$data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
 								JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 

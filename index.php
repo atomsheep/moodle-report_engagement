@@ -57,10 +57,23 @@ $PAGE->set_heading($course->fullname);
 require_capability('report/engagement:view', $context);
 
 if (!$userid) {
-    add_to_log($course->id, "course", "report engagement", "report/engagement/index.php?id=$course->id", $course->id);
+	$event = \report_engagement\event\report_viewed::create(array(
+		'context' => $context, 
+		'other' => array(
+			'courseid' => $id,
+			'page' => 'index'
+		)));
+	$event->trigger();
 } else {
-    add_to_log($course->id, "course", "report engagement",
-        "report/engagement/index.php?id=$course->id&userid=$user->id", $course->id);
+	$event = \report_engagement\event\report_viewed::create(array(
+		'context' => $context, 
+		'relateduserid' => $userid,
+		'other' => array(
+			'userid' => $userid,
+			'courseid' => $id,
+			'page' => 'index'
+		)));
+	$event->trigger();
 }
 
 $stradministration = get_string('administration');

@@ -62,7 +62,14 @@ echo $OUTPUT->header();
 
 require_capability('report/engagement:view', $context);
 
-add_to_log($course->id, "course", "report engagement", "report/engagement/mailer.php?id=$course->id", $course->id);
+// Write view to log
+$event = \report_engagement\event\report_viewed::create(array(
+	'context' => $context, 
+	'other' => array(
+		'courseid' => $id,
+		'page' => 'mailer'
+	)));
+$event->trigger();
 
 // Prepare indicators
 $pluginman = core_plugin_manager::instance();
@@ -476,7 +483,34 @@ if ($action == 'composing') {
 			if ($message_send_results[$pattern][$userid]->result == true) {
 				// Log send event to database
 				$user = $DB->get_record('user', array('id'=>$userid));
-				message_send_log_send($messageid, $user->email, $user->id, $senderids[$pattern]);					
+				$newrecord = message_send_log_send($messageid, $user->email, $user->id, $senderids[$pattern]);					
+				// Log to log
+				$event = \report_engagement\event\message_sent::create(array(
+					'context' => $context, 
+					'relateduserid' => $userid,
+					'objecttable' => 'report_engagement_sentlog',
+					'objectid' => $newrecord,
+					'other' => array(
+						'courseid' => $id,
+						'recipientid' => $userid,
+						'messageid' => $messageid,
+						'success' => true,
+						'result' => $message_send_results[$pattern][$userid]->message
+					)));
+				$event->trigger();
+			} else {
+				// Log to log
+				$event = \report_engagement\event\message_sent::create(array(
+					'context' => $context, 
+					'relateduserid' => $userid,
+					'other' => array(
+						'courseid' => $id,
+						'recipientid' => $userid,
+						'messageid' => $messageid,
+						'success' => false,
+						'result' => $message_send_results[$pattern][$userid]->message
+					)));
+				$event->trigger();
 			}
 		}
 	}
