@@ -161,6 +161,7 @@ class report_engagement_mailer_form extends moodleform {
 				// - replyto
 				//$mform->addElement('select', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), $capable_users);
 				$mform->addElement('text', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), array('size'=>50));
+				$mform->setType("replyto_$pattern", PARAM_TEXT);
 				$mform->addRule("replyto_$pattern", get_string('message_replyto_error_email', 'report_engagement'), 'email', null, 'client');
 				$mform->addHelpButton("replyto_$pattern", 'message_replyto', 'report_engagement');
 				/*// - CC
