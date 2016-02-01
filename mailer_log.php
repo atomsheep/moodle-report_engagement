@@ -138,9 +138,14 @@ foreach ($data as $record) {
 	$recipients[$record->messageid][] = $recipient;
 }
 if ($uid) {
+	$count_recipients_all = array();
 	$page_title .= fullname($recipient);
 	foreach ($data_all as $record) {
-		$count_recipients_all[$record->messageid] += 1;
+		if (isset($count_recipients_all[$record->messageid])) {
+			$count_recipients_all[$record->messageid] += 1;
+		} else {
+			$count_recipients_all[$record->messageid] = 1;
+		}
 	}
 }
 
@@ -217,7 +222,7 @@ if (count($messages)) {
 					$html_table_export[] = html_writer::tag('td', $message->sender->email);
 					$html_table_export[] = html_writer::tag('td', $recipient->email);
 					$html_table_export[] = html_writer::tag('td', $messageid);
-					$html_table_export[] = html_writer::tag('td', message_variables_replace($message_subject_export));
+					$html_table_export[] = html_writer::tag('td', message_variables_replace($message_subject_export, $recipient->id));
 					$html_table_export[] = html_writer::tag('td', message_variables_replace($message_body_export, $recipient->id));
 					$html_table_export[] = html_writer::end_tag('tr');
 				}
