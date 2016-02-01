@@ -18,7 +18,7 @@
  * The settings_updated event.
  *
  * @package    report_engagement
- * @author	   Danny Liu <danny.liu@mq.edu.au>
+ * @author       Danny Liu <danny.liu@mq.edu.au>
  * @copyright  2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -31,7 +31,7 @@ defined('MOODLE_INTERNAL') || die();
  *      - int courseid: course id
  * }
  *
- * @since	Moodle 2.7
+ * @since    Moodle 2.7
  * @copyright 2016 Macquarie University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
@@ -50,20 +50,20 @@ class settings_updated extends \core\event\base {
     }
  
     public function get_url() {
-		return new \moodle_url('/report/engagement/edit.php', array(
-			'id' => $this->other['courseid']
-		));
+        return new \moodle_url('/report/engagement/edit.php', array(
+            'id' => $this->other['courseid']
+        ));
     }
  
     public function get_legacy_logdata() {
         return array(
-			$this->other['courseid'], 
-			'report engagement edit', 
-			$this->get_url()
-		);
+            $this->other['courseid'], 
+            'report engagement edit', 
+            $this->get_url()
+        );
     }
-	
-	/*
+    
+    /*
     public static function get_legacy_eventname() {
         // Override ONLY if you are migrating events_trigger() call.
         return 'MYPLUGIN_OLD_EVENT_NAME';
@@ -76,5 +76,5 @@ class settings_updated extends \core\event\base {
         $data->userid = $this->relateduserid;
         return $data;
     }
-	*/
+    */
 }

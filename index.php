@@ -50,30 +50,30 @@ $PAGE->set_context($context);
 $updateurl = new moodle_url('/report/engagement/edit.php', array('id' => $id));
 $mailerurl = new moodle_url('/report/engagement/mailer.php', array('id' => $id));
 $PAGE->set_button($OUTPUT->single_button($updateurl, get_string('updatesettings', 'report_engagement'), 'get') . 
-					$OUTPUT->single_button($mailerurl, get_string('mailer', 'report_engagement'), 'get')
-					);
+                    $OUTPUT->single_button($mailerurl, get_string('mailer', 'report_engagement'), 'get')
+                    );
 $PAGE->set_heading($course->fullname);
 
 require_capability('report/engagement:view', $context);
 
 if (!$userid) {
-	$event = \report_engagement\event\report_viewed::create(array(
-		'context' => $context, 
-		'other' => array(
-			'courseid' => $id,
-			'page' => 'index'
-		)));
-	$event->trigger();
+    $event = \report_engagement\event\report_viewed::create(array(
+        'context' => $context, 
+        'other' => array(
+            'courseid' => $id,
+            'page' => 'index'
+        )));
+    $event->trigger();
 } else {
-	$event = \report_engagement\event\report_viewed::create(array(
-		'context' => $context, 
-		'relateduserid' => $userid,
-		'other' => array(
-			'userid' => $userid,
-			'courseid' => $id,
-			'page' => 'index'
-		)));
-	$event->trigger();
+    $event = \report_engagement\event\report_viewed::create(array(
+        'context' => $context, 
+        'relateduserid' => $userid,
+        'other' => array(
+            'userid' => $userid,
+            'courseid' => $id,
+            'page' => 'index'
+        )));
+    $event->trigger();
 }
 
 $stradministration = get_string('administration');
@@ -81,7 +81,7 @@ $strreports = get_string('reports');
 $renderer = $PAGE->get_renderer('report_engagement');
 
 if ($download == '') {
-	echo $OUTPUT->header();
+    echo $OUTPUT->header();
 }
 
 $heading = $userid ? 'userreport' : 'coursereport_heading';
@@ -91,7 +91,7 @@ if (isset($user)) {
     $info->user = fullname($user);
 }
 if ($download == '') {
-	echo $OUTPUT->heading(get_string($heading, 'report_engagement', $info));
+    echo $OUTPUT->heading(get_string($heading, 'report_engagement', $info));
 }
 
 $pluginman = core_plugin_manager::instance();
@@ -152,5 +152,5 @@ if (!$userid) { // Course report.
 }
 
 if ($download == '') {
-	echo $OUTPUT->footer();
+    echo $OUTPUT->footer();
 }

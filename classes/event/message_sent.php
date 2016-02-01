@@ -18,7 +18,7 @@
  * The message_sent event.
  *
  * @package    report_engagement
- * @author	   Danny Liu <danny.liu@mq.edu.au>
+ * @author       Danny Liu <danny.liu@mq.edu.au>
  * @copyright  2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,7 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  *      - string result: message send status message
  * }
  *
- * @since	Moodle 2.7
+ * @since    Moodle 2.7
  * @copyright 2016 Macquarie University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
@@ -50,26 +50,26 @@ class message_sent extends \core\event\base {
     }
  
     public function get_description() {
-		if ($this->other['success']) {
-			return "The user with id {$this->userid} sent a message of id {$this->other['messageid']} with sent id {$this->data['objectid']} to user with id {$this->other['recipientid']} for course with id {$this->other['courseid']}.";
-		} else {
-			return "The user with id {$this->userid} attempted to send a message of id {$this->other['messageid']} to user with id {$this->other['recipientid']} for course with id {$this->other['courseid']} resulting in error message of {$this->other['result']}.";
-		}
+        if ($this->other['success']) {
+            return "The user with id {$this->userid} sent a message of id {$this->other['messageid']} with sent id {$this->data['objectid']} to user with id {$this->other['recipientid']} for course with id {$this->other['courseid']}.";
+        } else {
+            return "The user with id {$this->userid} attempted to send a message of id {$this->other['messageid']} to user with id {$this->other['recipientid']} for course with id {$this->other['courseid']} resulting in error message of {$this->other['result']}.";
+        }
     }
  
     public function get_url() {
-		return null;
+        return null;
     }
  
     public function get_legacy_logdata() {
         return array(
-			$this->other['courseid'], 
-			'report engagement message send', 
-			$this->get_url()
-		);
+            $this->other['courseid'], 
+            'report engagement message send', 
+            $this->get_url()
+        );
     }
-	
-	/*
+    
+    /*
     public static function get_legacy_eventname() {
         // Override ONLY if you are migrating events_trigger() call.
         return 'MYPLUGIN_OLD_EVENT_NAME';
@@ -82,5 +82,5 @@ class message_sent extends \core\event\base {
         $data->userid = $this->relateduserid;
         return $data;
     }
-	*/
+    */
 }

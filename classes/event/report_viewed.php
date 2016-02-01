@@ -18,7 +18,7 @@
  * The report_viewed event. User views any engagement analytics plugin report.
  *
  * @package    report_engagement
- * @author	   Danny Liu <danny.liu@mq.edu.au>
+ * @author       Danny Liu <danny.liu@mq.edu.au>
  * @copyright  2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
  *      - string page: filename of page visited, either index or mailer
  * }
  *
- * @since	Moodle 2.7
+ * @since    Moodle 2.7
  * @copyright 2016 Macquarie University
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
@@ -49,35 +49,35 @@ class report_viewed extends \core\event\base {
     }
  
     public function get_description() {
-		if (isset($this->other['userid'])) {
-			return "The user with id {$this->userid} viewed an engagement analytics report at page {$this->other['page']} for user with id {$this->other['userid']} in course with id {$this->other['courseid']}.";
-		} else {
-			return "The user with id {$this->userid} viewed an engagement analytics report at page {$this->other['page']} for course with id {$this->other['courseid']}.";
-		}
+        if (isset($this->other['userid'])) {
+            return "The user with id {$this->userid} viewed an engagement analytics report at page {$this->other['page']} for user with id {$this->other['userid']} in course with id {$this->other['courseid']}.";
+        } else {
+            return "The user with id {$this->userid} viewed an engagement analytics report at page {$this->other['page']} for course with id {$this->other['courseid']}.";
+        }
     }
  
     public function get_url() {
-		if (isset($this->other['userid'])) {
-			return new \moodle_url('/report/engagement/'.$this->other['page'].'.php', array(
-				'id' => $this->other['courseid'],
-				'userid' => $this->other['userid']
-			));
-		} else {
-			return new \moodle_url('/report/engagement/'.$this->other['page'].'.php', array(
-				'id' => $this->other['courseid']
-			));
-		}
+        if (isset($this->other['userid'])) {
+            return new \moodle_url('/report/engagement/'.$this->other['page'].'.php', array(
+                'id' => $this->other['courseid'],
+                'userid' => $this->other['userid']
+            ));
+        } else {
+            return new \moodle_url('/report/engagement/'.$this->other['page'].'.php', array(
+                'id' => $this->other['courseid']
+            ));
+        }
     }
  
     public function get_legacy_logdata() {
         return array(
-			$this->other['courseid'], 
-			'report engagement', 
-			$this->get_url()
-		);
+            $this->other['courseid'], 
+            'report engagement', 
+            $this->get_url()
+        );
     }
-	
-	/*
+    
+    /*
     public static function get_legacy_eventname() {
         // Override ONLY if you are migrating events_trigger() call.
         return 'MYPLUGIN_OLD_EVENT_NAME';
@@ -90,5 +90,5 @@ class report_viewed extends \core\event\base {
         $data->userid = $this->relateduserid;
         return $data;
     }
-	*/
+    */
 }

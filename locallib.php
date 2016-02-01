@@ -26,26 +26,26 @@ defined('MOODLE_INTERNAL') || die();
 
 // Generic settings
 function report_engagement_get_generic_settings_list() {
-	return array('queryspecifydatetime', 'querystartdatetime', 'queryenddatetime');
+    return array('queryspecifydatetime', 'querystartdatetime', 'queryenddatetime');
 }
 function report_engagement_get_generic_settings_records($courseid) {
-	global $DB;
-	$generic_settings = report_engagement_get_generic_settings_list();
-	list($generic_settings_insql, $generic_settings_inparams) = $DB->get_in_or_equal($generic_settings, SQL_PARAMS_NAMED);
-	$generic_settings_queryparams = array('courseid' => $courseid);
-	$generic_settings_sql = "SELECT id, name, value FROM {report_engagement_generic} WHERE courseid = :courseid AND name $generic_settings_insql";
-	$generic_settings_params = array_merge($generic_settings_inparams, $generic_settings_queryparams);
-	return $DB->get_records_sql($generic_settings_sql, $generic_settings_params);
+    global $DB;
+    $generic_settings = report_engagement_get_generic_settings_list();
+    list($generic_settings_insql, $generic_settings_inparams) = $DB->get_in_or_equal($generic_settings, SQL_PARAMS_NAMED);
+    $generic_settings_queryparams = array('courseid' => $courseid);
+    $generic_settings_sql = "SELECT id, name, value FROM {report_engagement_generic} WHERE courseid = :courseid AND name $generic_settings_insql";
+    $generic_settings_params = array_merge($generic_settings_inparams, $generic_settings_queryparams);
+    return $DB->get_records_sql($generic_settings_sql, $generic_settings_params);
 }
 function report_engagement_get_generic_settings($courseid) {
-	$records = report_engagement_get_generic_settings_records($courseid);
-	$settings = array();
-	foreach ($records as $record) {
-		$setting = new stdClass();
-		$setting = $record;
-		$settings[$record->name] = $setting;
-	}
-	return $settings;
+    $records = report_engagement_get_generic_settings_records($courseid);
+    $settings = array();
+    foreach ($records as $record) {
+        $setting = new stdClass();
+        $setting = $record;
+        $settings[$record->name] = $setting;
+    }
+    return $settings;
 }
 
 function report_engagement_sort_indicators($a, $b) {
@@ -122,12 +122,12 @@ function report_engagement_update_indicator($courseid, $new_weights, $configdata
  * @param string $type The type of message, can be 'email', 'sms', etc
  */
 function message_send_log_message($subject, $message, $type){
-	global $DB;
-	$data = new stdClass();
-	$data->messagesubject = base64_encode($subject);
-	$data->messagebody = base64_encode($message);
-	$data->messagetype = $type;
-	return $DB->insert_record('report_engagement_messagelog', $data, true);	
+    global $DB;
+    $data = new stdClass();
+    $data->messagesubject = base64_encode($subject);
+    $data->messagebody = base64_encode($message);
+    $data->messagetype = $type;
+    return $DB->insert_record('report_engagement_messagelog', $data, true);    
 } 
  
  /**
@@ -141,21 +141,21 @@ function message_send_log_message($subject, $message, $type){
  *
  */
 function message_send_log_send($messageid, $destination, $recipientid, $senderid = null, $courseid = null){
-	global $DB, $USER, $COURSE;
-	if (!isset($senderid)) {
-		$senderid = $USER->id;
-	}
-	if (!isset($courseid)) {
-		$courseid = $COURSE->id;
-	}
-	$data = new stdClass();
-	$data->timesent = time();
-	$data->messageid = $messageid;
-	$data->destinationaddress = $destination;
-	$data->recipientid = $recipientid;
-	$data->senderid = $senderid;
-	$data->courseid = $courseid;
-	return $DB->insert_record('report_engagement_sentlog', $data);	
+    global $DB, $USER, $COURSE;
+    if (!isset($senderid)) {
+        $senderid = $USER->id;
+    }
+    if (!isset($courseid)) {
+        $courseid = $COURSE->id;
+    }
+    $data = new stdClass();
+    $data->timesent = time();
+    $data->messageid = $messageid;
+    $data->destinationaddress = $destination;
+    $data->recipientid = $recipientid;
+    $data->senderid = $senderid;
+    $data->courseid = $courseid;
+    return $DB->insert_record('report_engagement_sentlog', $data);    
 }
  
 /**
@@ -167,15 +167,15 @@ function message_send_log_send($messageid, $destination, $recipientid, $senderid
  * @return int The id of the new row in the database
  */
 function my_message_save($description, $message, $userid = null) {
-	global $DB, $USER;
-	if (!isset($userid)) {
-		$userid = $USER->id;
-	}
-	$data = new stdClass();
-	$data->userid = $userid;
-	$data->messagesummary = base64_encode($description);
-	$data->messagetext = $message;
-	return $DB->insert_record('report_engagement_mymessages', $data);	
+    global $DB, $USER;
+    if (!isset($userid)) {
+        $userid = $USER->id;
+    }
+    $data = new stdClass();
+    $data->userid = $userid;
+    $data->messagesummary = base64_encode($description);
+    $data->messagetext = $message;
+    return $DB->insert_record('report_engagement_mymessages', $data);    
 }
 
 /**
@@ -185,11 +185,11 @@ function my_message_save($description, $message, $userid = null) {
  * @return object The database record
  */
 function my_messages_get($userid = null){
-	global $DB, $USER;
-	if (!isset($userid)) {
-		$userid = $USER->id;
-	}
-	return $DB->get_records('report_engagement_mymessages', array('userid' => $userid));
+    global $DB, $USER;
+    if (!isset($userid)) {
+        $userid = $USER->id;
+    }
+    return $DB->get_records('report_engagement_mymessages', array('userid' => $userid));
 }
 
 /**
@@ -200,13 +200,13 @@ function my_messages_get($userid = null){
  * @return string The text with replacements
  */
 function message_variables_replace($message, $userid) {
-	global $DB;
-	$user = $DB->get_record('user', array('id'=>$userid));
-	$out = $message;
-	$out = str_replace("{#FIRSTNAME#}", $user->firstname, $out);
-	$out = str_replace("{#LASTNAME#}", $user->lastname, $out);
-	$out = str_replace("{#FULLNAME#}", fullname($user), $out);
-	return $out;
+    global $DB;
+    $user = $DB->get_record('user', array('id'=>$userid));
+    $out = $message;
+    $out = str_replace("{#FIRSTNAME#}", $user->firstname, $out);
+    $out = str_replace("{#LASTNAME#}", $user->lastname, $out);
+    $out = str_replace("{#FULLNAME#}", fullname($user), $out);
+    return $out;
 }
 
 /**
@@ -217,11 +217,11 @@ function message_variables_replace($message, $userid) {
  * @return string The text with replacements
  */
 function message_variables_get_array() {
-	return array(
-		"{#FIRSTNAME#}" => get_string('message_variables_firstname', 'report_engagement'),
-		"{#LASTNAME#}" => get_string('message_variables_lastname', 'report_engagement'),
-		"{#FULLNAME#}" => get_string('message_variables_fullname', 'report_engagement'),
-	);
+    return array(
+        "{#FIRSTNAME#}" => get_string('message_variables_firstname', 'report_engagement'),
+        "{#LASTNAME#}" => get_string('message_variables_lastname', 'report_engagement'),
+        "{#FULLNAME#}" => get_string('message_variables_fullname', 'report_engagement'),
+    );
 }
 
 /**
@@ -235,48 +235,48 @@ function message_variables_get_array() {
  * @return object An object containing a recipient object and the return value of email_to_user
  */
 function message_send_customised_email($message, $recipientid, $senderid, $replytoaddress, $ccaddress) {
-	global $DB, $USER, $COURSE;
-	require_once('email/emaillib.php');
-	if (!isset($senderid)) {
-		$senderid = $USER->id;
-	}
-	/*if (!isset($replytoid)) {
-		$replytoid = $USER->id;
-	}*/
-	if (!isset($replytoaddress)) {
-		$replytoaddress = $USER->email;
-	}
-	
-	$recipient = $DB->get_record('user', array('id'=>$recipientid));
-	$sender = $DB->get_record('user', array('id'=>$senderid));
-	//$replyto = $DB->get_record('user', array('id'=>$replytoid));
-	$email_body = $message['message'];
-	$email_subject = $message['subject']; 
-	// Prepare return variable
-	$result = new stdClass();
-	$result->recipient = $recipient;
-	// Try send email
-	$email = new report_engagement_email_message;
-	$email->recipient = $recipient;
-	$email->recipient_address = $recipient->email;
-	$email->recipient_name = fullname($recipient);
-	$email->sender = $sender;
-	$email->sender_address = $sender->email;
-	$email->sender_name = fullname($sender);
-	//$email->replyto_address = $replyto->email;
-	$email->replyto_address = $replytoaddress;
-	//$email->replyto_name = fullname($replyto);
-	$email->email_subject = $email_subject;
-	$email->email_body = $email_body;
-	$res = $email->send_email();
-	$result->result = $res->result;
-	$result->message = isset($res->message) ? $res->message : null;
-	return $result;
-	// try email_to_user 
-	// http://articlebin.michaelmilette.com/sending-custom-emails-in-moodle-using-the-email_to_user-function/
-	// https://github.com/moodle/moodle/blob/d302ba231ff20d744be953f92d4c687703c36332/lib/moodlelib.php
-	// examples in the above file
-	// example https://github.com/moodle/moodle/blob/b6a76cd7cdf588b8d31440d072930906fd4b357b/user/edit.php
+    global $DB, $USER, $COURSE;
+    require_once('email/emaillib.php');
+    if (!isset($senderid)) {
+        $senderid = $USER->id;
+    }
+    /*if (!isset($replytoid)) {
+        $replytoid = $USER->id;
+    }*/
+    if (!isset($replytoaddress)) {
+        $replytoaddress = $USER->email;
+    }
+    
+    $recipient = $DB->get_record('user', array('id'=>$recipientid));
+    $sender = $DB->get_record('user', array('id'=>$senderid));
+    //$replyto = $DB->get_record('user', array('id'=>$replytoid));
+    $email_body = $message['message'];
+    $email_subject = $message['subject']; 
+    // Prepare return variable
+    $result = new stdClass();
+    $result->recipient = $recipient;
+    // Try send email
+    $email = new report_engagement_email_message;
+    $email->recipient = $recipient;
+    $email->recipient_address = $recipient->email;
+    $email->recipient_name = fullname($recipient);
+    $email->sender = $sender;
+    $email->sender_address = $sender->email;
+    $email->sender_name = fullname($sender);
+    //$email->replyto_address = $replyto->email;
+    $email->replyto_address = $replytoaddress;
+    //$email->replyto_name = fullname($replyto);
+    $email->email_subject = $email_subject;
+    $email->email_body = $email_body;
+    $res = $email->send_email();
+    $result->result = $res->result;
+    $result->message = isset($res->message) ? $res->message : null;
+    return $result;
+    // try email_to_user 
+    // http://articlebin.michaelmilette.com/sending-custom-emails-in-moodle-using-the-email_to_user-function/
+    // https://github.com/moodle/moodle/blob/d302ba231ff20d744be953f92d4c687703c36332/lib/moodlelib.php
+    // examples in the above file
+    // example https://github.com/moodle/moodle/blob/b6a76cd7cdf588b8d31440d072930906fd4b357b/user/edit.php
 }
 
 /**
@@ -286,34 +286,34 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
  * @return boolean Success
  */
 function report_engagement_populate_snippets_from_lang($category) {
-	
-	global $DB;
+    
+    global $DB;
     $dbman = $DB->get_manager();
-	$stringman = get_string_manager();
-	
-	if ($dbman->table_exists('report_engagement_snippets')) {
-		if (!$DB->count_records('report_engagement_snippets', array('category'=>$category))) {
-			// Add default snippets
-			$records = [];
-			$counter = 0;
-			try {
-				// Incrementally check and fetch default snippets from lang file
-				do {
-					$record = new stdClass;
-					if ($stringman->string_exists("defaultsnippet$category$counter", 'report_engagement')) {
-						$record->category = $category;
-						$record->snippet_text = get_string("defaultsnippet$category$counter", 'report_engagement');
-						$counter += 1;
-						$records[] = $record;
-					} else {
-						break;
-					}
-				} while (true);
-				$DB->insert_records('report_engagement_snippets', $records);
-			} catch (Exception $e) {
-				break;
-			}
-		}
-	}
+    $stringman = get_string_manager();
+    
+    if ($dbman->table_exists('report_engagement_snippets')) {
+        if (!$DB->count_records('report_engagement_snippets', array('category'=>$category))) {
+            // Add default snippets
+            $records = [];
+            $counter = 0;
+            try {
+                // Incrementally check and fetch default snippets from lang file
+                do {
+                    $record = new stdClass;
+                    if ($stringman->string_exists("defaultsnippet$category$counter", 'report_engagement')) {
+                        $record->category = $category;
+                        $record->snippet_text = get_string("defaultsnippet$category$counter", 'report_engagement');
+                        $counter += 1;
+                        $records[] = $record;
+                    } else {
+                        break;
+                    }
+                } while (true);
+                $DB->insert_records('report_engagement_snippets', $records);
+            } catch (Exception $e) {
+                break;
+            }
+        }
+    }
 }
 

@@ -30,61 +30,61 @@ require_once($CFG->libdir.'/formslib.php');
 
 class report_engagement_manage_indicators_form extends moodleform {
 
-	public function definition_after_data() {
-		
-		parent::definition_after_data();
-		
-		$mform =& $this->_form;
-		
-		$defaultvalues = $this->_form->_defaultValues;
-		
-		$mform->addElement('hidden', 'contextid', $defaultvalues['contextid']);
+    public function definition_after_data() {
+        
+        parent::definition_after_data();
+        
+        $mform =& $this->_form;
+        
+        $defaultvalues = $this->_form->_defaultValues;
+        
+        $mform->addElement('hidden', 'contextid', $defaultvalues['contextid']);
 
-		$indicators = $defaultvalues['indicators'];
-		foreach ($indicators as $name) {
-			$mform->addElement('header', "snippet_header_$name", get_string('snippetheader', 'report_engagement', $name));
-			$counter = 1;
-			foreach ($defaultvalues['snippets'][$name] as $id => $snippet) {
-				$snippetgroup = array();
-				$snippetgroup[] =& $mform->createElement('textarea', "snippet_$name"."_$id", '', array('rows' => 3, 'cols' => 50));
-				$snippetgroup[] =& $mform->createElement('checkbox', "snippet_delete_$name"."_$id", '', get_string('snippetdelete', 'report_engagement'));
-				$mform->setDefault("snippet_$name"."_$id", $snippet);
-				$mform->addGroup($snippetgroup, "snippet_group_$name_".$id, get_string('snippetnumber', 'report_engagement', $counter), array(' '), false);
-				$counter += 1;
-			}
-			$mform->addElement('textarea', "snippet_".$name."_new", get_string('snippetnew', 'report_engagement'), array('rows' => 3, 'cols' => 50));
-		}
-		
+        $indicators = $defaultvalues['indicators'];
+        foreach ($indicators as $name) {
+            $mform->addElement('header', "snippet_header_$name", get_string('snippetheader', 'report_engagement', $name));
+            $counter = 1;
+            foreach ($defaultvalues['snippets'][$name] as $id => $snippet) {
+                $snippetgroup = array();
+                $snippetgroup[] =& $mform->createElement('textarea', "snippet_$name"."_$id", '', array('rows' => 3, 'cols' => 50));
+                $snippetgroup[] =& $mform->createElement('checkbox', "snippet_delete_$name"."_$id", '', get_string('snippetdelete', 'report_engagement'));
+                $mform->setDefault("snippet_$name"."_$id", $snippet);
+                $mform->addGroup($snippetgroup, "snippet_group_$name_".$id, get_string('snippetnumber', 'report_engagement', $counter), array(' '), false);
+                $counter += 1;
+            }
+            $mform->addElement('textarea', "snippet_".$name."_new", get_string('snippetnew', 'report_engagement'), array('rows' => 3, 'cols' => 50));
+        }
+        
         $this->add_action_buttons(false);
-	}
+    }
 
     protected function definition() {
         global $CFG, $OUTPUT;
-			
-		/*$indicators = $this->_customdata['indicators'];
+            
+        /*$indicators = $this->_customdata['indicators'];
 
         $mform->addElement('hidden', 'id', $this->_customdata['id']);
         $mform->setType('id', PARAM_INT);
 
         // TODO: general course-level report settings.
         $mform->addElement('header', 'general', get_string('pluginname', 'report_engagement'));
-		// query date limits settings
-		$mform->addElement('advcheckbox', 'queryspecifydatetime', get_string('queryspecifydatetime', 'report_engagement'));
-		$mform->addElement('date_time_selector', 'querystartdatetime', get_string('querystartdatetime', 'report_engagement'));
-		$mform->addElement('date_time_selector', 'queryenddatetime', get_string('queryenddatetime', 'report_engagement'));		
-		$mform->disabledIf('querystartdatetime', 'queryspecifydatetime');
-		$mform->disabledIf('queryenddatetime', 'queryspecifydatetime');
-		
+        // query date limits settings
+        $mform->addElement('advcheckbox', 'queryspecifydatetime', get_string('queryspecifydatetime', 'report_engagement'));
+        $mform->addElement('date_time_selector', 'querystartdatetime', get_string('querystartdatetime', 'report_engagement'));
+        $mform->addElement('date_time_selector', 'queryenddatetime', get_string('queryenddatetime', 'report_engagement'));        
+        $mform->disabledIf('querystartdatetime', 'queryspecifydatetime');
+        $mform->disabledIf('queryenddatetime', 'queryspecifydatetime');
+        
         $mform->addElement('header', 'weightings', get_string('weighting', 'report_engagement'));
         $mform->addElement('static', 'weightings_desc', get_string('indicator', 'report_engagement'));
-		$mform->addHelpButton('weightings_desc', 'indicator', 'report_engagement');
+        $mform->addHelpButton('weightings_desc', 'indicator', 'report_engagement');
         foreach ($indicators as $name => $path) {
             $grouparray = array();
             $grouparray[] =& $mform->createElement('text', "weighting_$name", '', array('size' => 3));
             $grouparray[] =& $mform->createElement('static', '', '', '%');
             $mform->addGroup($grouparray, "weight_group_$name", get_string('pluginname', "engagementindicator_$name"),
                         '&nbsp;', false);
-			$mform->addHelpButton("weight_group_$name", 'pluginname', "engagementindicator_$name");
+            $mform->addHelpButton("weight_group_$name", 'pluginname', "engagementindicator_$name");
             $mform->setType("weighting_$name", PARAM_FLOAT);
         }
 
@@ -101,8 +101,8 @@ class report_engagement_manage_indicators_form extends moodleform {
                 $subform->definition_inner($mform);
             }
         }
-		*/
-		
+        */
+        
     }
 
     // Form verification.
@@ -110,8 +110,8 @@ class report_engagement_manage_indicators_form extends moodleform {
         $mform =& $this->_form;
 
         $errors = array();
-		
-		/*
+        
+        /*
         $indicators = get_plugin_list('engagementindicator');
         $sum = 0;
         foreach ($indicators as $indicator => $path) {
@@ -129,8 +129,8 @@ class report_engagement_manage_indicators_form extends moodleform {
             $errors['weightings_desc'] = get_string('weightingsumtoonehundred', 'report_engagement');
         }
 
-		*/
-		
+        */
+        
         return $errors;
     }
 }

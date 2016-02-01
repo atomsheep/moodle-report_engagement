@@ -27,46 +27,46 @@ function xmldb_report_engagement_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
-	if ($oldversion < 2015052101) {
-		// Conditionally create table for report_engagement_generic.
-		if (!$dbman->table_exists('report_engagement_generic')) {
-			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_generic');
-		}
-	}
-	
+    if ($oldversion < 2015052101) {
+        // Conditionally create table for report_engagement_generic.
+        if (!$dbman->table_exists('report_engagement_generic')) {
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_generic');
+        }
+    }
+    
     if ($oldversion < 2015052102) {
         // Conditionally launch create table for report_engagement_sentlog.
-		if (!$dbman->table_exists('report_engagement_sentlog')) {
-			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_sentlog');
-		}
-		
+        if (!$dbman->table_exists('report_engagement_sentlog')) {
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_sentlog');
+        }
+        
         // Conditionally launch create table for report_engagement_messagelog.
         if (!$dbman->table_exists('report_engagement_messagelog')) {
-			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_messagelog');
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_messagelog');
         }
 
         // Conditionally launch create table for report_engagement_mymessages.
         if (!$dbman->table_exists('report_engagement_mymessages')) {
-			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_mymessages');
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_mymessages');
         }
-		
+        
         // Engagement savepoint reached.
         upgrade_plugin_savepoint(true, 2015052102, 'report', 'engagement');
     }
-	
-	if ($oldversion < 2016012902) {
+    
+    if ($oldversion < 2016012902) {
         // Conditionally launch create table for report_engagement_snippets.
-		if (!$dbman->table_exists('report_engagement_snippets')) {
-			$dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_snippets');
-		}
-		
-		// Populate snippets from lang file to DB
-		require_once(dirname(__FILE__).'/../locallib.php');
-		report_engagement_populate_snippets_from_lang('encouragement');
-		
+        if (!$dbman->table_exists('report_engagement_snippets')) {
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot . '/report/engagement/db/install.xml', 'report_engagement_snippets');
+        }
+        
+        // Populate snippets from lang file to DB
+        require_once(dirname(__FILE__).'/../locallib.php');
+        report_engagement_populate_snippets_from_lang('encouragement');
+        
         // Engagement savepoint reached.
         upgrade_plugin_savepoint(true, 2016012902, 'report', 'engagement');
-	}
-	
+    }
+    
     return true;
 }

@@ -64,25 +64,25 @@ if ($mform->is_cancelled()) {
     }
 
     // Process generic settings.
-	$generic_settings_list = report_engagement_get_generic_settings_list();
-	$records_generic_settings = report_engagement_get_generic_settings_records($id);
-	foreach ($generic_settings_list as $setting) {
-		$record = new stdClass();
-		$record->name = $setting;
-		$record->value = $formdata->{"$setting"};
-		$record->courseid = $id;
-		foreach ($records_generic_settings as $recordid => $recordobj) {
-			if ($recordobj->name == $setting) {
-				$record->id = $recordid;
-				continue;
-			}
-		}
-		if (isset($record->id)) {
-			$DB->update_record('report_engagement_generic', $record);		
-		} else {
-			$DB->insert_record('report_engagement_generic', $record);
-		}
-	}
+    $generic_settings_list = report_engagement_get_generic_settings_list();
+    $records_generic_settings = report_engagement_get_generic_settings_records($id);
+    foreach ($generic_settings_list as $setting) {
+        $record = new stdClass();
+        $record->name = $setting;
+        $record->value = $formdata->{"$setting"};
+        $record->courseid = $id;
+        foreach ($records_generic_settings as $recordid => $recordobj) {
+            if ($recordobj->name == $setting) {
+                $record->id = $recordid;
+                continue;
+            }
+        }
+        if (isset($record->id)) {
+            $DB->update_record('report_engagement_generic', $record);        
+        } else {
+            $DB->insert_record('report_engagement_generic', $record);
+        }
+    }
 
     // Process thresholds and other indicator specific settings.
     $configdata = array();
@@ -104,16 +104,16 @@ if ($indicators = $DB->get_records('report_engagement', array('course' => $id)))
         $data["weighting_{$indicator->indicator}"] = $indicator->weight * 100;
         $configdata = unserialize(base64_decode($indicator->configdata));
         if (is_array($configdata)) {
-			// Pre-process config data if necessary
-			$indicatorfile = "$CFG->dirroot/mod/engagement/indicator/{$indicator->indicator}/locallib.php";
-			if (file_exists($indicatorfile)) {
-				require_once($indicatorfile);
-				$func = "engagementindicator_{$indicator->indicator}_preprocess_configdata_for_edit_form";
-				if (function_exists($func)) {
-					$configdata = $func($configdata);
-				}
-			}
-			// Merge config data with form data
+            // Pre-process config data if necessary
+            $indicatorfile = "$CFG->dirroot/mod/engagement/indicator/{$indicator->indicator}/locallib.php";
+            if (file_exists($indicatorfile)) {
+                require_once($indicatorfile);
+                $func = "engagementindicator_{$indicator->indicator}_preprocess_configdata_for_edit_form";
+                if (function_exists($func)) {
+                    $configdata = $func($configdata);
+                }
+            }
+            // Merge config data with form data
             $data = array_merge($data, $configdata);
         }
     }
@@ -121,17 +121,17 @@ if ($indicators = $DB->get_records('report_engagement', array('course' => $id)))
 // Generic settings
 $generic_settings = report_engagement_get_generic_settings($id);
 foreach ($generic_settings as $name => $setting) {
-	$data = array_merge($data, array($name => $setting->value));
+    $data = array_merge($data, array($name => $setting->value));
 }
 // Set form data
 $mform->set_data($data);
 
 // Write to log
 $event = \report_engagement\event\settings_updated::create(array(
-	'context' => $context, 
-	'other' => array(
-		'courseid' => $id
-	)));
+    'context' => $context, 
+    'other' => array(
+        'courseid' => $id
+    )));
 $event->trigger();
 
 echo $OUTPUT->header();
