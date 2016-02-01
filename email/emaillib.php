@@ -62,11 +62,11 @@ class report_engagement_email_message {
 			if ($res->result === true) {
 				$res->message = 'OK';
 			} else {
-				$res->message = '';
+				$res->message = 'Error';
 			}
 		} else {
 			$res->result = false;
-			$res->message = '';
+			$res->message = 'Error';
 		}
 		return $res;
 	}
