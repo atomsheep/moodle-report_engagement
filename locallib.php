@@ -18,7 +18,7 @@
  * Output rendering of engagement report
  *
  * @package    report_engagement
- * @copyright  2012 NetSpot Pty Ltd, 2015 Macquarie University
+ * @copyright  2012 NetSpot Pty Ltd, 2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,12 +30,14 @@ function report_engagement_get_generic_settings_list() {
 }
 function report_engagement_get_generic_settings_records($courseid) {
     global $DB;
-    $generic_settings = report_engagement_get_generic_settings_list();
-    list($generic_settings_insql, $generic_settings_inparams) = $DB->get_in_or_equal($generic_settings, SQL_PARAMS_NAMED);
-    $generic_settings_queryparams = array('courseid' => $courseid);
-    $generic_settings_sql = "SELECT id, name, value FROM {report_engagement_generic} WHERE courseid = :courseid AND name $generic_settings_insql";
-    $generic_settings_params = array_merge($generic_settings_inparams, $generic_settings_queryparams);
-    return $DB->get_records_sql($generic_settings_sql, $generic_settings_params);
+    $genericsettings = report_engagement_get_generic_settings_list();
+    list($genericsettingsinsql, $genericsettingsinparams) = $DB->get_in_or_equal($genericsettings, SQL_PARAMS_NAMED);
+    $genericsettingsqueryparams = array('courseid' => $courseid);
+    $genericsettingssql = "SELECT id, name, value 
+                               FROM {report_engagement_generic} 
+                              WHERE courseid = :courseid AND name $genericsettingsinsql";
+    $genericsettingsparams = array_merge($genericsettingsinparams, $genericsettingsqueryparams);
+    return $DB->get_records_sql($genericsettingssql, $genericsettingsparams);
 }
 function report_engagement_get_generic_settings($courseid) {
     $records = report_engagement_get_generic_settings_records($courseid);
@@ -84,7 +86,7 @@ function report_engagement_sort_risks($a, $b) {
     }
 }
 
-function report_engagement_update_indicator($courseid, $new_weights, $configdata = array()) {
+function report_engagement_update_indicator($courseid, $newweights, $configdata = array()) {
     global $DB;
 
     $weights = array();
@@ -93,7 +95,7 @@ function report_engagement_update_indicator($courseid, $new_weights, $configdata
             $weights[$record->indicator] = $record;
         }
     }
-    foreach ($new_weights as $indicator => $weight) {
+    foreach ($newweights as $indicator => $weight) {
         $weight = $weight / 100;
         if (!isset($weights[$indicator])) {
             $record = new stdClass();
@@ -121,7 +123,7 @@ function report_engagement_update_indicator($courseid, $new_weights, $configdata
  * @param string $message The text of the message.
  * @param string $type The type of message, can be 'email', 'sms', etc
  */
-function message_send_log_message($subject, $message, $type){
+function message_send_log_message($subject, $message, $type) {
     global $DB;
     $data = new stdClass();
     $data->messagesubject = base64_encode($subject);
@@ -130,7 +132,7 @@ function message_send_log_message($subject, $message, $type){
     return $DB->insert_record('report_engagement_messagelog', $data, true);    
 } 
  
- /**
+/**
  * This function logs a send event to the database.
  *
  * @param int $messageid The id of the message
@@ -140,7 +142,7 @@ function message_send_log_message($subject, $message, $type){
  * @param int $courseid The Moodle courseid of the course, will default to current course if not provided
  *
  */
-function message_send_log_send($messageid, $destination, $recipientid, $senderid = null, $courseid = null){
+function message_send_log_send($messageid, $destination, $recipientid, $senderid = null, $courseid = null) {
     global $DB, $USER, $COURSE;
     if (!isset($senderid)) {
         $senderid = $USER->id;
@@ -184,7 +186,7 @@ function my_message_save($description, $message, $userid = null) {
  * @param int $userid Optional - the Moodle userid of the user, defaults to currently logged in user
  * @return object The database record
  */
-function my_messages_get($userid = null){
+function my_messages_get($userid = null) {
     global $DB, $USER;
     if (!isset($userid)) {
         $userid = $USER->id;
@@ -201,7 +203,7 @@ function my_messages_get($userid = null){
  */
 function message_variables_replace($message, $userid) {
     global $DB;
-    $user = $DB->get_record('user', array('id'=>$userid));
+    $user = $DB->get_record('user', array('id' => $userid));
     $out = $message;
     $out = str_replace("{#FIRSTNAME#}", $user->firstname, $out);
     $out = str_replace("{#LASTNAME#}", $user->lastname, $out);
@@ -231,31 +233,25 @@ function message_variables_get_array() {
  * @param int $recipientid The Moodle userid of the recipient of the email
  * @param int $senderid The Moodle userid of the sender of the email
  * @param string $replytoaddress Email address for reply-to
- * @param string $ccaddress Email address for carbon copy
+ * @param string $ccaddress Email address for carbon copy [not currently in use]
  * @return object An object containing a recipient object and the return value of email_to_user
  */
-function message_send_customised_email($message, $recipientid, $senderid, $replytoaddress, $ccaddress) {
+function message_send_customised_email($message, $recipientid, $senderid, $replytoaddress /*, $ccaddress */) {
     global $DB, $USER, $COURSE;
     require_once('email/emaillib.php');
     if (!isset($senderid)) {
         $senderid = $USER->id;
     }
-    /*if (!isset($replytoid)) {
-        $replytoid = $USER->id;
-    }*/
     if (!isset($replytoaddress)) {
         $replytoaddress = $USER->email;
     }
     
-    $recipient = $DB->get_record('user', array('id'=>$recipientid));
-    $sender = $DB->get_record('user', array('id'=>$senderid));
-    //$replyto = $DB->get_record('user', array('id'=>$replytoid));
-    $email_body = $message['message'];
-    $email_subject = $message['subject']; 
-    // Prepare return variable
+    $recipient = $DB->get_record('user', array('id' => $recipientid));
+    $sender = $DB->get_record('user', array('id' => $senderid));
+    // Prepare return variable.
     $result = new stdClass();
     $result->recipient = $recipient;
-    // Try send email
+    // Try send email.
     $email = new report_engagement_email_message;
     $email->recipient = $recipient;
     $email->recipient_address = $recipient->email;
@@ -263,20 +259,19 @@ function message_send_customised_email($message, $recipientid, $senderid, $reply
     $email->sender = $sender;
     $email->sender_address = $sender->email;
     $email->sender_name = fullname($sender);
-    //$email->replyto_address = $replyto->email;
     $email->replyto_address = $replytoaddress;
-    //$email->replyto_name = fullname($replyto);
-    $email->email_subject = $email_subject;
-    $email->email_body = $email_body;
+    $email->email_subject = $message['subject']; 
+    $email->email_body = $message['message'];
     $res = $email->send_email();
     $result->result = $res->result;
     $result->message = isset($res->message) ? $res->message : null;
     return $result;
-    // try email_to_user 
+    /* Try email_to_user.
     // http://articlebin.michaelmilette.com/sending-custom-emails-in-moodle-using-the-email_to_user-function/
     // https://github.com/moodle/moodle/blob/d302ba231ff20d744be953f92d4c687703c36332/lib/moodlelib.php
     // examples in the above file
     // example https://github.com/moodle/moodle/blob/b6a76cd7cdf588b8d31440d072930906fd4b357b/user/edit.php
+    */
 }
 
 /**
@@ -292,7 +287,7 @@ function report_engagement_populate_snippets_from_lang($category) {
     $stringman = get_string_manager();
     
     if ($dbman->table_exists('report_engagement_snippets')) {
-        if (!$DB->count_records('report_engagement_snippets', array('category'=>$category))) {
+        if (!$DB->count_records('report_engagement_snippets', array('category' => $category))) {
             // Add default snippets
             $records = [];
             $counter = 0;

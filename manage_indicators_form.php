@@ -46,62 +46,32 @@ class report_engagement_manage_indicators_form extends moodleform {
             $counter = 1;
             foreach ($defaultvalues['snippets'][$name] as $id => $snippet) {
                 $snippetgroup = array();
-                $snippetgroup[] =& $mform->createElement('textarea', "snippet_$name"."_$id", '', array('rows' => 3, 'cols' => 50));
-                $snippetgroup[] =& $mform->createElement('checkbox', "snippet_delete_$name"."_$id", '', get_string('snippetdelete', 'report_engagement'));
+                $snippetgroup[] =& $mform->createElement('textarea', 
+                    "snippet_$name"."_$id",
+                    '',
+                    array('rows' => 3, 'cols' => 50));
+                $snippetgroup[] =& $mform->createElement('checkbox', 
+                    "snippet_delete_$name"."_$id",
+                    '',
+                    get_string('snippetdelete', 'report_engagement'));
                 $mform->setDefault("snippet_$name"."_$id", $snippet);
-                $mform->addGroup($snippetgroup, "snippet_group_$name_".$id, get_string('snippetnumber', 'report_engagement', $counter), array(' '), false);
+                $mform->addGroup($snippetgroup,
+                    "snippet_group_$name_".$id,
+                    get_string('snippetnumber', 'report_engagement', $counter),
+                    array(' '),
+                    false);
                 $counter += 1;
             }
-            $mform->addElement('textarea', "snippet_".$name."_new", get_string('snippetnew', 'report_engagement'), array('rows' => 3, 'cols' => 50));
+            $mform->addElement('textarea',
+                "snippet_".$name."_new",
+                get_string('snippetnew', 'report_engagement'),
+                array('rows' => 3, 'cols' => 50));
         }
         
         $this->add_action_buttons(false);
     }
 
     protected function definition() {
-        global $CFG, $OUTPUT;
-            
-        /*$indicators = $this->_customdata['indicators'];
-
-        $mform->addElement('hidden', 'id', $this->_customdata['id']);
-        $mform->setType('id', PARAM_INT);
-
-        // TODO: general course-level report settings.
-        $mform->addElement('header', 'general', get_string('pluginname', 'report_engagement'));
-        // query date limits settings
-        $mform->addElement('advcheckbox', 'queryspecifydatetime', get_string('queryspecifydatetime', 'report_engagement'));
-        $mform->addElement('date_time_selector', 'querystartdatetime', get_string('querystartdatetime', 'report_engagement'));
-        $mform->addElement('date_time_selector', 'queryenddatetime', get_string('queryenddatetime', 'report_engagement'));        
-        $mform->disabledIf('querystartdatetime', 'queryspecifydatetime');
-        $mform->disabledIf('queryenddatetime', 'queryspecifydatetime');
-        
-        $mform->addElement('header', 'weightings', get_string('weighting', 'report_engagement'));
-        $mform->addElement('static', 'weightings_desc', get_string('indicator', 'report_engagement'));
-        $mform->addHelpButton('weightings_desc', 'indicator', 'report_engagement');
-        foreach ($indicators as $name => $path) {
-            $grouparray = array();
-            $grouparray[] =& $mform->createElement('text', "weighting_$name", '', array('size' => 3));
-            $grouparray[] =& $mform->createElement('static', '', '', '%');
-            $mform->addGroup($grouparray, "weight_group_$name", get_string('pluginname', "engagementindicator_$name"),
-                        '&nbsp;', false);
-            $mform->addHelpButton("weight_group_$name", 'pluginname', "engagementindicator_$name");
-            $mform->setType("weighting_$name", PARAM_FLOAT);
-        }
-
-        $pluginman = core_plugin_manager::instance();
-        $instances = get_plugin_list('engagementindicator');
-        foreach ($indicators as $name => $path) {
-            $plugin = $pluginman->get_plugin_info('engagementindicator_'.$name);
-            $file = "$CFG->dirroot/mod/engagement/indicator/$name/thresholds_form.php";
-            if (file_exists($file) && $plugin->is_enabled()) {
-                require_once($file);
-                $class = "engagementindicator_{$name}_thresholds_form";
-                $subform = new $class();
-                $mform->addElement('header', 'general', get_string('pluginname', "engagementindicator_$name"));
-                $subform->definition_inner($mform);
-            }
-        }
-        */
         
     }
 
@@ -110,26 +80,6 @@ class report_engagement_manage_indicators_form extends moodleform {
         $mform =& $this->_form;
 
         $errors = array();
-        
-        /*
-        $indicators = get_plugin_list('engagementindicator');
-        $sum = 0;
-        foreach ($indicators as $indicator => $path) {
-            $key = "weighting_$indicator";
-            if (isset($data[$key]) && (!is_numeric($data[$key]) || $data[$key] > 100 || $data[$key] < 0)) {
-                $errors["weight_group_$indicator"] = get_string('weightingmustbenumeric', 'report_engagement');
-                continue;
-            }
-            if (isset($data[$key])) {
-                $sum += $data[$key];
-            }
-        }
-
-        if ($sum != 100) {
-            $errors['weightings_desc'] = get_string('weightingsumtoonehundred', 'report_engagement');
-        }
-
-        */
         
         return $errors;
     }

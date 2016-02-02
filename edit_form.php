@@ -18,7 +18,7 @@
  * Displays indicator reports for a chosen course
  *
  * @package    report_engagement
- * @copyright  2012 NetSpot Pty Ltd
+ * @copyright  2012 NetSpot Pty Ltd, 2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -41,7 +41,7 @@ class report_engagement_edit_form extends moodleform {
 
         // TODO: general course-level report settings.
         $mform->addElement('header', 'general', get_string('pluginname', 'report_engagement'));
-        // query date limits settings
+        // Query date limits settings.
         $mform->addElement('advcheckbox', 'queryspecifydatetime', get_string('queryspecifydatetime', 'report_engagement'));
         $mform->addElement('date_time_selector', 'querystartdatetime', get_string('querystartdatetime', 'report_engagement'));
         $mform->addElement('date_time_selector', 'queryenddatetime', get_string('queryenddatetime', 'report_engagement'));        

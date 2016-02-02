@@ -18,7 +18,7 @@
  * Displays indicator reports for a chosen course
  *
  * @package    report_engagement
- * @copyright  2015 Macquarie University
+ * @copyright  2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -39,34 +39,34 @@ class report_engagement_mailer_form extends moodleform {
         $subsets = $this->_customdata['subsets'];
         $action = $this->_customdata['action'];
         
-        $table_data = $this->_customdata['table_data'];
-        $column_headers = $this->_customdata['column_headers'];        
-        $chk_column_headers = $this->_customdata['chk_column_headers'];
-        $heatmappable_columns = json_encode($this->_customdata['heatmappable_columns']);
-        $heatmappable_columns_directions = json_encode($this->_customdata['heatmappable_columns_directions']);
-        $display_data_raw = $this->_customdata['display_data_raw'];
+        $tabledata = $this->_customdata['table_data'];
+        $columnheaders = $this->_customdata['column_headers'];        
+        $chkcolumnheaders = $this->_customdata['chk_column_headers'];
+        $heatmappablecolumns = json_encode($this->_customdata['heatmappable_columns']);
+        $heatmappablecolumnsdirections = json_encode($this->_customdata['heatmappable_columns_directions']);
+        $displaydataraw = $this->_customdata['display_data_raw'];
         $defaultsort = $this->_customdata['defaultsort'];
-        $html_num_fmt_cols = $this->_customdata['html_num_fmt_cols'];
+        $htmlnumfmtcols = $this->_customdata['html_num_fmt_cols'];
         
-        $has_capability_send = $this->_customdata['has_capability_send'];
+        $hascapabilitysend = $this->_customdata['has_capability_send'];
         
         $friendlypatterns = $this->_customdata['friendlypatterns'];
         if ($action == 'composing') {
             $defaultmessages = $this->_customdata['defaultmessages'];
-            $message_variables = $this->_customdata['message_variables'];
-            $suggested_snippets = $this->_customdata['suggested_snippets'];
-            $other_snippets = $this->_customdata['other_snippets'];
-            $my_saved_messages = $this->_customdata['my_saved_messages'];
-            $my_saved_messages_data = $this->_customdata['my_saved_messages_data'];
-            $capable_users = $this->_customdata['capable_users'];
+            $messagevariables = $this->_customdata['message_variables'];
+            $suggestedsnippets = $this->_customdata['suggested_snippets'];
+            $othersnippets = $this->_customdata['other_snippets'];
+            $mysavedmessages = $this->_customdata['my_saved_messages'];
+            $mysavedmessagesdata = $this->_customdata['my_saved_messages_data'];
+            $capableusers = $this->_customdata['capable_users'];
         } else if ($action == 'previewing') {
-            $message_previews = $this->_customdata['message_previews'];
-            $sender_previews = $this->_customdata['sender_previews'];
-            $replyto_previews = $this->_customdata['replyto_previews'];
-            // $cc_previews = $this->_customdata['cc_previews'];
-            $message_previews_by_user = $this->_customdata['message_previews_by_user'];
+            $messagepreviews = $this->_customdata['message_previews'];
+            $senderpreviews = $this->_customdata['sender_previews'];
+            $replytopreviews = $this->_customdata['replyto_previews'];
+            /* ForFuture: $cc_previews = $this->_customdata['cc_previews']; */
+            $messagepreviewsbyuser = $this->_customdata['message_previews_by_user'];
         } else if ($action == 'sending') {
-            $message_send_results = $this->_customdata['message_send_results'];
+            $messagesendresults = $this->_customdata['message_send_results'];
         }
         
         $mform->addElement('hidden', 'id', $this->_customdata['id']);
@@ -76,60 +76,63 @@ class report_engagement_mailer_form extends moodleform {
         foreach ($patterns as $pattern => $userids) {
             $tablehtml = '';
             if ($subsets) {
-                $mform->addElement('header', "header_$pattern", get_string('message_header_groupwith', 'report_engagement').$friendlypatterns[$pattern]->human);
+                $mform->addElement('header', "header_$pattern", get_string('message_header_groupwith', 'report_engagement').
+                    $friendlypatterns[$pattern]->human);
                 if ($action == 'previewing' || $action == 'sending') {
                     $mform->setExpanded("header_$pattern");
                 }
             }
-            // Display table data
-            $tablehtml .= html_writer::start_tag('table', array('id'=>"data_table_$pattern", 'class'=>'row-border display compact'));
-                // thead
+            // Display table data.
+            $tablehtml .= html_writer::start_tag('table', array('id' => "data_table_$pattern", 
+                                                             'class' => 'row-border display compact'));
+                // Table header.
                 $tablehtml .= html_writer::start_tag('thead');
-                    // first row - summary headers
+                    // First row - summary headers.
                     $tablehtml .= html_writer::start_tag('tr');
-                        // checkboxes
-                        $tablehtml .= html_writer::start_tag('th', array('colspan'=>count($chk_column_headers)));
+                        // Checkboxes.
+                        $tablehtml .= html_writer::start_tag('th', array('colspan' => count($chkcolumnheaders)));
                             $tablehtml .= get_string('report_header_selectmessagetypes', 'report_engagement');
                         $tablehtml .= html_writer::end_tag('th');
-                        // user info
-                        $tablehtml .= html_writer::start_tag('th', array('colspan'=>(2)));
+                        // User info.
+                        $tablehtml .= html_writer::start_tag('th', array('colspan' => (2)));
                             $tablehtml .= get_string('report_header_userinfo', 'report_engagement');
                         $tablehtml .= html_writer::end_tag('th');
-                        // user data
-                        foreach ($display_data_raw as $name => $raw) {
-                            $tablehtml .= html_writer::start_tag('th', array('colspan'=>(count($raw))));
+                        // User data.
+                        foreach ($displaydataraw as $name => $raw) {
+                            $tablehtml .= html_writer::start_tag('th', array('colspan' => (count($raw))));
                                 $tablehtml .= ucfirst($name) . " " . get_string('report_header_data', 'report_engagement');
                             $tablehtml .= html_writer::end_tag('th');
                         }
-                        // totals
-                        $tablehtml .= html_writer::start_tag('th', array('colspan'=>(2)));
+                        // Totals.
+                        $tablehtml .= html_writer::start_tag('th', array('colspan' => (2)));
                             $tablehtml .= get_string('report_header_totals', 'report_engagement');
                         $tablehtml .= html_writer::end_tag('th');
                     $tablehtml .= html_writer::end_tag('tr');
-                    // second row - headers
+                    // Second row - individual column headers.
                     $tablehtml .= html_writer::start_tag('tr');
-                        foreach ($column_headers as $i => $column_header) {
-                            if (array_key_exists('hide', $column_header) && $column_header['hide']) {
-                                $tablehtml .= html_writer::start_tag('th', array('style'=>'display:none;'));
+                        foreach ($columnheaders as $i => $columnheader) {
+                            if (array_key_exists('hide', $columnheader) && $columnheader['hide']) {
+                                $tablehtml .= html_writer::start_tag('th', array('style' => 'display:none;'));
                             } else {
                                 $tablehtml .= html_writer::start_tag('th');
                             }
-                                $tablehtml .= $column_header['html'];
-                                if (!array_key_exists('chk', $column_header) && array_key_exists('filterable', $column_header) && $column_header['filterable']) {
-                                    $tablehtml .= '<br /><input type="text" size="6" placeholder="' . get_string('message_table_filter_column', 'report_engagement') . '" />';
+                                $tablehtml .= $columnheader['html'];
+                                if (!array_key_exists('chk', $columnheader) && array_key_exists('filterable', $columnheader) && $columnheader['filterable']) {
+                                    $tablehtml .= '<br /><input type="text" size="6" placeholder="'.
+                                        get_string('message_table_filter_column', 'report_engagement') . '" />';
                                 }
                             $tablehtml .= html_writer::end_tag('th');
                         }
                     $tablehtml .= html_writer::end_tag('tr');
                 $tablehtml .= html_writer::end_tag('thead');
-                // tbody
+                // Table body.
                 $tablehtml .= html_writer::start_tag('tbody');
-                    foreach ($table_data as $row) {
+                    foreach ($tabledata as $row) {
                         if (($subsets && in_array($row['userid'], $userids)) || !$subsets) {
                             $tablehtml .= html_writer::start_tag('tr');
                                 foreach ($row['data'] as $c => $cellvalue) {
-                                    if (array_key_exists('hide', $column_headers[$c]) && $column_headers[$c]['hide']) {
-                                        $tablehtml .= html_writer::start_tag('td', array('style'=>'display:none;'));
+                                    if (array_key_exists('hide', $columnheaders[$c]) && $columnheaders[$c]['hide']) {
+                                        $tablehtml .= html_writer::start_tag('td', array('style' => 'display:none;'));
                                     } else {
                                         $tablehtml .= html_writer::start_tag('td');
                                     }
@@ -142,71 +145,73 @@ class report_engagement_mailer_form extends moodleform {
                 $tablehtml .= html_writer::end_tag('tbody');
             $tablehtml .= html_writer::end_tag('table');
             $mform->addElement('html', $tablehtml);
-            // Toggles
-            // - Details
-            $mform->addElement('checkbox', "toggle_details_$pattern", get_string('message_table_extradetails', 'report_engagement'), get_string('message_table_show_extradetails_checkbox', 'report_engagement'));
+            // Toggles.
+            // Toggles: Details.
+            $mform->addElement('checkbox', "toggle_details_$pattern", 
+                get_string('message_table_extradetails', 'report_engagement'), 
+                get_string('message_table_show_extradetails_checkbox', 'report_engagement'));
             $mform->addHelpButton("toggle_details_$pattern", 'message_table_extradetails', 'report_engagement');
-            // - Heatmap
-            $mform->addElement('checkbox', "toggle_heatmap_$pattern", get_string('message_table_heatmap', 'report_engagement'), get_string('message_table_show_heatmap_checkbox', 'report_engagement'));
+            // Toggles: Heatmap.
+            $mform->addElement('checkbox', "toggle_heatmap_$pattern", 
+                get_string('message_table_heatmap', 'report_engagement'), 
+                get_string('message_table_show_heatmap_checkbox', 'report_engagement'));
             $mform->addHelpButton("toggle_heatmap_$pattern", 'message_table_heatmap', 'report_engagement');
-            // Display options for each group
+            // Display options for each group.
             if ($subsets && $action == 'composing') {
-                // information
-                $mform->addElement('static', '', get_string('message_will_be_sent_count', 'report_engagement'), count($userids)." ".(count($userids) > 1 ? get_string('student_plural', 'report_engagement') : get_string('student_singular', 'report_engagement'))." ".get_string('message_will_be_sent_count_above', 'report_engagement'));
-                // message options
-                //$mform->addElement('checkbox', "chk_actually_send_$pattern", "Send messages to this group"); 
-                // - sender
-                $mform->addElement('select', "sender_$pattern", get_string('message_sender', 'report_engagement'), $capable_users);
+                // Information.
+                $mform->addElement('static', '', 
+                    get_string('message_will_be_sent_count', 'report_engagement'), 
+                    count($userids)." ".(count($userids) > 1 ? get_string('student_plural', 'report_engagement') : get_string('student_singular', 'report_engagement'))." ".get_string('message_will_be_sent_count_above', 'report_engagement'));
+                // Information: Sender.
+                $mform->addElement('select', "sender_$pattern", get_string('message_sender', 'report_engagement'), $capableusers);
                 $mform->addHelpButton("sender_$pattern", 'message_sender', 'report_engagement');
-                // - replyto
-                //$mform->addElement('select', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), $capable_users);
-                $mform->addElement('text', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), array('size'=>50));
+                // Information: Replyto.
+                $mform->addElement('text', "replyto_$pattern", get_string('message_replyto', 'report_engagement'), array('size' => 50));
                 $mform->setType("replyto_$pattern", PARAM_TEXT);
                 $mform->addRule("replyto_$pattern", get_string('message_replyto_error_email', 'report_engagement'), 'email', null, 'client');
                 $mform->addHelpButton("replyto_$pattern", 'message_replyto', 'report_engagement');
-                /*// - CC
-                $mform->addElement('text', "cc_$pattern", get_string('message_cc', 'report_engagement'), array('size'=>50));
+                /*// Information: CC.
+                $mform->addElement('text', "cc_$pattern", get_string('message_cc', 'report_engagement'), array('size' => 50));
                 $mform->addRule("cc_$pattern", get_string('message_cc_error_email', 'report_engagement'), 'email', null, 'client');
-                $mform->addHelpButton("cc_$pattern", 'message_cc', 'report_engagement');*/
-                // - message subject
-                $mform->addElement('text', "subject_$pattern", get_string('message_subject', 'report_engagement'), array('size'=>50));
+                $mform->addHelpButton("cc_$pattern", 'message_cc', 'report_engagement'); */
+                // Information: Message subject.
+                $mform->addElement('text', "subject_$pattern", get_string('message_subject', 'report_engagement'), array('size' => 50));
                 $mform->addHelpButton("subject_$pattern", 'message_subject', 'report_engagement');
                 $mform->setType("subject_$pattern", PARAM_TEXT);
-                // - message body
-                //$mform->addElement('editor', "message_$pattern", "Message body"); 
-                $mform->addElement('textarea', "message_$pattern", get_string('message_body', 'report_engagement'), array('rows'=>12, 'cols'=>80));
+                // Information: Message body.
+                $mform->addElement('textarea', "message_$pattern", get_string('message_body', 'report_engagement'), array('rows' => 12, 'cols' => 80));
                 $mform->addHelpButton("message_$pattern", 'message_body', 'report_engagement');
                 $mform->setType("message_$pattern", PARAM_RAW);
-                // - message components/snippets
-                $msgcom = html_writer::start_tag('div', array('class'=>'fitem'));
-                    $msgcom .= html_writer::start_tag('div', array('class'=>'fitemtitle'));
+                // Information: Message components/snippets.
+                $msgcom = html_writer::start_tag('div', array('class' => 'fitem'));
+                    $msgcom .= html_writer::start_tag('div', array('class' => 'fitemtitle'));
                         $msgcom .= html_writer::tag('label', get_string('message_snippets', 'report_engagement'));
                         $msgcom .= $OUTPUT->help_icon('message_snippets', 'report_engagement');
                     $msgcom .= html_writer::end_tag('div');
-                    $msgcom .= html_writer::start_tag('div', array('class'=>'felement'));
-                        $msgcom .= html_writer::select(array('variables'=>get_string('message_snippets_variables', 'report_engagement'), 'suggested'=>get_string('message_snippets_suggested', 'report_engagement'), 
-                                    'other'=>get_string('message_snippets_other', 'report_engagement'), 'my'=>get_string('message_snippets_my', 'report_engagement')), 
-                                    "snippet_type_select_$pattern", '', array(''=>'choosedots'), array('data-pattern'=>$pattern));
-                        //$msgcom .= $OUTPUT->help_icon($helpicon);
-                        $msgcom .= html_writer::start_tag('div', array('class'=>'snippet_selector', 'id'=>"snippet_selector_$pattern"));
-                            // Show variables
-                            $msgcom .= html_writer::start_tag('div', array('id'=>"snippet_selection_variables_$pattern"));
-                                $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-                                    foreach ($message_variables as $variable => $label) {
-                                        $msgcom .= html_writer::tag('li', $label, array('data-content'=>json_encode($variable), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+                    $msgcom .= html_writer::start_tag('div', array('class' => 'felement'));
+                        $msgcom .= html_writer::select(array('variables' => get_string('message_snippets_variables', 'report_engagement'), 'suggested' => get_string('message_snippets_suggested', 'report_engagement'), 
+                                    'other'=>get_string('message_snippets_other', 'report_engagement'), 'my' => get_string('message_snippets_my', 'report_engagement')), 
+                                    "snippet_type_select_$pattern", '', array('' => 'choosedots'), array('data-pattern' => $pattern));
+                        $msgcom .= html_writer::start_tag('div', array('class' => 'snippet_selector', 'id' => "snippet_selector_$pattern"));
+                            // Show variables.
+                            $msgcom .= html_writer::start_tag('div', array('id' => "snippet_selection_variables_$pattern"));
+                                $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
+                                    foreach ($messagevariables as $variable => $label) {
+                                        $msgcom .= html_writer::tag('li', $label, array('data-content' => json_encode($variable), 'data-pattern' => "$pattern", 'class' => 'snippet_item'));
                                     }
                                 $msgcom .= html_writer::end_tag('ul');
                             $msgcom .= html_writer::end_tag('div');
-                            // Show suggested snippets
-                            $msgcom .= html_writer::start_tag('div', array('id'=>"snippet_selection_suggested_$pattern"));
-                                $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-                                    foreach ($suggested_snippets[$pattern] as $suggested_snippet) {
-                                        foreach ($suggested_snippet as $category => $snippets) {
-                                            $msgcom .= html_writer::start_tag('li', array('class'=>'snippet_category'));
+                            // Show suggested snippets.
+                            $msgcom .= html_writer::start_tag('div', array('id' => "snippet_selection_suggested_$pattern"));
+                                $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
+                                    foreach ($suggestedsnippets[$pattern] as $suggestedsnippet) {
+                                        foreach ($suggestedsnippet as $category => $snippets) {
+                                            $msgcom .= html_writer::start_tag('li', array('class' => 'snippet_category'));
                                             $msgcom .= html_writer::tag('div', $category);
-                                            $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
+                                            $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
                                             foreach ($snippets as $variable => $label) {
-                                                $msgcom .= html_writer::tag('li', $label, array('data-content'=>json_encode($label), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+                                                $msgcom .= html_writer::tag('li', $label, 
+                                                    array('data-content' => json_encode($label), 'data-pattern' => "$pattern", 'class' => 'snippet_item'));
                                             }
                                             $msgcom .= html_writer::end_tag('ul');
                                             $msgcom .= html_writer::end_tag('li');
@@ -214,17 +219,20 @@ class report_engagement_mailer_form extends moodleform {
                                     }
                                 $msgcom .= html_writer::end_tag('ul');
                             $msgcom .= html_writer::end_tag('div');
-                            // Show other snippets
-                            $msgcom .= html_writer::start_tag('div', array('id'=>"snippet_selection_other_$pattern"));
-                                $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-                                    foreach ($other_snippets[$pattern] as $other_snippet) {
-                                        foreach ($other_snippet as $category => $snippets) {
+                            // Show other snippets.
+                            $msgcom .= html_writer::start_tag('div', array('id' => "snippet_selection_other_$pattern"));
+                                $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
+                                    foreach ($othersnippets[$pattern] as $othersnippet) {
+                                        foreach ($othersnippet as $category => $snippets) {
                                             if (count($snippets) > 0) {
-                                                $msgcom .= html_writer::start_tag('li', array('class'=>'snippet_category'));
+                                                $msgcom .= html_writer::start_tag('li', array('class' => 'snippet_category'));
                                                 $msgcom .= html_writer::tag('div', $category);
-                                                $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
+                                                $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
                                                 foreach ($snippets as $variable => $label) {
-                                                    $msgcom .= html_writer::tag('li', $label, array('data-content'=>json_encode($label), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+                                                    $msgcom .= html_writer::tag('li', 
+                                                        $label, 
+                                                        array('data-content' => json_encode($label), 
+                                                            'data-pattern' => "$pattern", 'class' => 'snippet_item'));
                                                 }
                                                 $msgcom .= html_writer::end_tag('ul');
                                                 $msgcom .= html_writer::end_tag('li');
@@ -233,15 +241,18 @@ class report_engagement_mailer_form extends moodleform {
                                     }
                                 $msgcom .= html_writer::end_tag('ul');
                             $msgcom .= html_writer::end_tag('div');
-                            // Show my saved messages
-                            $my_saved_message_text = json_decode($my_saved_messages_data);
-                            $msgcom .= html_writer::start_tag('div', array('id'=>"snippet_selection_my_$pattern"));
-                                $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-                                    foreach ($my_saved_messages[$pattern] as $variable => $label) {
-                                        $msgcom .= html_writer::start_tag('li', array('class'=>'snippet_category'));
+                            // Show my saved messages.
+                            $mysavedmessagetext = json_decode($mysavedmessagesdata);
+                            $msgcom .= html_writer::start_tag('div', array('id' => "snippet_selection_my_$pattern"));
+                                $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
+                                    foreach ($mysavedmessages[$pattern] as $variable => $label) {
+                                        $msgcom .= html_writer::start_tag('li', array('class' => 'snippet_category'));
                                         $msgcom .= html_writer::tag('div', $label);
-                                        $msgcom .= html_writer::start_tag('ul', array('class'=>'snippet_list'));
-                                            $msgcom .= html_writer::tag('li', $my_saved_message_text->{$variable}, array('data-content'=>json_encode($my_saved_message_text->{$variable}), 'data-pattern'=>"$pattern", 'class'=>'snippet_item'));
+                                        $msgcom .= html_writer::start_tag('ul', array('class' => 'snippet_list'));
+                                            $msgcom .= html_writer::tag('li', 
+                                                $mysavedmessagetext->{$variable}, 
+                                                array('data-content' => json_encode($mysavedmessagetext->{$variable}), 
+                                                    'data-pattern' => "$pattern", 'class' => 'snippet_item'));
                                         $msgcom .= html_writer::end_tag('ul');
                                         $msgcom .= html_writer::end_tag('li');
                                     }
@@ -251,106 +262,114 @@ class report_engagement_mailer_form extends moodleform {
                     $msgcom .= html_writer::end_tag('div');
                 $msgcom .= html_writer::end_tag('div');
                 $mform->addElement('html', $msgcom);
-                // - save my messages options
+                // Information: Save my messages options.
                 $savemy = array();
                 $savemy[] =& $mform->createElement('static', '', '', get_string('message_savemy_chk', 'report_engagement'));
                 $savemy[] =& $mform->createElement('checkbox', "chk_savemy_$pattern");
                 $savemy[] =& $mform->createElement('static', '', '', get_string('message_savemy_description', 'report_engagement'));
-                $savemy[] =& $mform->createElement('text', "txt_savemy_$pattern", '', array('size'=>30));
+                $savemy[] =& $mform->createElement('text', "txt_savemy_$pattern", '', array('size' => 30));
                 $mform->addGroup($savemy, "savemy_$pattern", get_string('message_savemy', 'report_engagement'), array(' '), false);
                 $mform->addHelpButton("savemy_$pattern", 'message_savemy', 'report_engagement');
                 $mform->setType("txt_savemy_$pattern", PARAM_TEXT);
                 $mform->disabledIf("txt_savemy_$pattern", "chk_savemy_$pattern");
-                /*
-                // disable unless actually sending
-                $mform->disabledIf("message_$pattern", "chk_actually_send_$pattern"); // Moodle bug - editor does not disable - not much point including this block unless this works
-                $mform->disabledIf("select_message_$pattern", "chk_actually_send_$pattern");
-                $mform->disabledIf("chk_savemy_$pattern", "chk_actually_send_$pattern");
-                */
             } else if ($subsets && $action == 'previewing') {
-                // Preview nav buttons
-                $preview_nav = array();
-                $preview_nav[] =& $mform->createElement('button', "button_preview_nav_back_$pattern", get_string('message_preview_button_back', 'report_engagement'), array('data-pattern'=>"$pattern", 'data-direction'=>'back'));
-                $preview_nav[] =& $mform->createElement('button', "button_preview_nav_forward_$pattern", get_string('message_preview_button_forward', 'report_engagement'), array('data-pattern'=>"$pattern", 'data-direction'=>'forward'));
-                $mform->addGroup($preview_nav, "preview_nav_$pattern", get_string('message_preview_buttons', 'report_engagement'), array(' '), false);
+                // Preview nav buttons.
+                $previewnav = array();
+                $previewnav[] =& $mform->createElement('button', 
+                    "button_preview_nav_back_$pattern", 
+                    get_string('message_preview_button_back', 'report_engagement'), 
+                    array('data-pattern' => "$pattern", 'data-direction' => 'back'));
+                $previewnav[] =& $mform->createElement('button', 
+                    "button_preview_nav_forward_$pattern", 
+                    get_string('message_preview_button_forward', 'report_engagement'), 
+                    array('data-pattern' => "$pattern", 'data-direction' => 'forward'));
+                $mform->addGroup($previewnav, "preview_nav_$pattern", get_string('message_preview_buttons', 'report_engagement'), array(' '), false);
                 $mform->addHelpButton("preview_nav_$pattern", 'message_preview_buttons', 'report_engagement');
-                // Sender and replyto and cc
-                $mform->addElement('static', '', get_string('message_sender', 'report_engagement'), reset($sender_previews[$pattern]));
-                $mform->addElement('hidden', "sender_$pattern", key($sender_previews[$pattern]));
+                // Sender and replyto and cc.
+                $mform->addElement('static', '', get_string('message_sender', 'report_engagement'), reset($senderpreviews[$pattern]));
+                $mform->addElement('hidden', "sender_$pattern", key($senderpreviews[$pattern]));
                 $mform->setType("sender_$pattern", PARAM_TEXT);
-                $mform->addElement('static', '', get_string('message_replyto', 'report_engagement'), reset($replyto_previews[$pattern]));
-                $mform->addElement('hidden', "replyto_$pattern", key($replyto_previews[$pattern]));
+                $mform->addElement('static', '', get_string('message_replyto', 'report_engagement'), reset($replytopreviews[$pattern]));
+                $mform->addElement('hidden', "replyto_$pattern", key($replytopreviews[$pattern]));
                 $mform->setType("replyto_$pattern", PARAM_TEXT);
-                /*$mform->addElement('static', '', get_string('message_cc', 'report_engagement'), reset($cc_previews[$pattern]));
+                /* ForFuture: $mform->addElement('static', '', get_string('message_cc', 'report_engagement'), reset($cc_previews[$pattern]));
                 $mform->addElement('hidden', "cc_$pattern", key($cc_previews[$pattern]));*/
-                // Encoded message subject and body
-                $mform->addElement('hidden', "subject_encoded_$pattern", $message_previews[$pattern]->subject_encoded);
+                // Encoded message subject and body.
+                $mform->addElement('hidden', "subject_encoded_$pattern", $messagepreviews[$pattern]->subject_encoded);
                 $mform->setType("subject_encoded_$pattern", PARAM_TEXT);
-                $mform->addElement('hidden', "message_encoded_$pattern", $message_previews[$pattern]->message_encoded);
+                $mform->addElement('hidden', "message_encoded_$pattern", $messagepreviews[$pattern]->message_encoded);
                 $mform->setType("message_encoded_$pattern", PARAM_TEXT);
-                // Message subject and body and recipient
-                $mform->addElement('html', html_writer::start_tag('div', array('id'=>"message_preview_container_$pattern")));
-                foreach ($message_previews_by_user[$pattern] as $userid => $message_preview) {
-                    if (array_keys($message_previews_by_user[$pattern])[0] == $userid) {
+                // Message subject and body and recipient.
+                $mform->addElement('html', html_writer::start_tag('div', array('id' => "message_preview_container_$pattern")));
+                foreach ($messagepreviewsbyuser[$pattern] as $userid => $messagepreview) {
+                    if (array_keys($messagepreviewsbyuser[$pattern])[0] == $userid) {
                         $class = 'first message_preview_current';
-                    } else if (array_keys($message_previews_by_user[$pattern])[count($message_previews_by_user[$pattern]) - 1] == $userid) {
+                    } else if (array_keys($messagepreviewsbyuser[$pattern])[count($messagepreviewsbyuser[$pattern]) - 1] == $userid) {
                         $class = 'last message_preview_hidden';
                     } else {
                         $class = 'message_preview_hidden';
                     }
-                    $mform->addElement('html', html_writer::start_tag('div', array('class'=>$class, 'data-userid'=>"$userid")));
-                        $mform->addElement('static', "recipient_preview_$pattern", get_string('message_recipient_preview', 'report_engagement'), $message_preview->recipient->email);
-                        $mform->addElement('static', "subject_preview_$pattern", get_string('message_subject_preview', 'report_engagement'), $message_preview->subject);
+                    $mform->addElement('html', html_writer::start_tag('div', array('class' => $class, 'data-userid' => "$userid")));
+                        $mform->addElement('static', "recipient_preview_$pattern",
+                            get_string('message_recipient_preview', 'report_engagement'),
+                            $messagepreview->recipient->email);
+                        $mform->addElement('static', "subject_preview_$pattern",
+                            get_string('message_subject_preview', 'report_engagement'), 
+                            $messagepreview->subject);
                         $mform->addHelpButton("subject_preview_$pattern", 'message_subject_preview', 'report_engagement');
-                        $mform->addElement('textarea', "message_preview_$pattern", get_string('message_body_preview', 'report_engagement'), array('rows'=>12, 'cols'=>80, 'readonly'=>'readonly'))->setValue($message_preview->message);
+                        $mform->addElement('textarea', "message_preview_$pattern",
+                            get_string('message_body_preview', 'report_engagement'), 
+                            array('rows' => 12, 'cols' => 80, 'readonly' => 'readonly'))->setValue($messagepreview->message);
                         $mform->addHelpButton("message_preview_$pattern", 'message_body_preview', 'report_engagement');
                     $mform->addElement('html', html_writer::end_tag('div'));
                 }
                 $mform->addElement('html', html_writer::end_tag('div'));
-                // Action button
-                $mform->addElement('button', "button_back_$pattern", get_string('message_go_back_edit', 'report_engagement'), array('onclick'=>'go_back_to_composing()'));
+                // Action button.
+                $mform->addElement('button', "button_back_$pattern", 
+                    get_string('message_go_back_edit', 'report_engagement'), 
+                    array('onclick' => 'go_back_to_composing()'));
                 $mform->addHelpButton("button_back_$pattern", 'message_go_back_edit', 'report_engagement');
-                // Re-show my messages settings // TODO: refactor for DRY
+                // Re-show my messages settings. // TODO: refactor for DRY.
                 $savemy = array();
                 $savemy[] =& $mform->createElement('static', '', '', get_string('message_savemy_chk', 'report_engagement'));
                 $savemy[] =& $mform->createElement('checkbox', "chk_savemy_$pattern");
                 $savemy[] =& $mform->createElement('static', '', '', get_string('message_savemy_description', 'report_engagement'));
-                $savemy[] =& $mform->createElement('text', "txt_savemy_$pattern", '', array('size'=>30));
+                $savemy[] =& $mform->createElement('text', "txt_savemy_$pattern", '', array('size' => 30));
                 $mform->addGroup($savemy, "savemy_$pattern", get_string('message_savemy', 'report_engagement'), array(' '), false);
                 $mform->addHelpButton("savemy_$pattern", 'message_savemy', 'report_engagement');
                 $mform->setType("txt_savemy_$pattern", PARAM_TEXT);
                 $mform->disabledIf("txt_savemy_$pattern", "chk_savemy_$pattern");
             } else if ($subsets && $action == 'sending') {
-                $send_results = array();
                 $mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_header', 'report_engagement')));
-                // TODO convert to table output format
-                foreach ($message_send_results[$pattern] as $userid => $result) {
-                    $mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_recipient', 'report_engagement', $result->recipient).' '.($result->result ? get_string('message_sent_notification_success', 'report_engagement', $result->message) : get_string('message_sent_notification_failed', 'report_engagement', $result->message))));
+                // TODO convert to table output format.
+                foreach ($messagesendresults[$pattern] as $userid => $result) {
+                    $mform->addElement('html', html_writer::tag('div', get_string('message_sent_notification_recipient', 'report_engagement', $result->recipient).
+                        ' '.($result->result ? get_string('message_sent_notification_success', 'report_engagement', $result->message) : get_string('message_sent_notification_failed', 'report_engagement', $result->message))));
                 }
                 $mform->addElement('html', html_writer::tag('br'));
             } else {
-                $check_alls = array();
-                foreach ($chk_column_headers as $name) {
-                    $check_alls[] =& $mform->createElement('button', "check_all_$name", ucfirst($name), array('onclick'=>"check_all('$name')"));
+                $checkalls = array();
+                foreach ($chkcolumnheaders as $name) {
+                    $checkalls[] =& $mform->createElement('button', "check_all_$name", ucfirst($name), array('onclick'=>"check_all('$name')"));
                 }
-                $mform->addGroup($check_alls, 'check_all', get_string('message_check_all', 'report_engagement'), array(' '), false);
+                $mform->addGroup($checkalls, 'check_all', get_string('message_check_all', 'report_engagement'), array(' '), false);
                 $mform->addHelpButton("check_all", 'message_check_all', 'report_engagement');
             }
-            // Script to prepare DataTable
-            $button_mailer_label_csv = get_string('button_mailer_label_csv', 'report_engagement');
-            $button_mailer_fname_csv = get_string('button_mailer_fname_csv', 'report_engagement');
-            $js_sub = "
+            // Script to prepare DataTable.
+            $buttonmailerlabelcsv = get_string('button_mailer_label_csv', 'report_engagement');
+            $buttonmailerfnamecsv = get_string('button_mailer_fname_csv', 'report_engagement');
+            $jssub = "
                 <script>
                     $(document).ready(function(){
                         // Set up DataTable
                         datatables[$pattern] = $('#data_table_$pattern').DataTable({
                             'order':$defaultsort,
                             'columnDefs': [
-                                { 'type':'num-html', 'targets':$html_num_fmt_cols }
+                                { 'type':'num-html', 'targets':$htmlnumfmtcols }
                             ],
                             'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
                             'dom': 'Blfrtip',
-                            'buttons': [ {'extend':'csvHtml5', 'text':'$button_mailer_label_csv', 'title':'$button_mailer_fname_csv'} ]
+                            'buttons': [ {'extend':'csvHtml5', 'text':'$buttonmailerlabelcsv', 'title':'$buttonmailerfnamecsv'} ]
                         }).on('draw', function(){
                             $('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
                         }).columns().every(function(){
@@ -373,9 +392,9 @@ class report_engagement_mailer_form extends moodleform {
                     });
                 </script>
             ";
-            echo($js_sub);
-        } // end foreach ($patterns as $pattern => $userids)
-        // overall buttons
+            echo($jssub);
+        } // End foreach ($patterns as $pattern => $userids).
+        // Overall buttons.
         if (!$subsets) {
             $mform->addElement('header', 'header_compose', get_string('message_header_compose', 'report_engagement'));
             $mform->addElement('submit', 'submit_compose', get_string('message_submit_compose', 'report_engagement'));
@@ -384,15 +403,15 @@ class report_engagement_mailer_form extends moodleform {
             $mform->addElement('submit', 'submit_preview', get_string('message_submit_preview', 'report_engagement'));
         } else if ($subsets && $action == 'previewing') {
             $mform->addElement('header', 'header_send', get_string('message_header_send', 'report_engagement'));
-            $mform->addElement('button', 'button_back', get_string('message_go_back_edit_plural', 'report_engagement'), array('onclick'=>'go_back_to_composing()'));
+            $mform->addElement('button', 'button_back', get_string('message_go_back_edit_plural', 'report_engagement'), array('onclick' => 'go_back_to_composing()'));
             $mform->addHelpButton('button_back', 'message_go_back_edit_plural', 'report_engagement');
-            if ($has_capability_send) {
+            if ($hascapabilitysend) {
                 $mform->addElement('submit', 'submit_send', get_string('message_submit_send', 'report_engagement'));
             } else {
                 $mform->addElement('static', 'no_permission', '', get_string('mailer_capability_nopermissions', 'report_engagement'));
             }
         }
-        // scripts
+        // Scripts.
         if (!$subsets) {
             $js = "
                 <script>
@@ -435,7 +454,7 @@ class report_engagement_mailer_form extends moodleform {
                         }
                     }                
                     var snippet_data;
-                    var my_messages_data = $my_saved_messages_data;
+                    var my_messages_data = $mysavedmessagesdata;
                     $(document).ready(function(){
                         $.getJSON('lang/en/data.json.txt')
                             .done(function (data) {
@@ -513,8 +532,8 @@ class report_engagement_mailer_form extends moodleform {
             ";
             echo($js);
         }
-        // Code for toggles
-        $js_all = "
+        // Code for toggles.
+        $jsall = "
             <script>
                 $(document).ready(function(){
                     // Details show/hide toggle
@@ -531,8 +550,8 @@ class report_engagement_mailer_form extends moodleform {
                     $('input:checkbox[name^=toggle_heatmap_]').on('click', function(event) {
                         var pattern = $(this).prop('name').replace('toggle_heatmap_', '');
                         if (this.checked) {
-                            var cols_to_calculate = $heatmappable_columns;
-                            var cols_to_calculate_direction = $heatmappable_columns_directions;
+                            var cols_to_calculate = $heatmappablecolumns;
+                            var cols_to_calculate_direction = $heatmappablecolumnsdirections;
                             var col_maxes = {};
                             // Calculate maxes for specified columns
                             for (i = 0; i < cols_to_calculate.length; i++) {
@@ -582,7 +601,7 @@ class report_engagement_mailer_form extends moodleform {
                 });
             </script>
         ";
-        echo($js_all);
+        echo($jsall);
     }
 
     // Form verification.

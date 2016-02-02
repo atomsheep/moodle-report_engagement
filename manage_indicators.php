@@ -60,7 +60,7 @@ $PAGE->navbar->add(get_string('manageindicators', 'report_engagement'), $url);
 $PAGE->set_title(get_string('pluginname', 'report_engagement'));
 $PAGE->set_heading(get_string('pluginname', 'report_engagement'));
 
-// Process form
+// Process form.
 $message = '';
 $mform = new report_engagement_manage_indicators_form(null, array('contextid' => $contextid));
 if (data_submitted() && confirm_sesskey()) {
@@ -71,14 +71,13 @@ if (data_submitted() && confirm_sesskey()) {
     
     foreach ($indicators as $indicator) {
         $ids = $DB->get_records('report_engagement_snippets', array('category' => $indicator));
-        // Look for deletes
+        // Look for deletes.
         foreach ($ids as $id => $record) {
             if (array_key_exists("snippet_delete_$indicator"."_$id", $formdata)) {
-                //var_dump("deleting $id");
                 $DB->delete_records('report_engagement_snippets', array('category' => $indicator, 'id' => $id));
             }
         }
-        // Process updates
+        // Process updates.
         $ids = $DB->get_records('report_engagement_snippets', array('category' => $indicator));
         foreach ($ids as $id => $record) {
             $dataobject = new stdClass();
@@ -86,7 +85,7 @@ if (data_submitted() && confirm_sesskey()) {
             $dataobject->snippet_text = $formdata->{"snippet_$indicator"."_$id"};
             $DB->update_record('report_engagement_snippets', $dataobject);
         }
-        // Save new
+        // Save new.
         if ($formdata->{"snippet_$indicator"."_new"} != '') {
             $newobject = new stdClass();
             $newobject->category = $indicator;
@@ -95,12 +94,8 @@ if (data_submitted() && confirm_sesskey()) {
             $formdata->{"snippet_$indicator"."_new"} = '';
         }
     }
-    
     $message = $OUTPUT->notification(get_string('changessaved'), 'notifysuccess');
 }
-
-
-
 
 echo $OUTPUT->header();
 echo $message;
@@ -121,13 +116,13 @@ if (false) {
     $data = array();
     $data['contextid'] = $contextid;
     
-    // Gather snippets from DB
+    // Gather snippets from DB.
     $indicators = array_keys($instances);
     $indicators[] = 'encouragement';
     $snippets = array();
     foreach ($indicators as $name) {
         $snippets[$name] = array();
-        $result = $DB->get_records('report_engagement_snippets', array('category'=>$name));
+        $result = $DB->get_records('report_engagement_snippets', array('category' => $name));
         foreach ($result as $snippet) {
             $snippets[$name][$snippet->id] = $snippet->snippet_text;
         }

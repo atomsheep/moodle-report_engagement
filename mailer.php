@@ -50,9 +50,9 @@ $PAGE->set_heading($course->fullname);
 
 global $DB, $USER;
 
-// Load up js
+// Load up js.
 $PAGE->requires->js(new moodle_url('/report/engagement/mailer.js'));
-// Load up jquery
+// Load up jquery.
 $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
@@ -62,7 +62,7 @@ echo $OUTPUT->header();
 
 require_capability('report/engagement:view', $context);
 
-// Write view to log
+// Write view to log.
 $event = \report_engagement\event\report_viewed::create(array(
     'context' => $context, 
     'other' => array(
@@ -71,7 +71,7 @@ $event = \report_engagement\event\report_viewed::create(array(
     )));
 $event->trigger();
 
-// Prepare indicators
+// Prepare indicators.
 $pluginman = core_plugin_manager::instance();
 $indicators = get_plugin_list('engagementindicator');
 foreach ($indicators as $name => $path) {
@@ -81,10 +81,10 @@ foreach ($indicators as $name => $path) {
     }
 }
 
-// Examine posted data
+// Examine posted data.
 if (data_submitted() && confirm_sesskey()) {
     $postdata = data_submitted();
-    // Get userids that have been checked
+    // Get userids that have been checked.
     $userids = array();
     foreach ($indicators as $name => $path) {
         foreach ($postdata as $key => $value) {
@@ -95,7 +95,7 @@ if (data_submitted() && confirm_sesskey()) {
             }
         }
     }
-    // Determine all patterns of checking
+    // Determine all patterns of checking.
     $patterns = array();
     foreach ($userids as $userid => $blah) {
         $pattern = '';
@@ -121,17 +121,17 @@ if (data_submitted() && confirm_sesskey()) {
     switch ($postdata->action) {
         case 'viewing':
             $action = 'composing';
-            // continue - other logic will determine what is shown
+            // Continue - other logic will determine what is shown.
             break;
         case 'composing':
             $action = 'previewing';
-            // continue - other logic will determine what is shown
+            // Continue - other logic will determine what is shown.
             break;
         case 'previewing':
             $action = 'sending';
-            // check for capability
+            // Check for capability.
             require_capability('report/engagement:send', $context);
-            // continue - later logic will send messages
+            // Continue - later logic will send messages.
             break;
         case 'sending':
             break;
@@ -140,203 +140,210 @@ if (data_submitted() && confirm_sesskey()) {
     $action = 'viewing';
 }
 
-// Retrieve data from databases
+// Retrieve data from databases.
 $data = array();
 $riskdata = array();
-$display_data = array();
+$displaydata = array();
 $weightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
 foreach ($indicators as $name => $path) {
     if (file_exists("$path/indicator.class.php")) {
         require_once("$path/indicator.class.php");
         $classname = "indicator_$name";
         $indicator = new $classname($id);
-        // run in order to process data
+        // Run in order to process data.
         $indicatorrisks = $indicator->get_course_risks();
-        // work out risk weightings
+        // Work out risk weightings.
         $weight = isset($weightings[$name]) ? $weightings[$name] : 0;
-        foreach ($indicatorrisks as $_user => $risk) {
-            $riskdata[$_user]["indicator_$name"]['raw'] = $risk->risk;
-            $riskdata[$_user]["indicator_$name"]['weight'] = $weight;
+        foreach ($indicatorrisks as $curuser => $risk) {
+            $riskdata[$curuser]["indicator_$name"]['raw'] = $risk->risk;
+            $riskdata[$curuser]["indicator_$name"]['weight'] = $weight;
         }
-        // fetch raw data
+        // Fetch raw data.
         $rawdata = $indicator->get_course_rawdata();
-        // fetch array of userids
+        // Fetch array of userids.
         $users = $indicator->get_course_users();
         if (empty($data)) {
             foreach ($users as $userid) {
                 $data[$userid] = array();
             }
         }
-        // fetch information to display
-        $display_data[$name] = $indicator->get_data_for_mailer();
+        // Fetch information to display.
+        $displaydata[$name] = $indicator->get_data_for_mailer();
     }
 }
 
-// Parse and store group data
+// Parse and store group data.
 $groups = groups_get_all_groups($course->id);
-// - Get groups and membership
-$group_memberships = array();
+// Get groups and membership.
+$groupmemberships = array();
 foreach ($groups as $groupid => $group) {
-    $group_membership = array();
-    $group_membership['members'] = array_keys(groups_get_members($groupid, 'u.id'));
-    $group_membership['groupname'] = $group->name;
-    $group_membership['groupid'] = $groupid;
-    $group_memberships[$groupid] = $group_membership;
+    $groupmembership = array();
+    $groupmembership['members'] = array_keys(groups_get_members($groupid, 'u.id'));
+    $groupmembership['groupname'] = $group->name;
+    $groupmembership['groupid'] = $groupid;
+    $groupmemberships[$groupid] = $groupmembership;
 }
-// - Parse and store by user
-$groups_by_user = array();
+// Parse and store by user.
+$groupsbyuser = array();
 foreach ($data as $userid => $record) {
-    $groups_by_user[$userid] = array();
-    foreach ($group_memberships as $groupid => $group_membership) {
-        if (array_search($userid, $group_membership['members'])) {
+    $groupsbyuser[$userid] = array();
+    foreach ($groupmemberships as $groupid => $groupmembership) {
+        if (array_search($userid, $groupmembership['members'])) {
             $groupinfo = array();
-            $groupinfo['groupname'] = $group_membership['groupname'];
-            $groupinfo['groupid'] = $group_membership['groupid'];
-            $groups_by_user[$userid][] = $groupinfo;
+            $groupinfo['groupname'] = $groupmembership['groupname'];
+            $groupinfo['groupid'] = $groupmembership['groupid'];
+            $groupsbyuser[$userid][] = $groupinfo;
         }
     }
 }
 
-// Set up table data
-$table_data = array();
-// $chk_disabled = $postdata && isset($patterns) ? "disabled='disabled'" : "";
-$chk_disabled = "";
+// Set up table data.
+$tabledata = array();
 foreach ($data as $userid => $record) {
-    // Prepare table row
-    $table_row = array();
-    $table_row['userid'] = $userid;
-    $table_row['data'] = array();
+    // Prepare table row.
+    $tablerow = array();
+    $tablerow['userid'] = $userid;
+    $tablerow['data'] = array();
     $c = 0;
-    // Add checkboxes
+    // Add checkboxes.
     foreach ($indicators as $name => $path) {
         $checked = '';
-        // See if checkbox is checked in postdata
+        // See if checkbox is checked in postdata.
         if (isset($postdata) && $postdata && $patterns) {
-            if (isset($postdata->{"chk_indicator_".$name."_".$userid})) $checked = "checked='checked'";
+            if (isset($postdata->{"chk_indicator_".$name."_".$userid})) {
+                $checked = "checked='checked'";
+            }
         }
-        // Show checkbox(es) accordingly
+        // Show checkbox(es) accordingly.
         if (!(isset($postdata) && $postdata && $patterns) || $checked) {
-            $table_row['data'][$c] = "<div class='chk_indicator'><input type='checkbox' id='chk_indicator_".$name."_".$userid."' name='chk_indicator_".$name."_".$userid."' $checked $chk_disabled data-userid='$userid' /></div>";
+            $tablerow['data'][$c] = "<div class='chk_indicator'>".
+                "<input type='checkbox' id='chk_indicator_".$name."_".$userid."' ".
+                "name='chk_indicator_".$name."_".$userid."' $checked data-userid='$userid' /></div>";
         } else {
-            $table_row['data'][$c] = "";
+            $tablerow['data'][$c] = "";
         }
         $c += 1;
     }
-    // Show user name
+    // Show user name.
     $studentrecord = $DB->get_record('user', array('id' => $userid));
-    $table_row['data'][$c] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
+    $tablerow['data'][$c] = "<span title='$userid'>".$studentrecord->firstname." ".$studentrecord->lastname."</span>";
     $c += 1;
-    // User email address
-    $table_row['data'][$c] = $studentrecord->email;
+    // User email address.
+    $tablerow['data'][$c] = $studentrecord->email;
     $c += 1;
-    // Show group membership
+    // Show group membership.
     $groups = array();
-    foreach ($groups_by_user[$userid] as $group) {
+    foreach ($groupsbyuser[$userid] as $group) {
         $groups[] = $group['groupname'];
     }
-    $table_row['data'][$c] = join('<br />', $groups);
+    $tablerow['data'][$c] = join('<br />', $groups);
     $c += 1;
-    // Show logic/information for each indicator
+    // Show logic/information for each indicator.
     foreach ($indicators as $name => $path) {
         $pluginname = get_string('pluginname', "engagementindicator_$name");
-        // Parse display data
-        foreach ($display_data[$name] as $display_column) {
-            $table_row['data'][$c] = $display_column['display'][$userid];
+        // Parse display data.
+        foreach ($displaydata[$name] as $displaycolumn) {
+            $tablerow['data'][$c] = $displaycolumn['display'][$userid];
             $c += 1;
         }
     }
-    // Calculate and show total risk
+    // Calculate and show total risk.
     $totalrisk = 0;
     foreach ($indicators as $name => $path) {
         $totalrisk += $riskdata[$userid]["indicator_$name"]['raw'] * $riskdata[$userid]["indicator_$name"]['weight'];
     }
-    $table_row['data'][$c] = '<div><span class="report_engagement_display">'.
+    $tablerow['data'][$c] = '<div><span class="report_engagement_display">'.
         sprintf("%d", $totalrisk * 100).
         '</span></div>';
     $c += 1;
-    // Calculate and show how many messages already received
+    // Calculate and show how many messages already received.
     try {
-        $messages_sent = $DB->get_records_sql("SELECT ml.id, sl.timesent FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? AND sl.recipientid = ? ORDER BY sl.timesent ASC", array($course->id, $userid));
+        $messagessent = $DB->get_records_sql("SELECT ml.id, sl.timesent
+                                                FROM {report_engagement_messagelog} ml
+                                                JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id
+                                               WHERE sl.courseid = ? AND sl.recipientid = ?
+                                            ORDER BY sl.timesent ASC", array($course->id, $userid));
     } catch (Exception $err) {
-        $messages_sent = array();
+        $messagessent = array();
     }
-    if (count($messages_sent)) {
-        $view_messages_url = new moodle_url('/report/engagement/mailer_log.php', array('id' => $course->id, 'uid' => $userid));
-        $most_recent_message = end($messages_sent);
-        $days_ago = (time() - $most_recent_message->timesent) / 60 / 60 / 24;
-        $table_row['data'][$c] = "<a href='$view_messages_url' target='_blank'>".count($messages_sent)."</a><br />".get_string('report_messagelog_daysago', 'report_engagement', sprintf("%d", $days_ago));
+    if (count($messagessent)) {
+        $viewmessagesurl = new moodle_url('/report/engagement/mailer_log.php', array('id' => $course->id, 'uid' => $userid));
+        $mostrecentmessage = end($messagessent);
+        $daysago = (time() - $mostrecentmessage->timesent) / 60 / 60 / 24;
+        $tablerow['data'][$c] = "<a href='$viewmessagesurl' target='_blank'>".
+            count($messagessent)."</a><br />".
+            get_string('report_messagelog_daysago', 'report_engagement', sprintf("%d", $daysago));
         $c += 1;
     } else {
-        $table_row['data'][$c] = count($messages_sent);
+        $tablerow['data'][$c] = count($messagessent);
         $c += 1;
     }
-    // Add row to table
-    $table_data[] = $table_row;
+    // Add row to table.
+    $tabledata[] = $tablerow;
 }
 
-// Determine column headers and related options
-$column_headers = array();
-$chk_column_headers = array_keys($indicators);
-$heatmappable_columns = array();
-$heatmappable_columns_directions = array();
+// Determine column headers and related options.
+$columnheaders = array();
+$chkcolumnheaders = array_keys($indicators);
+$heatmappablecolumns = array();
+$heatmappablecolumnsdirections = array();
 $c = 0;
-// First columns are for checkboxes
-foreach (array_keys($indicators) as $indicator_name) {
-    $column_header = [];
-    $column_header['html'] = get_string('mailer_checkbox_column_header', "engagementindicator_{$indicator_name}") . $OUTPUT->help_icon('mailer_checkbox_column_header', "engagementindicator_{$indicator_name}");
-    $column_header['chk'] = True;
-    $column_header['filter'] = False;
-    $column_headers[$c] = $column_header;
+// First columns are for checkboxes.
+foreach (array_keys($indicators) as $indicatorname) {
+    $columnheader = [];
+    $columnheader['html'] = get_string('mailer_checkbox_column_header', 
+        "engagementindicator_{$indicatorname}") . $OUTPUT->help_icon('mailer_checkbox_column_header', "engagementindicator_{$indicatorname}");
+    $columnheader['chk'] = true;
+    $columnheader['filter'] = false;
+    $columnheaders[$c] = $columnheader;
     $c += 1;
 }
-// Next columns are for user info
-$column_headers[$c] = array(
-    'html'=>get_string('report_username', 'report_engagement'),
-    'filterable'=>True
+// Next columns are for user info.
+$columnheaders[$c] = array(
+    'html' => get_string('report_username', 'report_engagement'),
+    'filterable' => true
 );
 $c += 1;
-$column_headers[$c] = array(
-    'html'=>get_string('report_email', 'report_engagement'),
-    'hide'=>True
+$columnheaders[$c] = array(
+    'html' => get_string('report_email', 'report_engagement'),
+    'hide' => true
 );
 $c += 1;
-$column_headers[$c] = array(
-    'html'=>get_string('report_groups', 'report_engagement'),
-    'filterable'=>True
+$columnheaders[$c] = array(
+    'html' => get_string('report_groups', 'report_engagement'),
+    'filterable' => true
 );
 $c += 1;
-// Next columns are for individual indicators
-foreach (array_keys($indicators) as $indicator_name) {
-    foreach ($display_data[$indicator_name] as $display_item) {
-        $column_header = [];
-        $column_header['html'] = $display_item['header'];
-        $column_header['filterable'] = array_key_exists('filterable', $display_item) ? $display_item['filterable'] : False;
-        if (array_key_exists('heatmapdirection', $display_item)) {
-            $column_header['heatmapdirection'] = $display_item['heatmapdirection'];
-            $heatmappable_columns[] = $c;
-            $heatmappable_columns_directions[] = $display_item['heatmapdirection'];
+// Next columns are for individual indicators.
+foreach (array_keys($indicators) as $indicatorname) {
+    foreach ($displaydata[$indicatorname] as $displayitem) {
+        $columnheader = [];
+        $columnheader['html'] = $displayitem['header'];
+        $columnheader['filterable'] = array_key_exists('filterable', $displayitem) ? $displayitem['filterable'] : false;
+        if (array_key_exists('heatmapdirection', $displayitem)) {
+            $columnheader['heatmapdirection'] = $displayitem['heatmapdirection'];
+            $heatmappablecolumns[] = $c;
+            $heatmappablecolumnsdirections[] = $displayitem['heatmapdirection'];
         }
-        $column_headers[$c] = $column_header;
+        $columnheaders[$c] = $columnheader;
         $c += 1;
     }
 }
-// Last columns are for totals etc
-$column_headers[$c] = array(
-    'html'=>get_string('report_totalrisk', 'report_engagement'),
-    'filterable'=>False
+// Last columns are for totals etc.
+$columnheaders[$c] = array(
+    'html' => get_string('report_totalrisk', 'report_engagement'),
+    'filterable' => false
 );
-$heatmappable_columns[] = $c;
-$heatmappable_columns_directions[] = 1;
+$heatmappablecolumns[] = $c;
+$heatmappablecolumnsdirections[] = 1;
 $c += 1;
-$column_headers[$c] = array(
-    'html'=>get_string('report_messagessent', 'report_engagement'),
-    'filterable'=>False
+$columnheaders[$c] = array(
+    'html' => get_string('report_messagessent', 'report_engagement'),
+    'filterable' => false
 );
 $c += 1;
 
-// Make friendly patterns and compose message boilerplate
-$default_message_greeting = get_string('message_default_greeting', 'report_engagement');
-$default_message_closing = get_string('message_default_closing', 'report_engagement');
+// Make friendly patterns and compose message boilerplate.
 if (!isset($patterns) && !isset($postdata)) {
     $patterns = array(false);
     $subsets = false;
@@ -344,19 +351,19 @@ if (!isset($patterns) && !isset($postdata)) {
 } else {
     $subsets = true;
     $friendlypatterns = array();
-    foreach ($patterns as $pattern => $userids){
-        // Form default message
-        $defaultmessages[$pattern] = $default_message_greeting;
-        $defaultmessages[$pattern] .= $default_message_closing;
-        // Form friendly patterns
+    foreach ($patterns as $pattern => $userids) {
+        // Form default message.
+        $defaultmessages[$pattern] = get_string('message_default_greeting', 'report_engagement');
+        $defaultmessages[$pattern] .= get_string('message_default_closing', 'report_engagement');
+        // Form friendly patterns.
         $friendlypatterns[$pattern] = new stdClass();
         $friendlypatterns[$pattern]->names = array();
-        $indicator_names = array_keys($indicators);
+        $indicatornames = array_keys($indicators);
         foreach (str_split($pattern) as $char) {
-            $indicator_name = array_shift($indicator_names);
+            $indicatorname = array_shift($indicatornames);
             if ($char == '1') {
-                $friendlypatterns[$pattern]->human .= get_string('pluginname', "engagementindicator_$indicator_name") . ", ";
-                $friendlypatterns[$pattern]->names[] = $indicator_name;
+                $friendlypatterns[$pattern]->human .= get_string('pluginname', "engagementindicator_$indicatorname") . ", ";
+                $friendlypatterns[$pattern]->names[] = $indicatorname;
             }
         }
         if (substr($friendlypatterns[$pattern]->human, strlen($friendlypatterns[$pattern]->human) - 2) === ', ') {
@@ -366,125 +373,121 @@ if (!isset($patterns) && !isset($postdata)) {
 }
 
 if ($action == 'composing') {
-    // Set up message components/snippets
-    // - variables
-    $message_variables = message_variables_get_array();
-    // - load snippets from database
+    // Set up message components/snippets.
+    // Variables.
+    $messagevariables = message_variables_get_array();
+    // Load snippets from database.
     $snippets = $DB->get_records('report_engagement_snippets');
-    // - snippets
-    $suggested_snippets = array();
-    $other_snippets = array();
+    // Snippets.
+    $suggestedsnippets = array();
+    $othersnippets = array();
     foreach ($patterns as $pattern => $userids) {
         $c = 0;
-        foreach ($friendlypatterns[$pattern]->names as $indicator_name) {
-            $suggested_snippets[$pattern][$c][$indicator_name] = array();
-            $other_snippets[$pattern][$c][$indicator_name] = array();
+        foreach ($friendlypatterns[$pattern]->names as $indicatorname) {
+            $suggestedsnippets[$pattern][$c][$indicatorname] = array();
+            $othersnippets[$pattern][$c][$indicatorname] = array();
             foreach ($snippets as $id => $snippet) {
-                if ($snippet->category == $indicator_name){
-                    $suggested_snippets[$pattern][$c][$indicator_name][$snippet->id] = $snippet->snippet_text;
+                if ($snippet->category == $indicatorname) {
+                    $suggestedsnippets[$pattern][$c][$indicatorname][$snippet->id] = $snippet->snippet_text;
                 } else {
-                    $other_snippets[$pattern][$c][$snippet->category][$snippet->id] = $snippet->snippet_text;
+                    $othersnippets[$pattern][$c][$snippet->category][$snippet->id] = $snippet->snippet_text;
                 }
             }
             $c += 1;
         }
     }
-    // - load my messages
-    $saved_messages = my_messages_get();
-    $my_saved_messages = array();
-    $my_saved_messages_data = array();
+    // Load 'my messages'.
+    $savedmessages = my_messages_get();
+    $mysavedmessages = array();
+    $mysavedmessagesdata = array();
     foreach ($patterns as $pattern => $userid) {
-        $my_saved_messages[$pattern] = array();
+        $mysavedmessages[$pattern] = array();
         $c = 0;
-        foreach ($saved_messages as $message) {
-            $my_saved_messages[$pattern]["m$c"] = base64_decode($message->messagesummary); // the short description
-            $my_saved_messages_data["m$c"] = base64_decode($message->messagetext); // stores the actual message text
+        foreach ($savedmessages as $message) {
+            $mysavedmessages[$pattern]["m$c"] = base64_decode($message->messagesummary); // The short description.
+            $mysavedmessagesdata["m$c"] = base64_decode($message->messagetext); // Stores the actual message text.
             $c += 1;
         }
     }
-    // - Load up userlist of those with appropriate capabilities
+    // Load up userlist of those with appropriate capabilities.
     $users = get_users_by_capability($context, 'report/engagement:manage');
     if (!in_array($USER->id, array_keys($users))) {
-        // Add current user to userlist
+        // Add current user to userlist.
         $users[$USER->id] = $USER;
     }
-    $capable_users = array();
+    $capableusers = array();
     foreach ($users as $userid => $user) {
-        $capable_users[$userid] = fullname($user) . " &lt;$user->email&gt;";
+        $capableusers[$userid] = fullname($user) . " &lt;$user->email&gt;";
     }
-    asort($capable_users);
+    asort($capableusers);
 } else if ($action == 'previewing') {
-    $message_previews = array();
-    $message_previews_by_user = array();
+    $messagepreviews = array();
+    $messagepreviewsbyuser = array();
     foreach ($patterns as $pattern => $userids) {
-        $message_previews[$pattern] = new stdClass();
-        $message_previews[$pattern]->subject = $postdata->{"subject_$pattern"};
-        $message_previews[$pattern]->subject_encoded = base64_encode($postdata->{"subject_$pattern"});
-        $message_previews[$pattern]->message = $postdata->{"message_$pattern"};
-        $message_previews[$pattern]->message_encoded = base64_encode($postdata->{"message_$pattern"});
-        $message_previews_by_user[$pattern] = array();
+        $messagepreviews[$pattern] = new stdClass();
+        $messagepreviews[$pattern]->subject = $postdata->{"subject_$pattern"};
+        $messagepreviews[$pattern]->subject_encoded = base64_encode($postdata->{"subject_$pattern"});
+        $messagepreviews[$pattern]->message = $postdata->{"message_$pattern"};
+        $messagepreviews[$pattern]->message_encoded = base64_encode($postdata->{"message_$pattern"});
+        $messagepreviewsbyuser[$pattern] = array();
         foreach ($userids as $userid) {
-            $message_previews_by_user[$pattern][$userid] = new stdClass();
-            $recipient = $DB->get_record('user', array('id'=>$userid));
-            $message_previews_by_user[$pattern][$userid]->recipient = $recipient;
-            $message_previews_by_user[$pattern][$userid]->subject = message_variables_replace($postdata->{"subject_$pattern"}, $userid);
-            $message_previews_by_user[$pattern][$userid]->message = message_variables_replace($postdata->{"message_$pattern"}, $userid);
+            $messagepreviewsbyuser[$pattern][$userid] = new stdClass();
+            $recipient = $DB->get_record('user', array('id' => $userid));
+            $messagepreviewsbyuser[$pattern][$userid]->recipient = $recipient;
+            $messagepreviewsbyuser[$pattern][$userid]->subject = message_variables_replace($postdata->{"subject_$pattern"}, $userid);
+            $messagepreviewsbyuser[$pattern][$userid]->message = message_variables_replace($postdata->{"message_$pattern"}, $userid);
         }
     }
-    $sender_previews = array();
-    $replyto_previews = array();
-    //$cc_previews = array();
+    $senderpreviews = array();
+    $replytopreviews = array();
+    /* ForFuture: $cc_previews = array(); */
     foreach ($patterns as $pattern => $userids) {
-        $sender = $DB->get_record('user', array('id'=>$postdata->{"sender_$pattern"}));
-        $sender_previews[$pattern][$postdata->{"sender_$pattern"}] = fullname($sender) . " &lt;$sender->email&gt;";
-        //$replyto = $DB->get_record('user', array('id'=>$postdata->{"replyto_$pattern"}));
-        //$replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = fullname($replyto) . " &lt;$replyto->email&gt;";
-        $replyto_previews[$pattern][$postdata->{"replyto_$pattern"}] = $postdata->{"replyto_$pattern"};
-        //$cc_previews[$pattern][$postdata->{"cc_$pattern"}] = $postdata->{"cc_$pattern"};
+        $sender = $DB->get_record('user', array('id' => $postdata->{"sender_$pattern"}));
+        $senderpreviews[$pattern][$postdata->{"sender_$pattern"}] = fullname($sender) . " &lt;$sender->email&gt;";
+        $replytopreviews[$pattern][$postdata->{"replyto_$pattern"}] = $postdata->{"replyto_$pattern"};
+        /* ForFuture: $cc_previews[$pattern][$postdata->{"cc_$pattern"}] = $postdata->{"cc_$pattern"}; */
     }
 } else if ($action == 'sending') {
     $messages = array();
-    // Create messages
-    $message_decoded = array();
-    $subject_decoded = array();
+    // Create messages.
+    $messagedecoded = array();
+    $subjectdecoded = array();
     $senderids = array();
-    //$replytoids = array();
     $replytoaddresses = array();
-    //$ccaddresses = array();
+    /* ForFuture: $ccaddresses = array(); */
     foreach ($patterns as $pattern => $userids) {
-        $message_decoded[$pattern] = base64_decode($postdata->{"message_encoded_$pattern"});
-        $subject_decoded[$pattern] = base64_decode($postdata->{"subject_encoded_$pattern"});
+        $messagedecoded[$pattern] = base64_decode($postdata->{"message_encoded_$pattern"});
+        $subjectdecoded[$pattern] = base64_decode($postdata->{"subject_encoded_$pattern"});
         $messages[$pattern] = array();
         foreach ($userids as $userid) {
             $messages[$pattern][$userid] = array();
-            $messages[$pattern][$userid]['message'] = message_variables_replace($message_decoded[$pattern], $userid);
-            $messages[$pattern][$userid]['subject'] = message_variables_replace($subject_decoded[$pattern], $userid);
+            $messages[$pattern][$userid]['message'] = message_variables_replace($messagedecoded[$pattern], $userid);
+            $messages[$pattern][$userid]['subject'] = message_variables_replace($subjectdecoded[$pattern], $userid);
         }
         $senderids[$pattern] = $postdata->{"sender_$pattern"};
-        //$replytoids[$pattern] = $postdata->{"replyto_$pattern"};
         $replytoaddresses[$pattern] = $postdata->{"replyto_$pattern"};
-        //$ccaddresses[$pattern] = $postdata->{"cc_$pattern"};
+        /* ForFuture: $ccaddresses[$pattern] = $postdata->{"cc_$pattern"}; */
     }
-    // Send messages
-    $message_send_results = array();
+    // Send messages.
+    $messagesendresults = array();
     $messageid = 0;
     foreach ($patterns as $pattern => $userids) {
-        $message_send_results[$pattern] = array();
+        $messagesendresults[$pattern] = array();
         $n = 0;
         foreach ($messages[$pattern] as $userid => $message) {
-            // Log message, just once per message
+            // Log message, just once per message.
             if ($n == 0) {
-                $messageid = message_send_log_message($subject_decoded[$pattern], $message_decoded[$pattern], 'email');
+                $messageid = message_send_log_message($subjectdecoded[$pattern], $messagedecoded[$pattern], 'email');
                 $n += 1;
             }
-            // Send messages
-            //$message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoids[$pattern]);
-            $message_send_results[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoaddresses[$pattern], $ccaddresses[$pattern]);
-            if ($message_send_results[$pattern][$userid]->result == true) {
-                // Log send event to database
-                $user = $DB->get_record('user', array('id'=>$userid));
+            // Send messages.
+            $messagesendresults[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoaddresses[$pattern]);
+            // ForFuture: $messagesendresults[$pattern][$userid] = message_send_customised_email($message, $userid, $senderids[$pattern], $replytoaddresses[$pattern], $ccaddresses[$pattern]);.
+            if ($messagesendresults[$pattern][$userid]->result == true) {
+                // Log send event to database.
+                $user = $DB->get_record('user', array('id' => $userid));
                 $newrecord = message_send_log_send($messageid, $user->email, $user->id, $senderids[$pattern]);                    
-                // Log to log
+                // Log to log.
                 $event = \report_engagement\event\message_sent::create(array(
                     'context' => $context, 
                     'relateduserid' => $userid,
@@ -495,11 +498,11 @@ if ($action == 'composing') {
                         'recipientid' => $userid,
                         'messageid' => $messageid,
                         'success' => true,
-                        'result' => $message_send_results[$pattern][$userid]->message
+                        'result' => $messagesendresults[$pattern][$userid]->message
                     )));
                 $event->trigger();
             } else {
-                // Log to log
+                // Log to log.
                 $event = \report_engagement\event\message_sent::create(array(
                     'context' => $context, 
                     'relateduserid' => $userid,
@@ -508,13 +511,13 @@ if ($action == 'composing') {
                         'recipientid' => $userid,
                         'messageid' => $messageid,
                         'success' => false,
-                        'result' => $message_send_results[$pattern][$userid]->message
+                        'result' => $messagesendresults[$pattern][$userid]->message
                     )));
                 $event->trigger();
             }
         }
     }
-    // Save my messages if necessary
+    // Save my messages if necessary.
     foreach ($patterns as $pattern => $userids) {
         if (isset($postdata->{"chk_savemy_$pattern"})) {
             my_message_save($postdata->{"txt_savemy_$pattern"}, $postdata->{"message_encoded_$pattern"});
@@ -522,62 +525,60 @@ if ($action == 'composing') {
     }
 }
 
-// Load up data to send to form
+// Load up data to send to form.
 $mformdata = array();
 $mformdata['id'] = $id;
 $mformdata['action'] = $action;
 $mformdata['patterns'] = $patterns;
 $mformdata['subsets'] = $subsets;
-$mformdata['table_data'] = $table_data;
-$mformdata['column_headers'] = $column_headers;
-$mformdata['chk_column_headers'] = $chk_column_headers;
-$mformdata['heatmappable_columns'] = $heatmappable_columns;
-$mformdata['heatmappable_columns_directions'] = $heatmappable_columns_directions;
-$mformdata['display_data_raw'] = $display_data;
-$mformdata['defaultsort'] = json_encode(array(array(count($column_headers) - 2, 'desc'))); // default sort by total descending
-$mformdata['html_num_fmt_cols'] = json_encode(range(count($chk_column_headers) + 1, count($column_headers) - 3));
+$mformdata['table_data'] = $tabledata;
+$mformdata['column_headers'] = $columnheaders;
+$mformdata['chk_column_headers'] = $chkcolumnheaders;
+$mformdata['heatmappable_columns'] = $heatmappablecolumns;
+$mformdata['heatmappable_columns_directions'] = $heatmappablecolumnsdirections;
+$mformdata['display_data_raw'] = $displaydata;
+$mformdata['defaultsort'] = json_encode(array(array(count($columnheaders) - 2, 'desc'))); // Default sort by total descending.
+$mformdata['html_num_fmt_cols'] = json_encode(range(count($chkcolumnheaders) + 1, count($columnheaders) - 3));
 $mformdata['friendlypatterns'] = $friendlypatterns;
 $mformdata['has_capability_send'] = has_capability('report/engagement:send', $context);
 if ($action == 'composing') {
     $mformdata['defaultmessages'] = $defaultmessages;
-    $mformdata['message_variables'] = $message_variables;
-    $mformdata['suggested_snippets'] = $suggested_snippets;
-    $mformdata['other_snippets'] = $other_snippets;
-    $mformdata['my_saved_messages'] = $my_saved_messages;
-    $mformdata['my_saved_messages_data'] = json_encode($my_saved_messages_data);
-    $mformdata['capable_users'] = $capable_users;
+    $mformdata['message_variables'] = $messagevariables;
+    $mformdata['suggested_snippets'] = $suggestedsnippets;
+    $mformdata['other_snippets'] = $othersnippets;
+    $mformdata['my_saved_messages'] = $mysavedmessages;
+    $mformdata['my_saved_messages_data'] = json_encode($mysavedmessagesdata);
+    $mformdata['capable_users'] = $capableusers;
 } else if ($action == 'previewing') {
-    $mformdata['message_previews'] = $message_previews;
-    $mformdata['sender_previews'] = $sender_previews;
-    $mformdata['replyto_previews'] = $replyto_previews;
-    //$mformdata['cc_previews'] = $cc_previews;
-    $mformdata['message_previews_by_user'] = $message_previews_by_user;
+    $mformdata['message_previews'] = $messagepreviews;
+    $mformdata['sender_previews'] = $senderpreviews;
+    $mformdata['replyto_previews'] = $replytopreviews;
+    /* ForFutureL $mformdata['cc_previews'] = $cc_previews; */
+    $mformdata['message_previews_by_user'] = $messagepreviewsbyuser;
 } else if ($action == 'sending') {
-    $mformdata['message_send_results'] = $message_send_results;
+    $mformdata['message_send_results'] = $messagesendresults;
 }
 
-// Instantiate form
+// Instantiate form.
 $mform = new report_engagement_mailer_form(null, $mformdata);
 
-// Load up form data e.g. if pressing 'back'
+// Load up form data e.g. if pressing 'back'.
 if (isset($postdata)) {
-    // put back postdata
+    // Put back postdata.
     $mform->set_data($postdata);
-    // hack to put back data
+    // Hack to put back data.
     foreach ($patterns as $pattern => $userids) {
-        // Set message
+        // Set message.
         $data = array();
         if (isset($postdata->{"message_encoded_$pattern"})) {
-            // If a message exists already (e.g. returning from previewing screen back to composing screen for further editing)
-            //$data["message_$pattern"] = array('text' => base64_decode($postdata->{"message_encoded_$pattern"}));
+            // If a message exists already (e.g. returning from previewing screen back to composing screen for further editing).
             $data["message_$pattern"] = base64_decode($postdata->{"message_encoded_$pattern"});
         } else {
-            // Message doesn't exist yet, so populate with default
-            //$data["message_$pattern"] = array('text' => $defaultmessages[$pattern]);
+            // Message doesn't exist yet, so populate with default.
             $data["message_$pattern"] = $defaultmessages[$pattern];
         }
         $mform->set_data($data);
-        // Set subject
+        // Set subject.
         if (isset($postdata->{"subject_encoded_$pattern"})) {
             $data = array();
             $data["subject_$pattern"] = base64_decode($postdata->{"subject_encoded_$pattern"});
@@ -585,15 +586,14 @@ if (isset($postdata)) {
         }
     }
 }
-// Defaults for composing
+// Defaults for composing.
 if ($action == 'composing') {
     foreach ($patterns as $pattern => $userids) {
-        //$mform->set_data(array("sender_$pattern"=>$USER->id,"replyto_$pattern"=>$USER->id));
-        $mform->set_data(array("sender_$pattern"=>$USER->id,"replyto_$pattern"=>$USER->email));
+        $mform->set_data(array("sender_$pattern" => $USER->id,"replyto_$pattern" => $USER->email));
     }
 }
 
-// Display form
+// Display form.
 $mform->display();
 
 echo $OUTPUT->footer();

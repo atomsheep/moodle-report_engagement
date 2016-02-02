@@ -17,7 +17,7 @@
 /**
  *
  * @package    report_engagement
- * @copyright  2015 Macquarie University
+ * @copyright  2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -25,20 +25,19 @@ defined('MOODLE_INTERNAL') || die;
 
 class report_engagement_email_message {
     
-    public $recipient; // user object
-    public $recipient_address; // str
-    public $recipient_name; // str
-    public $sender; // user object
-    public $sender_address; // str
-    public $sender_name; // str
-    public $replyto_address; // str
-    //public $replyto_name;
-    //public $cc_address; // str
-    public $email_subject; // str
-    public $email_body; // str
+    public $recipient; // User object.
+    public $recipient_address; // Str.
+    public $recipient_name; // Str.
+    public $sender; // User object.
+    public $sender_address; // Str.
+    public $sender_name; // Str.
+    public $replyto_address; // Str.
+    /* public $cc_address; // Str. */
+    public $email_subject; // Str.
+    public $email_body; // Str.
     
     public function send_email(){
-        require('config.php'); // dev hack to configure mail engine
+        require('config.php'); // Dev hack to configure mail engine.
         switch ($_CONFIG_MAILER) {
             case 'moodle':
                 return $this->send_email_moodle();

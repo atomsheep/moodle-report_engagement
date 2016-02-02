@@ -18,7 +18,7 @@
  * Displays indicator reports for a chosen course
  *
  * @package    report_engagement
- * @copyright  2012 NetSpot Pty Ltd
+ * @copyright  2012 NetSpot Pty Ltd, 2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -64,14 +64,14 @@ if ($mform->is_cancelled()) {
     }
 
     // Process generic settings.
-    $generic_settings_list = report_engagement_get_generic_settings_list();
-    $records_generic_settings = report_engagement_get_generic_settings_records($id);
-    foreach ($generic_settings_list as $setting) {
+    $genericsettingslist = report_engagement_get_generic_settings_list();
+    $recordsgenericsettings = report_engagement_get_generic_settings_records($id);
+    foreach ($genericsettingslist as $setting) {
         $record = new stdClass();
         $record->name = $setting;
         $record->value = $formdata->{"$setting"};
         $record->courseid = $id;
-        foreach ($records_generic_settings as $recordid => $recordobj) {
+        foreach ($recordsgenericsettings as $recordid => $recordobj) {
             if ($recordobj->name == $setting) {
                 $record->id = $recordid;
                 continue;
@@ -119,8 +119,8 @@ if ($indicators = $DB->get_records('report_engagement', array('course' => $id)))
     }
 }
 // Generic settings
-$generic_settings = report_engagement_get_generic_settings($id);
-foreach ($generic_settings as $name => $setting) {
+$genericsettings = report_engagement_get_generic_settings($id);
+foreach ($genericsettings as $name => $setting) {
     $data = array_merge($data, array($name => $setting->value));
 }
 // Set form data

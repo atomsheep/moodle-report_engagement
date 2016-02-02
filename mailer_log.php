@@ -18,7 +18,7 @@
  * Displays indicator reports for a chosen course
  *
  * @package    report_engagement
- * @copyright  2015 Macquarie University
+ * @copyright  2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,8 +26,8 @@ require(dirname(__FILE__).'/../../config.php');
 require_once($CFG->dirroot . '/report/engagement/locallib.php');
 
 $id = required_param('id', PARAM_INT); // Course ID.
-$mid = optional_param('mid', 0, PARAM_INT); // Message ID
-$uid = optional_param('uid', 0, PARAM_INT); // User ID
+$mid = optional_param('mid', 0, PARAM_INT); // Message ID.
+$uid = optional_param('uid', 0, PARAM_INT); // User ID.
 $pageparams = array('id' => $id, 'mid' => $mid, 'uid' => $uid);
 
 $PAGE->set_url('/report/engagement/mailer_log.php', $pageparams);
@@ -49,7 +49,7 @@ $PAGE->set_heading($course->fullname);
 
 global $DB;
 
-// Load up jquery
+// Load up jquery.
 $PAGE->requires->jquery();
 $PAGE->requires->jquery_plugin('ui');
 $PAGE->requires->jquery_plugin('ui-css');
@@ -59,7 +59,7 @@ echo $OUTPUT->header();
 
 require_capability('report/engagement:view', $context);
 
-// Prepare indicators
+// Prepare indicators.
 $pluginman = core_plugin_manager::instance();
 $indicators = get_plugin_list('engagementindicator');
 foreach ($indicators as $name => $path) {
@@ -69,9 +69,9 @@ foreach ($indicators as $name => $path) {
     }
 }
 
-// Fetch data
+// Fetch data.
 if ($uid && $id) {
-    // Log
+    // Log.
     $event = \report_engagement\event\report_viewed::create(array(
         'context' => $context, 
         'relateduserid' => $uid,
@@ -81,12 +81,20 @@ if ($uid && $id) {
             'page' => 'mailer_log'
         )));
     $event->trigger();
-    // Showing all messages for one user in one course
-    $data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? AND sl.recipientid = ? ORDER BY sl.timesent DESC", array($id, $uid));
-    $data_all = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id WHERE sl.courseid = ? ORDER BY sl.timesent DESC", array($id));
-    $page_title = get_string('mailer_log_user', 'report_engagement');
+    // Showing all messages for one user in one course.
+    $data = $DB->get_records_sql("SELECT ml.*, sl.* 
+                                    FROM {report_engagement_messagelog} ml 
+                                    JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+                                   WHERE sl.courseid = ? AND sl.recipientid = ? 
+                                ORDER BY sl.timesent DESC", array($id, $uid));
+    $dataall = $DB->get_records_sql("SELECT ml.*, sl.* 
+                                        FROM {report_engagement_messagelog} ml 
+                                        JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+                                       WHERE sl.courseid = ? 
+                                    ORDER BY sl.timesent DESC", array($id));
+    $pagetitle = get_string('mailer_log_user', 'report_engagement');
 } else if ($mid && $id) {
-    // Log
+    // Log.
     $event = \report_engagement\event\report_viewed::create(array(
         'context' => $context, 
         'other' => array(
@@ -95,15 +103,16 @@ if ($uid && $id) {
             'page' => 'mailer_log'
         )));
     $event->trigger();
-    // Showing for just one message
-    $data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
-                                JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
-                                JOIN {user} u ON u.id = sl.recipientid
-                                WHERE sl.courseid = ? AND sl.messageid = ?
+    // Showing for just one message.
+    $data = $DB->get_records_sql("SELECT ml.*, sl.* 
+                                    FROM {report_engagement_messagelog} ml 
+                                    JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+                                    JOIN {user} u ON u.id = sl.recipientid
+                                   WHERE sl.courseid = ? AND sl.messageid = ?
                                 ORDER BY u.firstname ASC", array($id, $mid));
-    $page_title = get_string('mailer_log_message', 'report_engagement');
+    $pagetitle = get_string('mailer_log_message', 'report_engagement');
 } else {
-    // Log
+    // Log.
     $event = \report_engagement\event\report_viewed::create(array(
         'context' => $context, 
         'other' => array(
@@ -111,17 +120,17 @@ if ($uid && $id) {
             'page' => 'mailer_log'
         )));
     $event->trigger();
-    // Showing for just one message
-    // Showing all messages sent in this course
+    // Showing for just one message.
+    // Showing all messages sent in this course.
     $data = $DB->get_records_sql("SELECT ml.*, sl.* FROM {report_engagement_messagelog} ml 
-                                JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
-                                JOIN {user} u ON u.id = sl.recipientid
-                                WHERE sl.courseid = ? 
+                                    JOIN {report_engagement_sentlog} sl ON sl.messageid = ml.id 
+                                    JOIN {user} u ON u.id = sl.recipientid
+                                   WHERE sl.courseid = ? 
                                 ORDER BY sl.timesent DESC, u.firstname ASC", array($id));
-    $page_title = get_string('mailer_log_course', 'report_engagement');
+    $pagetitle = get_string('mailer_log_course', 'report_engagement');
 }
 
-// Parse messages and recipients
+// Parse messages and recipients.
 $messages = array();
 $recipients = array();
 foreach ($data as $record) {
@@ -130,117 +139,134 @@ foreach ($data as $record) {
     $message->body = $record->messagebody;
     $message->type = $record->messagetype;
     $message->timesent = $record->timesent;
-    $sender = $DB->get_record('user', array('id'=>$record->senderid));
+    $sender = $DB->get_record('user', array('id' => $record->senderid));
     $message->sender = $sender;
     $message->courseid = $record->courseid;
     $messages[$record->messageid] = $message;
-    $recipient = $DB->get_record('user', array('id'=>$record->recipientid));
+    $recipient = $DB->get_record('user', array('id' => $record->recipientid));
     $recipients[$record->messageid][] = $recipient;
 }
 if ($uid) {
-    $count_recipients_all = array();
-    $page_title .= fullname($recipient);
-    foreach ($data_all as $record) {
-        if (isset($count_recipients_all[$record->messageid])) {
-            $count_recipients_all[$record->messageid] += 1;
+    $countrecipientsall = array();
+    $pagetitle .= fullname($recipient);
+    foreach ($dataall as $record) {
+        if (isset($countrecipientsall[$record->messageid])) {
+            $countrecipientsall[$record->messageid] += 1;
         } else {
-            $count_recipients_all[$record->messageid] = 1;
+            $countrecipientsall[$record->messageid] = 1;
         }
     }
 }
 
-// Render data // TODO: refactor into renderer
+// Render data. // TODO: refactor into renderer.
 $html = "";
-$html_table_export = []; // for export table
-$_MAX_RECIPIENTS_TO_SHOW = 5;
+$htmltableexport = []; // For export table.
+$_maxrecipientstoshow = 5;
 
-// Show title
-$html .= html_writer::tag('h2', $page_title);
-// Show table
+// Show title.
+$html .= html_writer::tag('h2', $pagetitle);
+// Show table.
 if (count($messages)) {
-    $html_table_export[] = html_writer::start_tag('div', array('class'=>'hidden'));
-    $html_table_export[] = html_writer::start_tag('table', array('id'=>'export_table'));
-    $html .= html_writer::start_tag('table', array('id'=>'message_table', 'class'=>'row-border display compact'));
-        $html .= $html_table_export[] = html_writer::start_tag('thead');
-            $html .= $html_table_export[] = html_writer::start_tag('tr');
-                $html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_sent', 'report_engagement'));
-                $html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_from', 'report_engagement'));
-                $html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_recipients', 'report_engagement'));
-                $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_id', 'report_engagement'));
-                $html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_subject', 'report_engagement'));
-                $html .= $html_table_export[] = html_writer::tag('th', get_string('mailer_log_message_body', 'report_engagement'));
-            $html .= $html_table_export[] = html_writer::end_tag('tr');
-        $html .= $html_table_export[] = html_writer::end_tag('thead');
-        $html .= $html_table_export[] = html_writer::start_tag('tbody');
+    $htmltableexport[] = html_writer::start_tag('div', array('class' => 'hidden'));
+    $htmltableexport[] = html_writer::start_tag('table', array('id' => 'export_table'));
+    $html .= html_writer::start_tag('table', array('id' => 'message_table', 'class' => 'row-border display compact'));
+        $html .= $htmltableexport[] = html_writer::start_tag('thead');
+            $html .= $htmltableexport[] = html_writer::start_tag('tr');
+                $html .= $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_sent', 'report_engagement'));
+                $html .= $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_from', 'report_engagement'));
+                $html .= $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_recipients', 'report_engagement'));
+                $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_id', 'report_engagement'));
+                $html .= $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_subject', 'report_engagement'));
+                $html .= $htmltableexport[] = html_writer::tag('th', get_string('mailer_log_message_body', 'report_engagement'));
+            $html .= $htmltableexport[] = html_writer::end_tag('tr');
+        $html .= $htmltableexport[] = html_writer::end_tag('thead');
+        $html .= $htmltableexport[] = html_writer::start_tag('tbody');
             foreach ($messages as $messageid => $message) {
-                // Display table
-                $view_message_url = new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid));
+                // Display table.
+                $viewmessageurl = new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid));
                 $html .= html_writer::start_tag('tr');
-                    // Sent date
-                    $html .= html_writer::tag('td', date("j F Y g:i a", $message->timesent), array('class'=>'mailer_log_cell'));
-                    // Sender
-                    $html .= html_writer::tag('td', $message->sender->email, array('class'=>'mailer_log_cell'));
-                    // Recipients
-                    $recipient_list = "";
+                    // Sent date.
+                    $html .= html_writer::tag('td', date("j F Y g:i a", $message->timesent), array('class' => 'mailer_log_cell'));
+                    // Sender.
+                    $html .= html_writer::tag('td', $message->sender->email, array('class' => 'mailer_log_cell'));
+                    // Recipients.
+                    $recipientlist = "";
                     $n = 0;
                     foreach ($recipients[$messageid] as $recipient) {
-                        if ($n < $_MAX_RECIPIENTS_TO_SHOW || $mid) {
-                            $recipient_list .= html_writer::tag('div', fullname($recipient) . ' ' .
-                                html_writer::tag('a', html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/user'), 'class'=>'icon', 'title'=>get_string('mailer_log_viewbyuser', 'report_engagement'))), array("href"=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'uid' => $recipient->id)))));
+                        if ($n < $_maxrecipientstoshow || $mid) {
+                            $recipientlist .= html_writer::tag('div', fullname($recipient) . ' ' .
+                                html_writer::tag('a', 
+                                    html_writer::empty_tag('img', 
+                                        array('src' => $OUTPUT->pix_url('i/user'), 
+                                            'class' => 'icon', 
+                                            'title' => get_string('mailer_log_viewbyuser', 'report_engagement'))),
+                                    array("href" => new moodle_url('/report/engagement/mailer_log.php', 
+                                        array('id' => $id, 'uid' => $recipient->id)))));
                         } else {
-                            $recipient_list .= html_writer::tag('div', html_writer::tag('a', count($recipients[$messageid]) - $_MAX_RECIPIENTS_TO_SHOW, array('href'=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))) . ' ' . 
+                            $recipientlist .= html_writer::tag('div', 
+                                html_writer::tag('a', 
+                                    count($recipients[$messageid]) - $_maxrecipientstoshow, 
+                                    array('href' => new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))) . ' ' . 
                                 get_string('mailer_log_message_otherrecipients', 'report_engagement'));
                             break;
                         }
                         $n += 1;
                     }
                     if ($uid) {
-                        $recipient_list .= html_writer::tag('div', html_writer::tag('a', $count_recipients_all[$messageid] - 1, array('href'=>new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))) . ' ' . 
-                            get_string('mailer_log_message_otherrecipients', 'report_engagement')); 
+                        $recipientlist .= html_writer::tag('div', 
+                            html_writer::tag('a', 
+                                $countrecipientsall[$messageid] - 1, 
+                                array('href' => new moodle_url('/report/engagement/mailer_log.php', array('id' => $id, 'mid' => $messageid)))).
+                                ' '.get_string('mailer_log_message_otherrecipients', 'report_engagement')); 
                     }
-                    $html .= html_writer::tag('td', $recipient_list, array('class'=>'mailer_log_cell'));
-                    // Subject
-                    $html .= html_writer::tag('td', base64_decode($message->subject), array('class'=>'mailer_log_cell'));
-                    // Body
+                    $html .= html_writer::tag('td', $recipientlist, array('class' => 'mailer_log_cell'));
+                    // Subject.
+                    $html .= html_writer::tag('td', base64_decode($message->subject), array('class' => 'mailer_log_cell'));
+                    // Body.
                     if ($uid) {
-                        $message_body_text = message_variables_replace(base64_decode($message->body), $uid);
+                        $messagebodytext = message_variables_replace(base64_decode($message->body), $uid);
                     } else {
-                        $message_body_text = base64_decode($message->body);
+                        $messagebodytext = base64_decode($message->body);
                     }
-                    $message_body = html_writer::tag('div', $message_body_text);
+                    $messagebody = html_writer::tag('div', $messagebodytext);
                     if (!$mid) {
-                        $message_body .= html_writer::tag('a', html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/preview'), 'class'=>'icon', 'title'=>get_string('mailer_log_viewbymessage', 'report_engagement'))), array("href"=>$view_message_url));
+                        $messagebody .= html_writer::tag('a', 
+                            html_writer::empty_tag('img', 
+                                array('src' => $OUTPUT->pix_url('i/preview'), 
+                                    'class' => 'icon', 
+                                    'title' => get_string('mailer_log_viewbymessage', 'report_engagement'))), 
+                            array("href" => $viewmessageurl));
                     }
-                    $html .= html_writer::tag('td', $message_body, array('class'=>'mailer_log_cell'));
+                    $html .= html_writer::tag('td', $messagebody, array('class' => 'mailer_log_cell'));
                 $html .= html_writer::end_tag('tr');
-                // Export table
-                $message_subject_export = base64_decode($message->subject);
-                $message_body_export = base64_decode($message->body);
+                // Export table.
+                $messagesubjectexport = base64_decode($message->subject);
+                $messagebodyexport = base64_decode($message->body);
                 foreach ($recipients[$messageid] as $recipient) {
-                    $html_table_export[] = html_writer::start_tag('tr');
-                    $html_table_export[] = html_writer::tag('td', date("j F Y g:i a", $message->timesent));
-                    $html_table_export[] = html_writer::tag('td', $message->sender->email);
-                    $html_table_export[] = html_writer::tag('td', $recipient->email);
-                    $html_table_export[] = html_writer::tag('td', $messageid);
-                    $html_table_export[] = html_writer::tag('td', message_variables_replace($message_subject_export, $recipient->id));
-                    $html_table_export[] = html_writer::tag('td', message_variables_replace($message_body_export, $recipient->id));
-                    $html_table_export[] = html_writer::end_tag('tr');
+                    $htmltableexport[] = html_writer::start_tag('tr');
+                    $htmltableexport[] = html_writer::tag('td', date("j F Y g:i a", $message->timesent));
+                    $htmltableexport[] = html_writer::tag('td', $message->sender->email);
+                    $htmltableexport[] = html_writer::tag('td', $recipient->email);
+                    $htmltableexport[] = html_writer::tag('td', $messageid);
+                    $htmltableexport[] = html_writer::tag('td', message_variables_replace($messagesubjectexport, $recipient->id));
+                    $htmltableexport[] = html_writer::tag('td', message_variables_replace($messagebodyexport, $recipient->id));
+                    $htmltableexport[] = html_writer::end_tag('tr');
                 }
             }
-        $html .= $html_table_export[] = html_writer::end_tag('tbody');
-    $html .= $html_table_export[] = html_writer::end_tag('table');
-    $html_table_export[] = html_writer::end_tag('div');
+        $html .= $htmltableexport[] = html_writer::end_tag('tbody');
+    $html .= $htmltableexport[] = html_writer::end_tag('table');
+    $htmltableexport[] = html_writer::end_tag('div');
 } else {
     $html .= html_writer::tag('h3', get_string('mailer_log_nomessages', 'report_engagement'));
 }
-// Return html for heading and main table
+// Return html for heading and main table.
 echo $html;
-// Return html for export table
-echo(join('', $html_table_export));
+// Return html for export table.
+echo(join('', $htmltableexport));
 
-// Scripts
-$button_mailer_log_label_csv = get_string('button_mailer_log_label_csv', 'report_engagement');
-$button_mailer_log_fname_csv = get_string('button_mailer_log_fname_csv', 'report_engagement');
+// Scripts.
+$buttonmailerloglabelcsv = get_string('button_mailer_log_label_csv', 'report_engagement');
+$buttonmailerlogfnamecsv = get_string('button_mailer_log_fname_csv', 'report_engagement');
 $js = "
     <script>
         $(document).ready(function(){
@@ -248,7 +274,7 @@ $js = "
                 'dom':'Bt',
                 'buttons': [ {
                     'extend':'csvHtml5',
-                    'title':'$button_mailer_log_fname_csv'
+                    'title':'$buttonmailerlogfnamecsv'
                 } ]
             });
             var message_table = $('#message_table').DataTable({
@@ -256,7 +282,7 @@ $js = "
                 'dom': 'Blfrtip',
                 'buttons': [ {
                     'extend':'csvHtml5',
-                    'text':'$button_mailer_log_label_csv'
+                    'text':'$buttonmailerloglabelcsv'
                 } ]
             });
             message_table.button(0).action(function(){
@@ -267,13 +293,6 @@ $js = "
     </script>
 ";
 echo($js);
-
-$html_table_export[] = "
-    <script>
-        $(document).ready(function(){
-        });
-    </script>
-";
 
 echo $OUTPUT->footer();
 
