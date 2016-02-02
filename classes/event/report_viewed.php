@@ -73,6 +73,7 @@ class report_viewed extends \core\event\base {
         return array(
             $this->other['courseid'], 
             'report engagement', 
+            $this->get_name(),
             $this->get_url()
         );
     }

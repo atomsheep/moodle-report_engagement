@@ -64,7 +64,8 @@ class message_sent extends \core\event\base {
     public function get_legacy_logdata() {
         return array(
             $this->other['courseid'], 
-            'report engagement message send', 
+            'report engagement', 
+            $this->get_name(),
             $this->get_url()
         );
     }

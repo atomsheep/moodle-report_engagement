@@ -58,7 +58,8 @@ class settings_updated extends \core\event\base {
     public function get_legacy_logdata() {
         return array(
             $this->other['courseid'], 
-            'report engagement edit', 
+            'report engagement', 
+            $this->get_name(),
             $this->get_url()
         );
     }
