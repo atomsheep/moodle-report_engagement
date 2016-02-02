@@ -32,18 +32,19 @@ class report_engagement_email_message {
     public $sender_address; // Str.
     public $sender_name; // Str.
     public $replyto_address; // Str.
-    /* public $cc_address; // Str. */
+    /* ForFuture: public $cc_address; // Str. */
     public $email_subject; // Str.
     public $email_body; // Str.
     
     public function send_email(){
         require('config.php'); // Dev hack to configure mail engine.
         switch ($_CONFIG_MAILER) {
-            case 'moodle':
-                return $this->send_email_moodle();
-                break;
             case 'mandrill':
                 return $this->send_email_mandrill();
+                break;
+            case 'moodle':
+            default:
+                return $this->send_email_moodle();
                 break;
         }
     }
@@ -52,11 +53,16 @@ class report_engagement_email_message {
         $res = new stdClass();
         if (isset($this->recipient) && isset($this->sender)) {
             $res->result = email_to_user(
-                $this->recipient, $this->sender, 
-                $this->email_subject, $this->email_body, '', 
-                '', '', 
-                true, 
-                $this->replyto_address, ''
+                $this->recipient, // User object.
+                $this->sender, // User object.
+                $this->email_subject, // String.
+                $this->email_body, // Plain text message.
+                '', // HTML message.
+                '', // Attachment.
+                '', // Attachment name.
+                true, // Use true from address.
+                $this->replyto_address, // Reply to address.
+                '' // Reply to name.
             );
             if ($res->result === true) {
                 $res->message = 'OK';
@@ -86,7 +92,7 @@ class report_engagement_email_message {
                 'email' => $this->recipient_address,
                 'name' => $this->recipient_name,
                 'type' => 'to');
-            /*if (isset($this->cc_address)) {
+            /* ForFuture: if (isset($this->cc_address)) {
                 $to_array[] = array(
                     'email' => $this->cc_address,
                     'type' => 'cc');
