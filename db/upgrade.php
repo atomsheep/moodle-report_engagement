@@ -65,13 +65,13 @@ function xmldb_report_engagement_upgrade($oldversion) {
                 'report_engagement_snippets');
         }
         
-        // Populate snippets from lang file to DB.
-        require_once(dirname(__FILE__).'/../locallib.php');
-        report_engagement_populate_snippets_from_lang('encouragement');
-        
         // Engagement savepoint reached.
         upgrade_plugin_savepoint(true, 2016012902, 'report', 'engagement');
     }
-    
+
+    // Populate snippets from lang file to DB.
+    require_once(dirname(__FILE__).'/../locallib.php');
+    report_engagement_populate_snippets_from_lang('encouragement');
+
     return true;
 }
