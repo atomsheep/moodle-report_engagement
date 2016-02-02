@@ -14,20 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Version info
- *
- * @package    report_engagement
- * @copyright  2012 NetSpot Pty Ltd, 2015 Macquarie University
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+function xmldb_report_engagement_install() {
+    global $DB;
 
-defined('MOODLE_INTERNAL') || die;
+    // Populate DB with snippets.
+    require_once(dirname(__FILE__).'/../locallib.php');
+    report_engagement_populate_snippets_from_lang('encouragement');
 
-$plugin->version   = 2016020201;       // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2013101800;       // Requires this Moodle version
-$plugin->component = 'report_engagement'; // Full name of the plugin (used for diagnostics).
-$plugin->dependencies = array('mod_engagement' => 2016012901);
-$plugin->cron      = 60;
-
-$plugin->maturity = MATURITY_STABLE;
+}
