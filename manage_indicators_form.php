@@ -51,12 +51,12 @@ class report_engagement_manage_indicators_form extends moodleform {
                     '',
                     array('rows' => 3, 'cols' => 50));
                 $snippetgroup[] =& $mform->createElement('checkbox', 
-                    "snippet_delete_$name"."_$id",
+                    "snippet_delete_{$name}_{$id}",
                     '',
                     get_string('snippetdelete', 'report_engagement'));
-                $mform->setDefault("snippet_$name"."_$id", $snippet);
+                $mform->setDefault("snippet_{$name}_{$id}", $snippet);
                 $mform->addGroup($snippetgroup,
-                    "snippet_group_$name_".$id,
+                    "snippet_group_{$name}_{$id}",
                     get_string('snippetnumber', 'report_engagement', $counter),
                     array(' '),
                     false);
