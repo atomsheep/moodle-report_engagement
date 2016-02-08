@@ -169,6 +169,7 @@ $string['message_variables_fullname'] = 'Full name';
 $string['indicator_helper'] = 'Indicator parameter discovery helper';
 $string['indicator_helper_report'] = 'Data dump';
 $string['indicator_helper_report_textarea'] = 'Data dump';
+$string['indicator_helper_datadump'] = 'Show data dump';
 $string['indicator_helper_report_textarea_help'] = 'Data used for calculating correlation. Username, x-values, y-values. This can be copied and pasted directly into a spreadsheet.';
 $string['indicator_helper_settings'] = 'Settings';
 $string['indicator_helper_target'] = 'Target variable';
