@@ -59,7 +59,7 @@ $PAGE->requires->js(new moodle_url('/report/engagement/javascript/RGraph.scatter
 
 echo $OUTPUT->header();
 
-require_capability('report/engagement:view', $context);
+require_capability('report/engagement:manage', $context);
 
 // Prepare indicators.
 $pluginman = core_plugin_manager::instance();
