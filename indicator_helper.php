@@ -25,6 +25,7 @@
 
 require(dirname(__FILE__).'/../../config.php');
 require_once($CFG->dirroot . '/report/engagement/locallib.php');
+require_once(dirname(__FILE__).'/indicator_helper_form.php');
 
 $id = required_param('id', PARAM_INT); // Course ID.
 $targetgradeitemid = optional_param('target', null, PARAM_INT); // Grade item ID.
@@ -311,38 +312,37 @@ if ($targetgradeitemid != null) {
 $gradeitems = $DB->get_records_sql("SELECT * 
                                       FROM {grade_items} 
                                      WHERE courseid = :courseid
+                                       AND itemtype IN ('mod','manual')
                                   ORDER BY sortorder ASC",
                                   array('courseid' => $id));
-// Ask user to select the target (outcome) variable.
-// TODO: Refactor into form generator.
-echo('<form>');
-echo('<input type="hidden" name="id" value="'.$id.'" />');
-echo('<select name="target">');
+// Display settings form.
+$formtarget = array();
 foreach ($gradeitems as $gradeitem) {
-    echo('<option value="'.$gradeitem->id.'">'.$gradeitem->itemname.'</option>');
+    $formtarget[$gradeitem->id] = $gradeitem->itemname;
 }
-echo('</select>');
-echo('<select name="discover">');
-    echo('<option value="i">individual indicator</option>');
-    echo('<option value="w">overall weightings</option>');
-echo('</select>');
-echo('<select name="indicator">');
+$formdiscover = array('i' => get_string('indicator_helper_discover_indicator', 'report_engagement'),
+                  'w' => get_string('indicator_helper_discover_weightings', 'report_engagement'));
+$formindicators = array();
 foreach ($indicators as $name => $path) {
-    echo('<option value="'.$name.'">'.$name.'</option>');
+    $formindicators[$name] = $name;
 }
-echo('</select>');
-echo('<select name="iteri">');
+$formiteri = array();
 for ($i = 1; $i <= 6; $i++) {
-    echo('<option value="'.$i.'">'.$i.'</option>');
+    $formiteri[$i] = $i;
 }
-echo('</select>');
-echo('<select name="iterj">');
+$formiterj = array();
 for ($j = 1; $j <= 8; $j++) {
-    echo('<option value="'.$j.'">'.$j.'</option>');
+    $formiterj[$j] = $j;
 }
-echo('</select>');
-echo('<input type="submit" />');
-echo('</form>');
+$mform = new report_engagement_indicator_helper_form(null, 
+    array('id' => $id,
+      'target' => $formtarget,
+      'discover' => $formdiscover,
+      'indicator' => $formindicators,
+      'iteri' => $formiteri,
+      'iterj' => $formiterj
+    ));
+$mform->display();
 
 echo $OUTPUT->footer();
 

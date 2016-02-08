@@ -165,6 +165,23 @@ $string['message_variables_firstname'] = 'First name';
 $string['message_variables_lastname'] = 'Last name';
 $string['message_variables_fullname'] = 'Full name';
 
+// Indicator parameter discovery helper.
+$string['indicator_helper'] = 'Indicator parameter discovery helper';
+$string['indicator_helper_settings'] = 'Settings';
+$string['indicator_helper_target'] = 'Target variable';
+$string['indicator_helper_target_help'] = 'The numerical grade item against which to correlate risk ratings. Usually a course outcome such as final grade.';
+$string['indicator_helper_discover'] = 'Discovery mode';
+$string['indicator_helper_discover_help'] = 'Choose to run discovery for indicators individually, or for the overall weightings. Typically you would run discovery for individual indicators first, and then run the discovery for overall weightings.';
+$string['indicator_helper_discover_indicator'] = 'By individual selected indicator';
+$string['indicator_helper_discover_weightings'] = 'Overall weightings between indicators';
+$string['indicator_helper_indicator'] = 'Indicator to discover';
+$string['indicator_helper_indicator_help'] = 'Select indicator to run discovery for. Only applies if running discovery for indicators individually.';
+$string['indicator_helper_iteri'] = 'Overall iterations';
+$string['indicator_helper_iteri_help'] = 'Number of times the algorithm will iterate over all parameters. A good starting value is around 2-3. The higher the number the better, but the more likely the discovery process will crash. If the discovery process crashes, reduce this number.';
+$string['indicator_helper_iterj'] = 'Iterations for each parameter';
+$string['indicator_helper_iterj_help'] = 'Number of times the algorithm will iterate over each individual parameter. A good starting value is around 3-4. The higher the number the better, but the more likely the discovery process will crash. If the discovery process crashes, reduce this number.';
+$string['indicator_helper_runbutton'] = 'Run discovery';
+
 // default snippet strings
 $string['defaultsnippetencouragement0'] = "I can see that you are trying hard but still struggling with the unit material and may need extra help.";
 $string['defaultsnippetencouragement1'] = "We provide specialist assistance within this department that is designed to help you with your studies.";
