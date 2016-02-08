@@ -54,8 +54,10 @@ class report_engagement_indicator_helper_form extends moodleform {
         $mform->addHelpButton('iterj', 'indicator_helper_iterj', 'report_engagement');
         $mform->setDefault('iterj', $this->_customdata['default_iterj']);
         
-        $this->add_action_buttons(false, get_string('indicator_helper_runbutton', 'report_engagement'));
+        $mform->addElement('checkbox', 'datadump', get_string('indicator_helper_datadump', 'report_engagement'));
         
+        $mform->addElement('submit', 'submitrundiscovery', get_string('indicator_helper_rundiscovery', 'report_engagement'));
+        $mform->addElement('submit', 'submitruncorrelate', get_string('indicator_helper_runcorrelate', 'report_engagement'));
     }
 
     // Form verification.

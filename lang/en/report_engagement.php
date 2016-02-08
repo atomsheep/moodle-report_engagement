@@ -167,6 +167,9 @@ $string['message_variables_fullname'] = 'Full name';
 
 // Indicator parameter discovery helper.
 $string['indicator_helper'] = 'Indicator parameter discovery helper';
+$string['indicator_helper_report'] = 'Data dump';
+$string['indicator_helper_report_textarea'] = 'Data dump';
+$string['indicator_helper_report_textarea_help'] = 'Data used for calculating correlation. Username, x-values, y-values. This can be copied and pasted directly into a spreadsheet.';
 $string['indicator_helper_settings'] = 'Settings';
 $string['indicator_helper_target'] = 'Target variable';
 $string['indicator_helper_target_help'] = 'The numerical grade item against which to correlate risk ratings. Usually a course outcome such as final grade.';
@@ -180,7 +183,12 @@ $string['indicator_helper_iteri'] = 'Overall iterations';
 $string['indicator_helper_iteri_help'] = 'Number of times the algorithm will iterate over all parameters. A good starting value is around 2-3. The higher the number the better, but the more likely the discovery process will crash. If the discovery process crashes, reduce this number.';
 $string['indicator_helper_iterj'] = 'Iterations for each parameter';
 $string['indicator_helper_iterj_help'] = 'Number of times the algorithm will iterate over each individual parameter. A good starting value is around 3-4. The higher the number the better, but the more likely the discovery process will crash. If the discovery process crashes, reduce this number.';
-$string['indicator_helper_runbutton'] = 'Run discovery';
+$string['indicator_helper_rundiscovery'] = 'Run parameter discovery';
+$string['indicator_helper_runcorrelate'] = 'Get correlation without running discovery';
+$string['indicator_helper_correlationoutputindicator'] = 'Correlation coefficient {$a->corr} (closer to -1 is better) for indicator {$a->name}.';
+$string['indicator_helper_correlationoutput'] = 'Correlation coefficient {$a} (closer to -1 is better).';
+$string['indicator_helper_saved'] = 'Discovered settings have been saved. <a href="{$a}" target="_blank">Edit settings</a>.';
+$string['indicator_helper_riskrating'] = 'Risk rating';
 
 // default snippet strings
 $string['defaultsnippetencouragement0'] = "I can see that you are trying hard but still struggling with the unit material and may need extra help.";

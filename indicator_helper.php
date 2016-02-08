@@ -26,6 +26,7 @@
 require(dirname(__FILE__).'/../../config.php');
 require_once($CFG->dirroot . '/report/engagement/locallib.php');
 require_once(dirname(__FILE__).'/indicator_helper_form.php');
+require_once(dirname(__FILE__).'/indicator_helper_report.php');
 
 $id = required_param('id', PARAM_INT); // Course ID.
 $targetgradeitemid = optional_param('target', null, PARAM_INT); // Grade item ID.
@@ -83,7 +84,54 @@ foreach ($indicators as $name => $path) {
     }
 }
 
-if ($targetgradeitemid != null) {
+// Prepare form.
+$gradeitems = $DB->get_records_sql("SELECT * 
+                                      FROM {grade_items} 
+                                     WHERE courseid = :courseid
+                                       AND itemtype IN ('mod','manual')
+                                  ORDER BY sortorder ASC",
+                                  array('courseid' => $id));
+$formtarget = array();
+foreach ($gradeitems as $gradeitem) {
+    $formtarget[$gradeitem->id] = $gradeitem->itemname;
+}
+$formdiscover = array('i' => get_string('indicator_helper_discover_indicator', 'report_engagement'),
+                  'w' => get_string('indicator_helper_discover_weightings', 'report_engagement'));
+$formindicators = array();
+foreach ($indicators as $name => $path) {
+    $formindicators[$name] = $name;
+}
+$formiteri = array();
+for ($i = 1; $i <= 6; $i++) {
+    $formiteri[$i] = $i;
+}
+$formiterj = array();
+for ($j = 1; $j <= 8; $j++) {
+    $formiterj[$j] = $j;
+}
+$mform = new report_engagement_indicator_helper_form(null, array(
+                'id' => $id,
+            'target' => $formtarget,
+          'discover' => $formdiscover,
+         'indicator' => $formindicators,
+             'iteri' => $formiteri,
+             'iterj' => $formiterj,
+     'default_iteri' => $iteri,
+     'default_iterj' => $iterj
+    ));
+
+
+$formdata = $mform->get_data();
+if ($formdata && isset($formdata->submitrundiscovery)) {
+    $runmethod = 'discovery';
+} else if ($formdata && isset($formdata->submitruncorrelate)) {
+    $runmethod = 'correlate';
+} else {
+    $runmethod = null;
+}
+
+// Run analyses.
+if ($targetgradeitemid != null && isset($runmethod)) {
     
     // Enable the engagement analytics cache; set to 600 seconds.
     $plugincacheconfig = get_config('engagement', 'cachettl');
@@ -92,91 +140,95 @@ if ($targetgradeitemid != null) {
     $gradedatacache = null;
     
     if ($discovertarget == 'w') {
-        // Iterate through all (not just discoverable) indicators and play with weightings of each.
-        // Set initial weightings (evenly split).
-        $discoveredweightings = array();
-        foreach ($indicatorobjects as $name => $indicator) {
-            $discoveredweightings[$name] = 100.0 / count($indicatorobjects);
-        }
-        // Loop.
-        for ($i = 1; $i <= $iteri; $i++) {
+        if ($runmethod == 'discovery') {
+            // Iterate through all (not just discoverable) indicators and play with weightings of each.
+            // Set initial weightings (evenly split).
+            $discoveredweightings = array();
             foreach ($indicatorobjects as $name => $indicator) {
-                unset($nextweighting);
-                unset($prevcorr);
-                for ($j = $iterj; $j > 0; $j--) {
-                    if (isset($nextweighting)) {
-                        $weightingvalue = $nextweighting;
-                    } else {
-                        $weightingvalue = floatval($discoveredweightings[$name]);
-                    }
-                    // Introduce some stochasticity into the calculations.
-                    $randomfactor = mt_rand(12, $j * 15) / 10;
-                    // Generate weighting array and normalise weightings to total 100%.
-                    $weightslo = $discoveredweightings;
-                    $weightslo[$name] = $weightingvalue / $randomfactor;
-                    $arraysum = array_sum($weightslo);
-                    foreach ($weightslo as $key => $value) {
-                        $weightslo[$key] = $value / $arraysum * 100.0;
-                    }
-                    $weightshi = $discoveredweightings;
-                    $weightshi[$name] = $weightingvalue * $randomfactor;
-                    $arraysum = array_sum($weightshi);
-                    foreach ($weightshi as $key => $value) {
-                        $weightshi[$key] = $value / $arraysum * 100.0;
-                    }
-                    // Calculate the correlation coefficients with varying weighting settings.
-                    $corrs = array();
-                    foreach (array('lo' => $weightslo, 'md' => $discoveredweightings, 'hi' => $weightshi) as $state => $weightings) {
-                        $data = array();
-                        if (($state == 'md' && !isset($prevcorr)) || $state != 'md') {
-                            // Iterate through each indicator.
-                            foreach ($indicatorobjects as $indicatorname => $indicatorobject) {
-                                $temparray = update_config_get_indicator_risks($id, $weightings, array(), $indicatorname);
-                                $data = array_replace_recursive($data, $temparray);
-                            }
-                            // Calculate total risk.
-                            foreach ($data as $userid => $risks) {
-                                foreach ($risks as $riskname => $riskdata) {
-                                    $data[$userid]['indicator___total']['raw'] += $riskdata['raw'] * $riskdata['weight'];
-                                }
-                            }
-                            // Calculate correlation from combined data.
-                            $corrs[$state] = correlate_target_with_risks($id, '__total', $targetgradeitemid, $data, $gradedatacache);
-                            // Save to prevcorr if necessary.
-                            if ($state == 'md') {
-                                $prevcorr = $corrs[$state];
-                            }
-                        } else if ($state == 'md' && isset($prevcorr)) {
-                            $corrs['md'] = $prevcorr;
-                        }
-                        unset($data);
-                    }
-                    // Decide which direction has the better correlation.
-                    // Important: negative correlation is 'better' because risk rating is inversely related to outcome.
-                    if ($corrs['lo'] < $corrs['md']) {
-                        $nextweighting = $weightslo[$name];
-                    } else if ($corrs['hi'] < $corrs['md']) {
-                        $nextweighting = $weightshi[$name];
-                    } else {
-                        $nextweighting = $weightingvalue;
-                    }
-                }
-                // Save.
-                $discoveredweightings[$name] = $nextweighting;
+                $discoveredweightings[$name] = 100.0 / count($indicatorobjects);
             }
+            // Loop.
+            for ($i = 1; $i <= $iteri; $i++) {
+                foreach ($indicatorobjects as $name => $indicator) {
+                    unset($nextweighting);
+                    unset($prevcorr);
+                    for ($j = $iterj; $j > 0; $j--) {
+                        if (isset($nextweighting)) {
+                            $weightingvalue = $nextweighting;
+                        } else {
+                            $weightingvalue = floatval($discoveredweightings[$name]);
+                        }
+                        // Introduce some stochasticity into the calculations.
+                        $randomfactor = mt_rand(12, $j * 15) / 10;
+                        // Generate weighting array and normalise weightings to total 100%.
+                        $weightslo = $discoveredweightings;
+                        $weightslo[$name] = $weightingvalue / $randomfactor;
+                        $arraysum = array_sum($weightslo);
+                        foreach ($weightslo as $key => $value) {
+                            $weightslo[$key] = $value / $arraysum * 100.0;
+                        }
+                        $weightshi = $discoveredweightings;
+                        $weightshi[$name] = $weightingvalue * $randomfactor;
+                        $arraysum = array_sum($weightshi);
+                        foreach ($weightshi as $key => $value) {
+                            $weightshi[$key] = $value / $arraysum * 100.0;
+                        }
+                        // Calculate the correlation coefficients with varying weighting settings.
+                        $corrs = array();
+                        foreach (array('lo' => $weightslo, 'md' => $discoveredweightings, 'hi' => $weightshi) as $state => $weightings) {
+                            $data = array();
+                            if (($state == 'md' && !isset($prevcorr)) || $state != 'md') {
+                                // Iterate through each indicator.
+                                foreach ($indicatorobjects as $indicatorname => $indicatorobject) {
+                                    $temparray = update_config_get_indicator_risks($id, $weightings, array(), $indicatorname);
+                                    $data = array_replace_recursive($data, $temparray);
+                                }
+                                // Calculate total risk.
+                                foreach ($data as $userid => $risks) {
+                                    foreach ($risks as $riskname => $riskdata) {
+                                        $data[$userid]['indicator___total']['raw'] += $riskdata['raw'] * $riskdata['weight'];
+                                    }
+                                }
+                                // Calculate correlation from combined data.
+                                $corrs[$state] = correlate_target_with_risks($id, '__total', $targetgradeitemid, $data, $gradedatacache);
+                                // Save to prevcorr if necessary.
+                                if ($state == 'md') {
+                                    $prevcorr = $corrs[$state];
+                                }
+                            } else if ($state == 'md' && isset($prevcorr)) {
+                                $corrs['md'] = $prevcorr;
+                            }
+                            unset($data);
+                        }
+                        // Decide which direction has the better correlation.
+                        // Important: negative correlation is 'better' because risk rating is inversely related to outcome.
+                        if ($corrs['lo'] < $corrs['md']) {
+                            $nextweighting = $weightslo[$name];
+                        } else if ($corrs['hi'] < $corrs['md']) {
+                            $nextweighting = $weightshi[$name];
+                        } else {
+                            $nextweighting = $weightingvalue;
+                        }
+                    }
+                    // Save.
+                    $discoveredweightings[$name] = $nextweighting;
+                }
+            }
+            // Save to DB.
+            report_engagement_update_indicator($id, $discoveredweightings, array());
+            echo(get_string('indicator_helper_saved', 'report_engagement', $updateurl));
+            // Normalise to 100% again.
+            $arraysum = array_sum($discoveredweightings);
+            foreach ($discoveredweightings as $key => $value) {
+                $discoveredweightings[$key] = round($value / $arraysum * 100.0);
+            }
+            if (array_sum($discoveredweightings) != 100) {
+                $discoveredweightings[$key] += 100 - array_sum($discoveredweightings);
+            }
+        } else if ($runmethod == 'correlate') {
+            $discoveredweightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
         }
-        // Normalise to 100% again.
-        $arraysum = array_sum($discoveredweightings);
-        foreach ($discoveredweightings as $key => $value) {
-            $discoveredweightings[$key] = round($value / $arraysum * 100.0);
-        }
-        if (array_sum($discoveredweightings) != 100) {
-            $discoveredweightings[$key] += 100 - array_sum($discoveredweightings);
-        }
-        // Save to DB.
-        report_engagement_update_indicator($id, $discoveredweightings, array());
-        echo("Discovered settings have been saved; <a href=\"$updateurl\" target=\"_blank\"> edit settings</a>");
-        // Process.
+        // Report.
         $xarray = array();
         $yarray = array();
         $removedusers = array();
@@ -191,10 +243,11 @@ if ($targetgradeitemid != null) {
                 $data[$userid]['indicator___total']['raw'] += $riskdata['raw'] * $riskdata['weight'];
             }
         }
-        // Calculate final correlation and draw representative graph.
+        // Calculate correlation and draw representative graph.
         $corrfinal = correlate_target_with_risks($id, '__total', $targetgradeitemid, 
             $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
-        echo("Final best correlation coefficient [$corrfinal] found (closer to -1 is better) for total risk.");
+        $corrfinal = round($corrfinal, 4);
+        echo(get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
         $titlexaxis = json_encode($titlexaxis);
         $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers);
         echo($graphcode);
@@ -203,14 +256,13 @@ if ($targetgradeitemid != null) {
     
         $weightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
         
-        if (in_array($indicatortodiscover, $discoverableindicators)) {
-
-            // Set up variables.
-            $name = $indicatortodiscover;
-            $indicator = $indicatorobjects[$name];
-            $discoveredsettings = array();
-
-            $weight = isset($weightings[$name]) ? $weightings[$name] : 100 / count($indicators);
+        // Set up variables.
+        $name = $indicatortodiscover;
+        $indicator = $indicatorobjects[$name];
+        $discoveredsettings = array();
+        $weight = isset($weightings[$name]) ? $weightings[$name] : 100 / count($indicators);
+        
+        if ($runmethod == 'discovery' && in_array($indicatortodiscover, $discoverableindicators)) {
 
             // Get and set initial settings.
             $possiblesettings = $indicator->get_helper_initial_settings();
@@ -275,75 +327,55 @@ if ($targetgradeitemid != null) {
                     $discoveredsettings[$settingkey] = $nextvalue;
                 }
             }
-            
-            // Process outputs.
-            $xarray = array();
-            $yarray = array();
-            $removedusers = array();
-            $titlexaxis = '';
-            $corrfinal = try_indicator_setting($id, $indicator, $name, $weight, 
-                $settingkey, $nextvalue, $targetgradeitemid, 
-                $discoveredsettings, $gradedatacache,
-                $xarray, $yarray, $titlexaxis, $removedusers);
-            $titlexaxis = json_encode($titlexaxis);
-            echo("Final best correlation coefficient [$corrfinal] found (closer to -1 is better) for indicator [$name].");
-            
             // Final transformations and final saving of settings.
             $weights[$name] = $weight;
             $configdata[$name] = $indicator->transform_helper_discovered_settings($discoveredsettings);
             report_engagement_update_indicator($id, $weights, $configdata);
-            echo("Discovered settings have been saved; <a href=\"$updateurl\" target=\"_blank\"> edit settings</a>");
-            
-            // Also draw quick graph.
-            $graphcode = draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedusers);
-            echo($graphcode);
+            echo(get_string('indicator_helper_saved', 'report_engagement', $updateurl));
+        } else if ($runmethod == 'correlate') {
+            // Don't need to do anything, since the call get_indicator_risks will load up parameters.
         }
+        // Report.
+        $xarray = array();
+        $yarray = array();
+        $titlexaxis = '';
+        $removedusers = array();
+        $data = get_indicator_risks($id, array("$name" => $weight), $name);
+        $corrfinal = correlate_target_with_risks($id, $name, $targetgradeitemid, 
+            $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
+        $corrfinal = round($corrfinal, 4);
+        echo(get_string('indicator_helper_correlationoutputindicator', 'report_engagement', array('corr' => $corrfinal, 'name' => $name)));
+        $titlexaxis = json_encode($titlexaxis);
+        // Draw quick graph.
+        $graphcode = draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedusers);
+        echo($graphcode);
+        
     }
-    
     // Return cache settings to original.
     set_config('cachettl', $plugincacheconfig, 'engagement');
     unset($gradedatacache);
 
 }
 
+if (isset($formdata->datadump) && isset($xarray) && isset($yarray)) {
+    // Show textarea with data.
+    $dataoutput = array();
+    // Get usernames from user table.
+    list($rsql, $rparams) = $DB->get_in_or_equal(array_keys($xarray), SQL_PARAMS_NAMED, 'id');
+    $sql = "SELECT id, username
+              FROM {user}
+             WHERE id $rsql";
+    $result = $DB->get_records_sql($sql, $rparams);
+    // Put together data output.
+    foreach ($xarray as $userid => $x) {
+        $dataoutput[] = $result[$userid]->username . "\t" . $x . "\t" . $yarray[$userid];
+    }
+    $rform = new report_engagement_indicator_helper_report(null, 
+        array('output' => implode("\n", $dataoutput)));
+    $rform->display();
+}
 
-
-
-$gradeitems = $DB->get_records_sql("SELECT * 
-                                      FROM {grade_items} 
-                                     WHERE courseid = :courseid
-                                       AND itemtype IN ('mod','manual')
-                                  ORDER BY sortorder ASC",
-                                  array('courseid' => $id));
-// Display settings form.
-$formtarget = array();
-foreach ($gradeitems as $gradeitem) {
-    $formtarget[$gradeitem->id] = $gradeitem->itemname;
-}
-$formdiscover = array('i' => get_string('indicator_helper_discover_indicator', 'report_engagement'),
-                  'w' => get_string('indicator_helper_discover_weightings', 'report_engagement'));
-$formindicators = array();
-foreach ($indicators as $name => $path) {
-    $formindicators[$name] = $name;
-}
-$formiteri = array();
-for ($i = 1; $i <= 6; $i++) {
-    $formiteri[$i] = $i;
-}
-$formiterj = array();
-for ($j = 1; $j <= 8; $j++) {
-    $formiterj[$j] = $j;
-}
-$mform = new report_engagement_indicator_helper_form(null, array(
-                'id' => $id,
-            'target' => $formtarget,
-          'discover' => $formdiscover,
-         'indicator' => $formindicators,
-             'iteri' => $formiteri,
-             'iterj' => $formiterj,
-     'default_iteri' => $iteri,
-     'default_iterj' => $iterj
-    ));
+// Show settings form.
 $mform->display();
 
 echo $OUTPUT->footer();
@@ -362,6 +394,7 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
     $graphymax = max($yarray);
     $graphymin = min($yarray);
     $graphdata = json_encode($grapharray);
+    $riskrating = json_encode(get_string('indicator_helper_riskrating', 'report_engagement'));
     $graphhtml = '
         <div id="rgraph-container-'.$name.'">
             <canvas id="rgraph-canvas-'.$name.'" width="600" height="250"></canvas>
@@ -384,12 +417,12 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
                     titleXaxisPos: 0.20,
                     titleYaxisPos: 0.15,
                     titleXaxis: $titlexaxis,
-                    titleYaxis: 'risk rating'
+                    titleYaxis: $riskrating
                 }
             }).draw();
         });
         </script>";
-    return ($graphhtml .  $graphjs);
+    return ($graphhtml . $graphjs);
 }
 
 function try_indicator_setting($id, $indicator, $indicatorname, $weight, $settingkey, $settingvalue, $targetgradeitemid, $discoveredsettings, &$gradedatacache = null, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null) {
