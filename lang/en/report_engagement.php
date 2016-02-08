@@ -178,8 +178,10 @@ $string['indicator_helper_discover'] = 'Discovery mode';
 $string['indicator_helper_discover_help'] = 'Choose to run discovery for indicators individually, or for the overall weightings. Typically you would run discovery for individual indicators first, and then run the discovery for overall weightings.';
 $string['indicator_helper_discover_indicator'] = 'By individual selected indicator';
 $string['indicator_helper_discover_weightings'] = 'Overall weightings between indicators';
-$string['indicator_helper_indicator'] = 'Indicator to discover';
+$string['indicator_helper_indicator'] = 'Indicator to discover parameters';
 $string['indicator_helper_indicator_help'] = 'Select indicator to run discovery for. Only applies if running discovery for indicators individually.';
+$string['indicator_helper_activeindicators'] = 'Indicator(s) to discover weightings';
+$string['indicator_helper_activeindicators_help'] = 'Select indicator(s) to run discovery for. Only applies if running discovery for overall weightings between indicators. You can exclude whole indicators from discovery by unchecking them.';
 $string['indicator_helper_iteri'] = 'Overall iterations';
 $string['indicator_helper_iteri_help'] = 'Number of times the algorithm will iterate over all parameters. A good starting value is around 2-3. The higher the number the better, but the more likely the discovery process will crash. If the discovery process crashes, reduce this number.';
 $string['indicator_helper_iterj'] = 'Iterations for each parameter';
@@ -188,7 +190,8 @@ $string['indicator_helper_rundiscovery'] = 'Run parameter discovery';
 $string['indicator_helper_runcorrelate'] = 'Get correlation without running discovery';
 $string['indicator_helper_correlationoutputindicator'] = 'Correlation coefficient {$a->corr} (closer to -1 is better) for indicator {$a->name}.';
 $string['indicator_helper_correlationoutput'] = 'Correlation coefficient {$a} (closer to -1 is better).';
-$string['indicator_helper_saved'] = 'Discovered settings have been saved. <a href="{$a}" target="_blank">Edit settings</a>.';
+$string['indicator_helper_saved'] = 'Discovered settings have been saved.';
+$string['indicator_helper_viewsettings'] = 'View settings.';
 $string['indicator_helper_riskrating'] = 'Risk rating';
 
 // default snippet strings

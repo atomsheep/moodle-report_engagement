@@ -43,9 +43,19 @@ class report_engagement_indicator_helper_form extends moodleform {
         $mform->addHelpButton('target', 'indicator_helper_target', 'report_engagement');
         $mform->addElement('select', 'discover', get_string('indicator_helper_discover', 'report_engagement'), $this->_customdata['discover']);
         $mform->addHelpButton('discover', 'indicator_helper_discover', 'report_engagement');
+        
         $mform->addElement('select', 'indicator', get_string('indicator_helper_indicator', 'report_engagement'), $this->_customdata['indicator']);
         $mform->addHelpButton('indicator', 'indicator_helper_indicator', 'report_engagement');
         $mform->disabledIf('indicator', 'discover', 'neq', 'i');
+        
+        $indicatorarray = array();
+        foreach ($this->_customdata['indicator'] as $indicatorname) {
+            $indicatorarray[] =& $mform->createElement('checkbox', "activeindicators_$indicatorname", $indicatorname, $indicatorname);
+            $mform->setDefault("activeindicators_$indicatorname", true);
+            $mform->disabledIf("activeindicators_$indicatorname", 'discover', 'neq', 'w');
+        }
+        $mform->addGroup($indicatorarray, 'activeindicatorsgroup', get_string('indicator_helper_activeindicators', 'report_engagement'), array(' '), false);
+        $mform->addHelpButton('activeindicatorsgroup', 'indicator_helper_activeindicators', 'report_engagement');
         
         $mform->addElement('select', 'iteri', get_string('indicator_helper_iteri', 'report_engagement'), $this->_customdata['iteri']);
         $mform->addHelpButton('iteri', 'indicator_helper_iteri', 'report_engagement');

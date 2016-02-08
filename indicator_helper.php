@@ -141,15 +141,28 @@ if ($targetgradeitemid != null && isset($runmethod)) {
     
     if ($discovertarget == 'w') {
         if ($runmethod == 'discovery') {
-            // Iterate through all (not just discoverable) indicators and play with weightings of each.
-            // Set initial weightings (evenly split).
+            // Iterate through all (not just discoverable) user-activated indicators and play with weightings of each.
+            // Set initial weightings (evenly split between active indicators).
+            $numberactiveindicators = 0;
             $discoveredweightings = array();
             foreach ($indicatorobjects as $name => $indicator) {
-                $discoveredweightings[$name] = 100.0 / count($indicatorobjects);
+                if (isset($formdata->{"activeindicators_$name"})) {
+                   $numberactiveindicators++;
+                } else {
+                   $discoveredweightings[$name] = 0;
+                }
+            }
+            foreach ($indicatorobjects as $name => $indicator) {
+                if (isset($formdata->{"activeindicators_$name"})) {
+                    $discoveredweightings[$name] = 100.0 / $numberactiveindicators;
+                }
             }
             // Loop.
             for ($i = 1; $i <= $iteri; $i++) {
                 foreach ($indicatorobjects as $name => $indicator) {
+                    if (!isset($formdata->{"activeindicators_$name"})) {
+                        continue;
+                    }
                     unset($nextweighting);
                     unset($prevcorr);
                     for ($j = $iterj; $j > 0; $j--) {
@@ -214,9 +227,6 @@ if ($targetgradeitemid != null && isset($runmethod)) {
                     $discoveredweightings[$name] = $nextweighting;
                 }
             }
-            // Save to DB.
-            report_engagement_update_indicator($id, $discoveredweightings, array());
-            echo(get_string('indicator_helper_saved', 'report_engagement', $updateurl));
             // Normalise to 100% again.
             $arraysum = array_sum($discoveredweightings);
             foreach ($discoveredweightings as $key => $value) {
@@ -225,6 +235,13 @@ if ($targetgradeitemid != null && isset($runmethod)) {
             if (array_sum($discoveredweightings) != 100) {
                 $discoveredweightings[$key] += 100 - array_sum($discoveredweightings);
             }
+            // Save to DB.
+            report_engagement_update_indicator($id, $discoveredweightings, array());
+            $html = html_writer::start_tag('div');
+            $html .= html_writer::tag('span', get_string('indicator_helper_saved', 'report_engagement'));
+            $html .= html_writer::link($updateurl, get_string('indicator_helper_viewsettings', 'report_engagement'));
+            $html .= html_writer::end_tag('div');
+            echo($html);
         } else if ($runmethod == 'correlate') {
             $discoveredweightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
         }
@@ -247,7 +264,8 @@ if ($targetgradeitemid != null && isset($runmethod)) {
         $corrfinal = correlate_target_with_risks($id, '__total', $targetgradeitemid, 
             $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
         $corrfinal = round($corrfinal, 4);
-        echo(get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
+        $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
+        echo($html);
         $titlexaxis = json_encode($titlexaxis);
         $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers);
         echo($graphcode);
@@ -331,7 +349,11 @@ if ($targetgradeitemid != null && isset($runmethod)) {
             $weights[$name] = $weight;
             $configdata[$name] = $indicator->transform_helper_discovered_settings($discoveredsettings);
             report_engagement_update_indicator($id, $weights, $configdata);
-            echo(get_string('indicator_helper_saved', 'report_engagement', $updateurl));
+            $html = html_writer::start_tag('div');
+            $html .= html_writer::tag('span', get_string('indicator_helper_saved', 'report_engagement'));
+            $html .= html_writer::link($updateurl, get_string('indicator_helper_viewsettings', 'report_engagement'));
+            $html .= html_writer::end_tag('div');
+            echo($html);
         } else if ($runmethod == 'correlate') {
             // Don't need to do anything, since the call get_indicator_risks will load up parameters.
         }
@@ -344,7 +366,10 @@ if ($targetgradeitemid != null && isset($runmethod)) {
         $corrfinal = correlate_target_with_risks($id, $name, $targetgradeitemid, 
             $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
         $corrfinal = round($corrfinal, 4);
-        echo(get_string('indicator_helper_correlationoutputindicator', 'report_engagement', array('corr' => $corrfinal, 'name' => $name)));
+        $html = html_writer::tag('div', get_string('indicator_helper_correlationoutputindicator', 
+            'report_engagement', 
+            array('corr' => $corrfinal, 'name' => $name)));
+        echo($html);
         $titlexaxis = json_encode($titlexaxis);
         // Draw quick graph.
         $graphcode = draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedusers);
