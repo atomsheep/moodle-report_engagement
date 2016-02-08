@@ -49,8 +49,10 @@ class report_engagement_indicator_helper_form extends moodleform {
         
         $mform->addElement('select', 'iteri', get_string('indicator_helper_iteri', 'report_engagement'), $this->_customdata['iteri']);
         $mform->addHelpButton('iteri', 'indicator_helper_iteri', 'report_engagement');
+        $mform->setDefault('iteri', $this->_customdata['default_iteri']);
         $mform->addElement('select', 'iterj', get_string('indicator_helper_iterj', 'report_engagement'), $this->_customdata['iterj']);
         $mform->addHelpButton('iterj', 'indicator_helper_iterj', 'report_engagement');
+        $mform->setDefault('iterj', $this->_customdata['default_iterj']);
         
         $this->add_action_buttons(false, get_string('indicator_helper_runbutton', 'report_engagement'));
         

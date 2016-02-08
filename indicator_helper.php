@@ -31,8 +31,8 @@ $id = required_param('id', PARAM_INT); // Course ID.
 $targetgradeitemid = optional_param('target', null, PARAM_INT); // Grade item ID.
 $indicatortodiscover = optional_param('indicator', '', PARAM_TEXT); // Indicator.
 $discovertarget = optional_param('discover', '', PARAM_TEXT); // What to discover: w = overall weightings, i = individual indicator.
-$iteri = optional_param('iteri', 3, PARAM_INT); // Iterations of i.
-$iterj = optional_param('iterj', 4, PARAM_INT); // Iterations of j.
+$iteri = optional_param('iteri', 2, PARAM_INT); // Iterations of i.
+$iterj = optional_param('iterj', 3, PARAM_INT); // Iterations of j.
 
 $pageparams = array('id' => $id);
 $PAGE->set_url('/report/engagement/indicator_helper.php', $pageparams);
@@ -334,13 +334,15 @@ $formiterj = array();
 for ($j = 1; $j <= 8; $j++) {
     $formiterj[$j] = $j;
 }
-$mform = new report_engagement_indicator_helper_form(null, 
-    array('id' => $id,
-      'target' => $formtarget,
-      'discover' => $formdiscover,
-      'indicator' => $formindicators,
-      'iteri' => $formiteri,
-      'iterj' => $formiterj
+$mform = new report_engagement_indicator_helper_form(null, array(
+                'id' => $id,
+            'target' => $formtarget,
+          'discover' => $formdiscover,
+         'indicator' => $formindicators,
+             'iteri' => $formiteri,
+             'iterj' => $formiterj,
+     'default_iteri' => $iteri,
+     'default_iterj' => $iterj
     ));
 $mform->display();
 
