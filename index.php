@@ -49,8 +49,10 @@ $context = context_course::instance($course->id);
 $PAGE->set_context($context);
 $updateurl = new moodle_url('/report/engagement/edit.php', array('id' => $id));
 $mailerurl = new moodle_url('/report/engagement/mailer.php', array('id' => $id));
+$helperurl = new moodle_url('/report/engagement/indicator_helper.php', array('id' => $id));
 $PAGE->set_button($OUTPUT->single_button($updateurl, get_string('updatesettings', 'report_engagement'), 'get') . 
-                    $OUTPUT->single_button($mailerurl, get_string('mailer', 'report_engagement'), 'get')
+                    $OUTPUT->single_button($mailerurl, get_string('mailer', 'report_engagement'), 'get') .
+                    $OUTPUT->single_button($helperurl, get_string('indicator_helper', 'report_engagement'), 'get')
                     );
 $PAGE->set_heading($course->fullname);
 
