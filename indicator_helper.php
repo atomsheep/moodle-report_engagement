@@ -271,7 +271,7 @@ if ($targetgradeitemid != null && isset($runmethod)) {
         echo($graphcode);
         
     } else if ($discovertarget == 'i') {
-    
+
         $weightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
         
         // Set up variables.
@@ -279,7 +279,6 @@ if ($targetgradeitemid != null && isset($runmethod)) {
         $indicator = $indicatorobjects[$name];
         $discoveredsettings = array();
         $weight = isset($weightings[$name]) ? $weightings[$name] : 100 / count($indicators);
-        
         if ($runmethod == 'discovery' && in_array($indicatortodiscover, $discoverableindicators)) {
 
             // Get and set initial settings.
@@ -287,7 +286,7 @@ if ($targetgradeitemid != null && isset($runmethod)) {
             foreach ($possiblesettings as $key => $value) {
                 $discoveredsettings[$key] = floatval($value['start']);
             }
-            
+
             // Iterate through whole panel of settings.
             for ($i = 1; $i <= $iteri; $i++) {
                 $discoveredsettings = shuffle_assoc($discoveredsettings);
