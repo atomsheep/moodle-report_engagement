@@ -125,31 +125,6 @@ function get_indicator_objects($id, $indicatorname = "", $onlydiscoverable = fal
     }
 }
 
-/*function try_indicator_setting($id, $indicatorname, $targetgradeitemid, $discoveredsettings) {
-    // Programmatically set indicator parameters.
-    $name = $indicatorname;
-    $weights = array();
-    $configdata = array();
-    $weights[$name] = 100;
-    $indicator = get_indicator_objects($id, $indicatorname);
-    $defaults = $indicator->get_defaults();
-    $config = array();
-    foreach ($defaults as $key => $value) {
-        if (array_key_exists($key, $discoveredsettings)) {
-            $config["{$name}_{$key}"] = $discoveredsettings[$key];
-        } else {
-            $config["{$name}_{$key}"] = $value;
-        }
-    }
-    //$configdata[$name] = $config;
-    // Beautify.
-    $configdata[$name] = $indicator->transform_helper_discovered_settings($discoveredsettings);
-    // Update config and get indicator's risks.
-    $data = update_config_get_indicator_risks($id, $weights, $configdata, $name);
-    // Calculate and return correlation.
-    return correlate_target_with_risks($id, $name, $targetgradeitemid, $data);
-}*/
-
 function try_settings($id, $targetgradeitemid, $discoveredsettings, $indicators) {
     // Programmatically set parameters.
     $name = $indicatorname;

@@ -165,7 +165,38 @@ $string['message_variables_firstname'] = 'First name';
 $string['message_variables_lastname'] = 'Last name';
 $string['message_variables_fullname'] = 'Full name';
 
-// default snippet strings
+// Indicator parameter discovery helper.
+$string['indicator_helper'] = 'Indicator parameter discovery helper';
+$string['indicator_helper_report'] = 'Data dump';
+$string['indicator_helper_report_textarea'] = 'Data dump';
+$string['indicator_helper_datadump'] = 'Show data dump';
+$string['indicator_helper_report_textarea_help'] = 'Data used for calculating correlation. Username, x-values, y-values. This can be copied and pasted directly into a spreadsheet.';
+$string['indicator_helper_settings'] = 'Genetic algorithm settings';
+$string['indicator_helper_correlation'] = 'Correlation';
+$string['indicator_helper_target'] = 'Target variable';
+$string['indicator_helper_target_help'] = 'The numerical grade item against which to correlate risk ratings. Usually a course outcome such as final grade.';
+$string['indicator_helper_discover'] = 'Discovery mode';
+$string['indicator_helper_discover_help'] = 'Choose to run discovery for indicators individually, or for the overall weightings. Typically you would run discovery for individual indicators first, and then run the discovery for overall weightings.';
+$string['indicator_helper_discover_indicator'] = 'By individual selected indicator';
+$string['indicator_helper_discover_weightings'] = 'Overall weightings between indicators';
+$string['indicator_helper_indicator'] = 'Indicator to discover parameters';
+$string['indicator_helper_indicator_help'] = 'Select indicator to run discovery for. Only applies if running discovery for indicators individually.';
+$string['indicator_helper_activeindicators'] = 'Indicator(s) to discover weightings';
+$string['indicator_helper_activeindicators_help'] = 'Select indicator(s) to run discovery for. Only applies if running discovery for overall weightings between indicators. You can exclude whole indicators from discovery by unchecking them.';
+$string['indicator_helper_population_size'] = 'Population size';
+$string['indicator_helper_population_size_help'] = 'Number of "individuals" in the genetic algorithm population. Each individual represents a complete set of settings, so set this number high enough so that the population contains a good variety of individuals.';
+$string['indicator_helper_generations'] = 'Generations';
+$string['indicator_helper_generations_help'] = 'Number of generations that the genetic algorithm will work through. The more generations, the more time that "evolution" has to improve the population. However, too many generations may drive evolution the wrong way.';
+$string['indicator_helper_rundiscovery'] = 'Run parameter discovery';
+$string['indicator_helper_rundiscovery_help'] = 'Runs the genetic algorithm asynchronously on this page. A progress and status panel will appear.';
+$string['indicator_helper_runcorrelate'] = 'Draw correlation graph';
+$string['indicator_helper_correlationoutputindicator'] = 'Correlation coefficient {$a->corr} (closer to -1 is better) for indicator {$a->name}.';
+$string['indicator_helper_correlationoutput'] = 'Correlation coefficient {$a} (closer to -1 is better).';
+$string['indicator_helper_saved'] = 'Discovered settings have been saved.';
+$string['indicator_helper_viewsettings'] = 'View settings.';
+$string['indicator_helper_riskrating'] = 'Risk rating';
+
+// Default snippet strings.
 $string['defaultsnippetencouragement0'] = "I can see that you are trying hard but still struggling with the unit material and may need extra help.";
 $string['defaultsnippetencouragement1'] = "We provide specialist assistance within this department that is designed to help you with your studies.";
 $string['defaultsnippetencouragement2'] = "It seems that you are making good progress in this unit. We hope that you are enjoying learning new things. Keep up the good work.";

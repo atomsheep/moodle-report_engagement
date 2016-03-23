@@ -49,9 +49,8 @@ class report_engagement_indicator_helper_form extends moodleform {
         $mform->addHelpButton('iterj', 'indicator_helper_generations', 'report_engagement');
         $mform->setDefault('iterj', $this->_customdata['default_iterj']);
         
-        $mform->addElement('checkbox', 'datadump', get_string('indicator_helper_datadump', 'report_engagement'));
-        
         $mform->addElement('submit', 'submitrundiscovery', get_string('indicator_helper_rundiscovery', 'report_engagement'));
+        $mform->addHelpButton('submitrundiscovery', 'indicator_helper_rundiscovery', 'report_engagement');
         $mform->addElement('submit', 'submitruncorrelate', get_string('indicator_helper_runcorrelate', 'report_engagement'));
         
         $mform->addElement('html', '<div id="output-container" style="display:none;"><div id="output-progress">Processing... <progress id="progress-bar" value="0" max="100"></progress></div><div id="output"></div></div>');

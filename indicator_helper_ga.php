@@ -46,7 +46,7 @@ $PAGE->set_context($context);
 $updateurl = new moodle_url('/report/engagement/edit.php', array('id' => $id));
 $reporturl = new moodle_url('/report/engagement/index.php', array('id' => $id));
 $mailerurl = new moodle_url('/report/engagement/mailer.php', array('id' => $id));
-$indicatorhelperurl = new moodle_url('/report/engagement/indicator_helper.php', array('id' => $id));
+$indicatorhelperurl = new moodle_url('/report/engagement/indicator_helper_ga.php', array('id' => $id));
 $PAGE->navbar->add(get_string('reports'));
 $PAGE->navbar->add(get_string('pluginname', 'report_engagement'), $reporturl);
 $PAGE->navbar->add(get_string('indicator_helper', 'report_engagement'), $indicatorhelperurl);
@@ -152,9 +152,10 @@ if ($runmethod == 'correlate') {
     $corrfinal = round($corrfinal, 4);
     $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
     echo($html);
+    $graphhtml = '<div id="rgraph-container" style="display:none;"><canvas id="rgraph-canvas" width="600" height="250"></canvas></div>';
     $titlexaxis = json_encode($titlexaxis);
     $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers);
-    echo($graphcode);
+    echo($graphhtml . $graphcode);
 }
 
 // Show settings form.
@@ -177,16 +178,11 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
     $graphymin = min($yarray);
     $graphdata = json_encode($grapharray);
     $riskrating = json_encode(get_string('indicator_helper_riskrating', 'report_engagement'));
-    $graphhtml = '
-        <div id="rgraph-container-'.$name.'">
-            <canvas id="rgraph-canvas-'.$name.'" width="600" height="250"></canvas>
-        </div>
-    ';
     $graphjs = "<script>
         window.onload = (function () {
-            console.log('hello');
+            document.getElementById('rgraph-container').style.display = 'block';
             var scatter_$name = new RGraph.Scatter({
-                id: 'rgraph-canvas-$name',
+                id: 'rgraph-canvas',
                 data: $graphdata,
                 options: {
                     xmax: $graphxmax,
@@ -204,7 +200,7 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
             }).draw();
         });
         </script>";
-    return ($graphhtml . $graphjs);
+    return ($graphjs);
 }
 
 
