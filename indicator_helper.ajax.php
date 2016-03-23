@@ -61,44 +61,39 @@ switch ($method) {
         echo(true);
         break;
     case 'get_possible_settings':
-        $indicatorname = required_param('indicator', PARAM_TEXT);
-        $indicator = get_indicator_objects($id, $indicatorname);
-        $possiblesettings = $indicator->get_helper_initial_settings();
-        echo(json_encode($possiblesettings));
+        $discoverableindicators = get_indicator_objects($id, "", true);
+        $allpossiblesettings = [];
+        foreach ($discoverableindicators as $name => $indicator) {
+            // Populate the discoverable settings.
+            $possiblesettings = $indicator->get_helper_initial_settings();
+            foreach ($possiblesettings as $key => $value) {
+                $allpossiblesettings["{$name}_{$key}"] = $value;
+            }
+            // Add on the indicator itself. Note the double underscore leader. This is for the indicator weighting.
+            $allpossiblesettings["__{$name}"] = ["min" => 0, "max" => 100];
+        }
+        $return = [];
+        $return["settings"] = $allpossiblesettings;
+        $return["indicators"] = array_keys($discoverableindicators);
+        echo(json_encode($return));
         break;
     case 'try_settings':
-        $indicatorname = required_param('indicator', PARAM_TEXT);
+        // Parse AJAX inputs.
         $targetgradeitemid = required_param('targetgradeitemid', PARAM_INT);
         $settings = (array) json_decode(required_param('settings', PARAM_TEXT)); // Settings as JSON string.
         $returndata = json_decode(optional_param('returndata', '', PARAM_TEXT));
-        
-        $corr = try_indicator_setting($id, $indicatorname, $targetgradeitemid, $settings);
+        // Get indicators.
+        $discoverableindicators = get_indicator_objects($id, "", true);
+        // Calculate correlation.
+        $corr = try_settings($id, $targetgradeitemid, $settings, $discoverableindicators);
+        // Return fitness and other data as necessary.
         $fitness = -1 * $corr;
         $output = ["fitness" => $fitness, "returndata" => $returndata];
-        
-        
         echo(json_encode($output));
-        
-        //echo($settings->overduegracedays);
-        break;
-        //$settings = json_decode($settingsjson);
-        
-        //echo($settings);
         break;
 }
 
-
-/*
-class report_engagement_indicator_helper_renderer_ajax extends plugin_renderer_base {
-
-    public function show_something($something) {
-        return "[$something]";
-    }
-
-}
-*/
-
-function get_indicator_objects($id, $indicatorname = "") {
+function get_indicator_objects($id, $indicatorname = "", $onlydiscoverable = false) {
     global $CFG;
     $pluginman = core_plugin_manager::instance();
     $indicators = get_plugin_list('engagementindicator');
@@ -112,7 +107,15 @@ function get_indicator_objects($id, $indicatorname = "") {
         if (file_exists("$path/indicator.class.php")) {
             require_once("$path/indicator.class.php");
             $classname = "indicator_$name";
-            $indicatorobjects[$name] = new $classname($id);
+            $indicator = new $classname($id);
+            if ($onlydiscoverable) {
+                // Check if indicator is set up for parameter discovery.
+                if (method_exists($indicator, 'get_helper_initial_settings')) {
+                    $indicatorobjects[$name] = $indicator;
+                }
+            } else {
+                $indicatorobjects[$name] = $indicator;
+            }
         }
     }
     if ($indicatorname != "" and array_key_exists($indicatorname, $indicatorobjects)) {
@@ -122,7 +125,7 @@ function get_indicator_objects($id, $indicatorname = "") {
     }
 }
 
-function try_indicator_setting($id, $indicatorname, $targetgradeitemid, $discoveredsettings) {
+/*function try_indicator_setting($id, $indicatorname, $targetgradeitemid, $discoveredsettings) {
     // Programmatically set indicator parameters.
     $name = $indicatorname;
     $weights = array();
@@ -144,7 +147,55 @@ function try_indicator_setting($id, $indicatorname, $targetgradeitemid, $discove
     // Update config and get indicator's risks.
     $data = update_config_get_indicator_risks($id, $weights, $configdata, $name);
     // Calculate and return correlation.
-    return correlate_target_with_risks($id, $name, $targetgradeitemid, $data/*, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers*/);
+    return correlate_target_with_risks($id, $name, $targetgradeitemid, $data);
+}*/
+
+function try_settings($id, $targetgradeitemid, $discoveredsettings, $indicators) {
+    // Programmatically set parameters.
+    $name = $indicatorname;
+    $configdata = [];
+    // Normalise and set overall indicator weights.
+    $weights = [];
+    foreach ($indicators as $name => $indicator) {
+        $weights[$name] = $discoveredsettings["__{$name}"];
+    }
+    $arraysum = array_sum($weights);
+    foreach ($weights as $key => $value) {
+        $weights[$key] = round($value / $arraysum * 100.0);
+    }
+    if (array_sum($weights) != 100) {
+        $weights[$key] += 100 - array_sum($weights);
+    }
+    // Process settings for each indicator.
+    foreach ($indicators as $name => $indicator) {
+        //$defaults = $indicator->get_defaults();
+        //$config = array();
+        $settings = [];
+        foreach ($discoveredsettings as $key => $value) {
+            if (starts_with($key, $name)) {
+                $settings[substr($key, strlen($name) + 1)] = $discoveredsettings[$key];
+            }
+        }
+        // Beautify.
+        $configdata[$name] = $indicator->transform_helper_discovered_settings($settings);
+    }
+    // Update config.
+    report_engagement_update_indicator($id, $weights, $configdata);
+    // Calculate risks.
+    $data = [];
+    foreach ($indicators as $name => $indicator) {
+        $temparray = get_indicator_risks($id, $weights, $name);
+        $data = array_replace_recursive($data, $temparray);
+    }
+    foreach ($data as $userid => $risks) {
+        foreach ($risks as $riskname => $riskdata) {
+            $data[$userid]['indicator___total']['raw'] += $riskdata['raw'] * $riskdata['weight'];
+        }
+    }
+    // Calculate correlation.
+    $corrfinal = correlate_target_with_risks($id, '__total', $targetgradeitemid, $data);    
+    // Return.
+    return $corrfinal;
 }
 
 function update_config_get_indicator_risks($id, $weights, $configdata, $name) {
@@ -283,4 +334,10 @@ function remove_outliers($dataset, $magnitude = 1) {
 }
 function sd_square($x, $mean) {
     return pow($x - $mean, 2);
-} 
+}
+
+// http://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
+function starts_with($haystack, $needle) {
+    // search backwards starting from haystack length characters from the end
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
+}

@@ -34,11 +34,12 @@ var courseId = 0; // Moodle course id.
 var targetGradeItemId = 0; // Moodle grade item id of the target variable.
 
 var geneSettings = {}; // Stores the settings (e.g. min, max) for each possible gene.
+var discoverableIndicators = []; // String names of the discoverable indicators we are working with.
 var currentPopulation = []; // Stores the current population.
 var currentGenerationNumber = 0; // Stores which generation we are up to.
 var fitnessHistory = []; // 0-based array storing average fitness of each generation.
 
-$(document).ready(function(){
+$(document).ready(function() {
 	$("input:submit[name=submitrundiscovery]").on("click", function(event, ui){
 		event.preventDefault();
 		// Set variables.
@@ -58,15 +59,17 @@ $(document).ready(function(){
 	});
 });
 
-function runGeneticAlgorithm(){
+function runGeneticAlgorithm() {
 	// Get possible settings for selected indicator.
 	$.get(
 		"indicator_helper.ajax.php?id=" + courseId + "&method=get_possible_settings&indicator=" + $("select[name=indicator]").val()
 	).done(function(data){
 		$("#output").html('');
-		// Parse gene settings.
-		geneSettings = JSON.parse(data);
-		$("#output").append("<div>" + Object.keys(geneSettings).length + " genes</div>");
+		// Parse settings and store in global variables.
+		data = JSON.parse(data);
+		geneSettings = data["settings"];
+		discoverableIndicators = data["indicators"];
+		algorithmStarted();
 		// Make initial generation.
 		initialGeneration = makeInitialGeneration(geneSettings);
 		// Iterate through generations.
@@ -75,8 +78,6 @@ function runGeneticAlgorithm(){
 		makeNextGeneration();
 		algorithmRunner();
 	});
-	/*
-	*/
 }
 
 function algorithmRunner() {
@@ -105,7 +106,7 @@ function algorithmRunner() {
 			}
 		}
 		fitnessHistory.push(averageFitness);
-		console.log("current generation " + currentGenerationNumber + " average fitness " + averageFitness);
+		//console.log("current generation " + currentGenerationNumber + " average fitness " + averageFitness);
 		$("#output").append("<div>Generation " + currentGenerationNumber + " average fitness " + averageFitness + "</div>");
 		// Iterate to next generation.
 		currentGenerationNumber++;
@@ -119,24 +120,35 @@ function algorithmRunner() {
 	}
 }
 
+function algorithmStarted() {
+	//console.log(geneSettings, discoverableIndicators);
+	$("#output").append("<div>" + Object.keys(geneSettings).length + " genes</div>");
+	$("#progress-bar").attr('max', populationSize * numberOfGenerations);
+	$("#output-container").show();
+}
+
 function algorithmFinished() {
-	console.log('finished');
+	//console.log('finished');
 	currentPopulation.sort(compareFitness).reverse();
-	//$("#output").append("<div>Best individual:<pre>" + JSON.stringify(currentPopulation[0]) + "</pre></div>");
 	// Final calculation and save settings.
 	$.get("indicator_helper.ajax.php?id=" + courseId 
 		+ "&method=try_settings&indicator=" + $("select[name=indicator]").val() 
 		+ "&targetgradeitemid=" + targetGradeItemId
-		+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[0]["genetics"])) 
+		+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[0]["genotype"])) 
 	).done(function(data) {
 		data = JSON.parse(data);
 		$("#output").append("<div>Best fitness: " + data["fitness"] + "</div>");
 		$("#output").append("<div>Finished. Best settings have been saved.</div>");
+		$("#output-progress").hide();
 	});
 	// Other server-side finalisation steps.
 	$.get(
 		"indicator_helper.ajax.php?id=" + courseId + "&method=finalise&plugincacheconfig=" + pluginCacheTTL
 	);
+}
+
+function incrementProgressBar(value = 1) {
+	$("#progress-bar").attr('value', parseInt($("#progress-bar").attr('value')) + value);
 }
 
 function calculateCurrentPopulationAverageFitness() {
@@ -150,7 +162,18 @@ function calculateCurrentPopulationAverageFitness() {
 function makeInitialGeneration(genes) {
 	var population = [];
 	for (i = 1; i <= populationSize; i++) {
-		population.push(makeNewIndividual(genes));
+		// Randomise genotype for new individual, within specified bounds for each gene.
+		var newIndividual = {};
+		var newGenotype = {};
+		for (var gene in genes) {
+			if (genes.hasOwnProperty(gene)) {
+				newGenotype[gene] = randomFromInterval(genes[gene]["min"], genes[gene]["max"]);
+			}
+		}
+		newIndividual["genotype"] = newGenotype;
+		newIndividual["fitness"] = -1;
+		// Add new individual to population.
+		population.push(newIndividual);
 	}
 	return population;
 }
@@ -171,7 +194,7 @@ function makeNextGeneration() {
 function calculateCurrentPopulationFitness() {
 	for (var i = 0; i < currentPopulation.length; i++) {
 		if (currentPopulation[i]["fitness"] == -1) { // Only calculate fitness if necessary.
-			console.log("calculating fitness for generation [" + currentGenerationNumber + "] individual [" + i + "]");
+			//console.log("calculating fitness for generation [" + currentGenerationNumber + "] individual [" + i + "]");
 			var returnData = {'i':i};
 			// Push to server for calculation.
 			$.ajaxq(
@@ -180,20 +203,21 @@ function calculateCurrentPopulationFitness() {
 					url: "indicator_helper.ajax.php?id=" + courseId 
 						+ "&method=try_settings&indicator=" + $("select[name=indicator]").val() 
 						+ "&targetgradeitemid=" + targetGradeItemId
-						+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[i]["genetics"])) 
+						+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[i]["genotype"])) 
 						+ "&returndata=" + encodeURI(JSON.stringify(returnData)),
 					type: 'GET'
 				}
 			).done(function(data){
 				data = JSON.parse(data);
 				currentPopulation[data["returndata"]["i"]]["fitness"] = data["fitness"];
-				console.log('DONE on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
+				//console.log('DONE on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
+				incrementProgressBar();
 			}).fail(function() {
-				console.log('FAIL on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber);
+				//console.log('FAIL on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber);
 			});
 		} else {
 			// Fitness already known.
-			console.log("fitness for generation [" + currentGenerationNumber + "] individual [" + i + "] already known: " + currentPopulation[i]["fitness"]);
+			//console.log("fitness for generation [" + currentGenerationNumber + "] individual [" + i + "] already known: " + currentPopulation[i]["fitness"]);
 		}
 	}
 }
@@ -244,8 +268,8 @@ function mutateCurrentPopulation(mutationRate, genes) {
 		for (var gene in genes) {
 			if (genes.hasOwnProperty(gene)) {
 				if (Math.random() < mutationRate) {
-					console.log("mutating individual " + i + " gene " + gene);
-					currentPopulation[i]["genetics"][gene] = randomFromInterval(genes[gene]["min"], genes[gene]["max"]);
+					//console.log("mutating individual " + i + " gene " + gene);
+					currentPopulation[i]["genotype"][gene] = randomFromInterval(genes[gene]["min"], genes[gene]["max"]);
 				}
 			}
 		}
@@ -262,19 +286,6 @@ function compareFitness(individual1, individual2) {
 	}
 }
 
-function makeNewIndividual(genes) {
-	var individual = {};
-	var genetics = {};
-	for (var gene in genes) {
-		if (genes.hasOwnProperty(gene)) {
-			genetics[gene] = randomFromInterval(genes[gene]["min"], genes[gene]["max"]);
-		}
-	}
-	individual["genetics"] = genetics;
-	individual["fitness"] = -1;
-	return individual;
-}
-
 function crossIndividuals(parent1, parent2, genes) {
 	var newIndividual = {};
 	var newGenetics = {};
@@ -282,14 +293,14 @@ function crossIndividuals(parent1, parent2, genes) {
 	for (var gene in genes) {
 		if (genes.hasOwnProperty(gene)) {
 			if (Math.random() < 0.5) {
-				newGenetics[gene] = parent1["genetics"][gene];
+				newGenetics[gene] = parent1["genotype"][gene];
 			} else {
-				newGenetics[gene] = parent2["genetics"][gene];
+				newGenetics[gene] = parent2["genotype"][gene];
 			}
 		}
 	}
 	// Return new individual.
-	newIndividual["genetics"] = newGenetics;
+	newIndividual["genotype"] = newGenetics;
 	newIndividual["fitness"] = -1;
 	return newIndividual;
 }

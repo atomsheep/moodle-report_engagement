@@ -32,8 +32,8 @@ $id = required_param('id', PARAM_INT); // Course ID.
 $targetgradeitemid = optional_param('target', null, PARAM_INT); // Grade item ID.
 $indicatortodiscover = optional_param('indicator', '', PARAM_TEXT); // Indicator.
 $discovertarget = optional_param('discover', '', PARAM_TEXT); // What to discover: w = overall weightings, i = individual indicator.
-$iteri = optional_param('iteri', 20, PARAM_INT); // Population size.
-$iterj = optional_param('iterj', 5, PARAM_INT); // Generations.
+$iteri = optional_param('iteri', 50, PARAM_INT); // Population size.
+$iterj = optional_param('iterj', 10, PARAM_INT); // Generations.
 
 $pageparams = array('id' => $id);
 $PAGE->set_url('/report/engagement/indicator_helper.php', $pageparams);
@@ -104,44 +104,111 @@ $formtarget = array();
 foreach ($gradeitems as $gradeitem) {
     $formtarget[$gradeitem->id] = $gradeitem->itemname;
 }
-$formdiscover = array('i' => get_string('indicator_helper_discover_indicator', 'report_engagement'),
-                  'w' => get_string('indicator_helper_discover_weightings', 'report_engagement'));
-$formindicators = array();
-foreach ($indicators as $name => $path) {
-    $formindicators[$name] = $name;
-}
 $formiteri = array();
-for ($i = 10; $i <= 200; $i += 10) {
+for ($i = 25; $i <= 200; $i += 25) {
     $formiteri[$i] = $i;
 }
 $formiterj = array();
-for ($j = 5; $j <= 40; $j += 5) {
+for ($j = 5; $j <= 50; $j += 5) {
     $formiterj[$j] = $j;
 }
 $mform = new report_engagement_indicator_helper_form(null, array(
                 'id' => $id,
             'target' => $formtarget,
-          'discover' => $formdiscover,
-         'indicator' => $formindicators,
              'iteri' => $formiteri,
              'iterj' => $formiterj,
      'default_iteri' => $iteri,
      'default_iterj' => $iterj
     ));
 
+$formdata = $mform->get_data();
+if ($formdata && isset($formdata->submitruncorrelate)) {
+    $runmethod = 'correlate';
+} else {
+    $runmethod = null;
+}
+
+if ($runmethod == 'correlate') {
+    $discoveredweightings = $DB->get_records_menu('report_engagement', array('course' => $id), '', 'indicator, weight');
+    // Report.
+    $xarray = array();
+    $yarray = array();
+    $removedusers = array();
+    $titlexaxis = '';
+    $dummy = '';
+    $data = array();
+    foreach ($indicatorobjects as $name => $indicator) {
+        $temparray = get_indicator_risks($id, $discoveredweightings, $name);
+        $data = array_replace_recursive($data, $temparray);
+    }
+    foreach ($data as $userid => $risks) {
+        foreach ($risks as $riskname => $riskdata) {
+            $data[$userid]['indicator___total']['raw'] += $riskdata['raw'] * $riskdata['weight'];
+        }
+    }
+    // Calculate correlation and draw representative graph.
+    $corrfinal = correlate_target_with_risks($id, '__total', $targetgradeitemid, 
+        $data, $xarray, $yarray, $titlexaxis, $removedusers);
+    $corrfinal = round($corrfinal, 4);
+    $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
+    echo($html);
+    $titlexaxis = json_encode($titlexaxis);
+    $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers);
+    echo($graphcode);
+}
+
 // Show settings form.
 $mform->display();
 
-
-
-
-
-
-
 echo $OUTPUT->footer();
 
+function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedusers) {
+    $grapharray = array();
+    foreach ($xarray as $userid => $value) {
+        if (array_key_exists($userid, $removedusers)) {
+            $grapharray[] = array($xarray[$userid], $yarray[$userid], 'red');
+        } else {
+            $grapharray[] = array($xarray[$userid], $yarray[$userid]);
+        }
+    }
+    $graphxmax = max($xarray);
+    $graphxmin = min($xarray);
+    $graphymax = max($yarray);
+    $graphymin = min($yarray);
+    $graphdata = json_encode($grapharray);
+    $riskrating = json_encode(get_string('indicator_helper_riskrating', 'report_engagement'));
+    $graphhtml = '
+        <div id="rgraph-container-'.$name.'">
+            <canvas id="rgraph-canvas-'.$name.'" width="600" height="250"></canvas>
+        </div>
+    ';
+    $graphjs = "<script>
+        window.onload = (function () {
+            console.log('hello');
+            var scatter_$name = new RGraph.Scatter({
+                id: 'rgraph-canvas-$name',
+                data: $graphdata,
+                options: {
+                    xmax: $graphxmax,
+                    xmin: $graphxmin,
+                    ymax: $graphymax,
+                    ymin: $graphymin,
+                    scaleDecimals: 2,
+                    gutterLeft: 75,
+                    gutterBottom: 50,
+                    titleXaxisPos: 0.20,
+                    titleYaxisPos: 0.15,
+                    titleXaxis: $titlexaxis,
+                    titleYaxis: $riskrating
+                }
+            }).draw();
+        });
+        </script>";
+    return ($graphhtml . $graphjs);
+}
 
-function try_indicator_setting($id, $indicator, $indicatorname, $weight, $settingkey, $settingvalue, $targetgradeitemid, $discoveredsettings, &$gradedatacache = null, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null) {
+
+/*function try_indicator_setting($id, $indicator, $indicatorname, $weight, $settingkey, $settingvalue, $targetgradeitemid, $discoveredsettings, &$gradedatacache = null, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null) {
     // Programmatically set indicator parameters.
     $name = $indicatorname;
     $weights = array();
@@ -163,14 +230,14 @@ function try_indicator_setting($id, $indicator, $indicatorname, $weight, $settin
     $data = update_config_get_indicator_risks($id, $weights, $configdata, $name);
     // Calculate and return correlation.
     return correlate_target_with_risks($id, $name, $targetgradeitemid, $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
-}
+}*/
 
-function update_config_get_indicator_risks($id, $weights, $configdata, $name) {
+/*function update_config_get_indicator_risks($id, $weights, $configdata, $name) {
     // Update config.
     report_engagement_update_indicator($id, $weights, $configdata);
     // Get indicator's risks.
     return get_indicator_risks($id, $weights, $name);
-}
+}*/
 
 function get_indicator_risks($id, $weights, $name) {
     // Calculate indicator's risks.
@@ -186,7 +253,7 @@ function get_indicator_risks($id, $weights, $name) {
     return $data;
 }
 
-function correlate_target_with_risks($id, $name, $targetgradeitemid, $data, &$gradedatacache = null, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null) {
+function correlate_target_with_risks($id, $name, $targetgradeitemid, $data, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null, &$gradedatacache = null) {
     global $CFG, $DB;
     // Gather grade data in preparation for calculating correlation.
     $userarray = array_keys($data);
