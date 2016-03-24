@@ -369,6 +369,7 @@ class report_engagement_mailer_form extends moodleform {
                             ],
                             'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
                             'dom': 'lfrtipB',
+                            'scrollX': true,
                             'buttons': [ {'extend':'csvHtml5', 'text':'$buttonmailerlabelcsv', 'title':'$buttonmailerfnamecsv'} ]
                         }).on('draw', function(){
                             $('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
