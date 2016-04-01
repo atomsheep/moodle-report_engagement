@@ -368,7 +368,7 @@ class report_engagement_mailer_form extends moodleform {
                                 { 'type':'num-html', 'targets':$htmlnumfmtcols }
                             ],
                             'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
-                            'dom': 'lfrtipB',
+                            'dom': 'Blfrtip',
                             'scrollX': true,
                             'buttons': [ {'extend':'csvHtml5', 'text':'$buttonmailerlabelcsv', 'title':'$buttonmailerfnamecsv'} ]
                         }).on('draw', function(){
@@ -454,14 +454,8 @@ class report_engagement_mailer_form extends moodleform {
                             document.selection.createRange().text = text;
                         }
                     }                
-                    var snippet_data;
                     var my_messages_data = $mysavedmessagesdata;
                     $(document).ready(function(){
-                        $.getJSON('lang/en/data.json.txt')
-                            .done(function (data) {
-                                console.log(data);
-                                snippet_data = data;
-                        });
                         $('select[name^=snippet_type_select_]').on('change', function(){
                             var pattern = $(this).prop('name').replace('snippet_type_select_', '');
                             var snippet_type = $(this).val();
