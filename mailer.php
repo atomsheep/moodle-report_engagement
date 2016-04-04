@@ -491,7 +491,6 @@ if ($action == 'composing') {
                 $event = \report_engagement\event\message_sent::create(array(
                     'context' => $context, 
                     'relateduserid' => $userid,
-                    'objecttable' => 'report_engagement_sentlog',
                     'objectid' => $newrecord,
                     'other' => array(
                         'courseid' => $id,
@@ -506,6 +505,7 @@ if ($action == 'composing') {
                 $event = \report_engagement\event\message_sent::create(array(
                     'context' => $context, 
                     'relateduserid' => $userid,
+                    'objectid' => null,
                     'other' => array(
                         'courseid' => $id,
                         'recipientid' => $userid,
