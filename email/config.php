@@ -17,14 +17,20 @@
 /**
  *
  * @package    report_engagement
- * @copyright  2015 Macquarie University
+ * @copyright  2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$_CONFIG_MAILER = 'moodle';
+$_CONFIG_MAILER = 'moodle'; // moodle, mailgun, or mandrill.
 
 $_CONFIG_MAILER_MANDRILL = [
     'APIKEY' => ''
+];
+
+$_CONFIG_MAILER_MAILGUN = [
+    'APIKEY' => '', // Format key-XXX.
+    'APIBASE' => '', // Without https://
+    'DOMAIN' => ''
 ];
