@@ -43,6 +43,7 @@ class message_sent extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c'; // c(reate), r(ead), u(pdate), d(elete)
         $this->data['edulevel'] = self::LEVEL_TEACHING;
+        $this->data['objecttable'] = 'report_engagement_sentlog';
     }
  
     public static function get_name() {
