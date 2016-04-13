@@ -35,10 +35,10 @@ Engagement Analytics was developed by NetSpoty Pty Ltd for Monash University (ht
 Code: Adam Olley (adam.olley@netspot.com.au)  
 Code: Ashley Holman  
 Concept: Phillip Dawson (phillip.dawson@monash.edu)  
-Indicator Algorithms: Phillip Dawson (phillip.dawson@monash.edu)
+Indicator Algorithms: Phillip Dawson (phillip.dawson@monash.edu)  
 
 ###Later developments
-Code and concept: Danny Liu (danny.liu@mq.edu.au)
-Code: Amara Atif (amara.atif@mq.edu.au)
-Concept: Chris Froissard (chris.froissard@mq.edu.au)
+Code and concept: Danny Liu (danny.liu@mq.edu.au)  
+Code: Amara Atif (amara.atif@mq.edu.au)  
+Concept: Chris Froissard (chris.froissard@mq.edu.au)  
 Concept: Deborah Richards (deborah.richards@mq.edu.au)
