@@ -293,6 +293,7 @@ function report_engagement_populate_snippets_from_lang($category) {
             $counter = 0;
             try {
                 // Incrementally check and fetch default snippets from lang file
+                $continue = true;
                 do {
                     $record = new stdClass;
                     if ($stringman->string_exists("defaultsnippet$category$counter", 'report_engagement')) {
@@ -301,12 +302,12 @@ function report_engagement_populate_snippets_from_lang($category) {
                         $counter += 1;
                         $records[] = $record;
                     } else {
-                        break;
+                        $continue = false;
                     }
-                } while (true);
+                } while ($continue);
                 $DB->insert_records('report_engagement_snippets', $records);
             } catch (Exception $e) {
-                break;
+                // Error
             }
         }
     }

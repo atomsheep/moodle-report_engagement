@@ -42,6 +42,9 @@ class report_engagement_email_message {
             case 'mandrill':
                 return $this->send_email_mandrill();
                 break;
+            case 'mailgun':
+                return $this->send_email_mailgun();
+                break;
             case 'moodle':
             default:
                 return $this->send_email_moodle();
@@ -112,6 +115,47 @@ class report_engagement_email_message {
         } catch (Exception $e) {
             $res->message = $e->getMessage();
             $res->result = false;
+        }
+        
+        return $res;
+    }
+    
+    private function send_email_mailgun(){
+
+        require('config.php');
+        if (!isset($_CONFIG_MAILER_MAILGUN)) return null;
+        
+        $res = new stdClass();
+        
+        try {
+            $url = "https://api:{$_CONFIG_MAILER_MAILGUN['APIKEY']}@{$_CONFIG_MAILER_MAILGUN['APIBASE']}/messages";
+            $data = array(
+                'from'    => "{$this->sender_name} <{$this->sender_address}>",
+                'to'      => "{$this->recipient_name} <{$this->recipient_address}>",
+                'subject' => $this->email_subject,
+                'text'    => $this->email_body,
+                'html'    => nl2br($this->email_body),
+                'h:Reply-To' => $this->replyto_address
+            );
+            
+            // Call API via cURL.
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $result = json_decode(curl_exec($ch));
+            curl_close($ch);
+            
+            // Set some output.
+            $res->result = true;
+            $res->message = $result->message;
+            
+        } catch (Exception $e) {
+        
+            $res->message = $e->getMessage();
+            $res->result = false;
+            
         }
         
         return $res;

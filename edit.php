@@ -97,11 +97,11 @@ if ($mform->is_cancelled()) {
     report_engagement_update_indicator($id, $weights, $configdata);
 }
 
-// Get current values and populate form.
 $data = array();
+// Get current values and populate form.
 if ($indicators = $DB->get_records('report_engagement', array('course' => $id))) {
     foreach ($indicators as $indicator) {
-        $data["weighting_{$indicator->indicator}"] = $indicator->weight * 100;
+        $data["weighting_{$indicator->indicator}"] = $totalweights = $indicator->weight * 100;
         $configdata = unserialize(base64_decode($indicator->configdata));
         if (is_array($configdata)) {
             // Pre-process config data if necessary
@@ -116,6 +116,22 @@ if ($indicators = $DB->get_records('report_engagement', array('course' => $id)))
             // Merge config data with form data
             $data = array_merge($data, $configdata);
         }
+    }
+} else {
+    // Set defaults for indicator weightings.
+    $indicators = get_plugin_list('engagementindicator');
+    $weights = [];
+    for ($i = 1; $i <= count($indicators); $i++) {
+        if ($i != count($indicators)) {
+            $weights[] = intval(100 / count($indicators));
+        } else {
+            $weights[] = 100 - array_sum($weights);
+        }
+    }
+    $i = 0;
+    foreach ($indicators as $name => $path) {
+        $data["weighting_{$name}"] = $weights[$i];
+        $i++;
     }
 }
 // Generic settings

@@ -362,13 +362,14 @@ class report_engagement_mailer_form extends moodleform {
                 <script>
                     $(document).ready(function(){
                         // Set up DataTable
-                        datatables[$pattern] = $('#data_table_$pattern').DataTable({
+                        datatables['t$pattern'] = $('#data_table_$pattern').DataTable({
                             'order':$defaultsort,
                             'columnDefs': [
                                 { 'type':'num-html', 'targets':$htmlnumfmtcols }
                             ],
                             'lengthMenu':[ [5, 10, 25, 50, 100, -1] , [5, 10, 25, 50, 100, 'All'] ],
                             'dom': 'Blfrtip',
+                            'scrollX': true,
                             'buttons': [ {'extend':'csvHtml5', 'text':'$buttonmailerlabelcsv', 'title':'$buttonmailerfnamecsv'} ]
                         }).on('draw', function(){
                             $('input:checkbox[name^=toggle_details_$pattern]').triggerHandler('click');
@@ -396,7 +397,6 @@ class report_engagement_mailer_form extends moodleform {
         } // End foreach ($patterns as $pattern => $userids).
         // Overall buttons.
         if (!$subsets) {
-            $mform->addElement('header', 'header_compose', get_string('message_header_compose', 'report_engagement'));
             $mform->addElement('submit', 'submit_compose', get_string('message_submit_compose', 'report_engagement'));
         } else if ($subsets && $action == 'composing') {
             $mform->addElement('header', 'header_preview', get_string('message_header_preview', 'report_engagement'));
@@ -453,14 +453,8 @@ class report_engagement_mailer_form extends moodleform {
                             document.selection.createRange().text = text;
                         }
                     }                
-                    var snippet_data;
                     var my_messages_data = $mysavedmessagesdata;
                     $(document).ready(function(){
-                        $.getJSON('lang/en/data.json.txt')
-                            .done(function (data) {
-                                console.log(data);
-                                snippet_data = data;
-                        });
                         $('select[name^=snippet_type_select_]').on('change', function(){
                             var pattern = $(this).prop('name').replace('snippet_type_select_', '');
                             var snippet_type = $(this).val();
@@ -490,13 +484,19 @@ class report_engagement_mailer_form extends moodleform {
             $js = "
                 <script>
                     $(document).ready(function(){
+                        for (var key in datatables) {
+                            if (!datatables.hasOwnProperty(key)) continue;
+                            var table = datatables[key];
+                            console.log('redrawing ' + key);
+                            table.draw();
+                        };
                         $('form[class*=mform]').on('submit', function (event) {    
                             $('table[id^=data_table_]').each(function(){
                                 $(this).DataTable().cells().nodes().to$().find('input:checked').each(function(){
                                     $(this).removeAttr('disabled').hide().detach().appendTo('form[class*=mform]');
                                 });
                             });
-                        })
+                        });
                         $('input:button[name^=button_preview_nav_]').on('click', function(){
                             var pattern = $(this).attr('data-pattern');
                             var direction = $(this).attr('data-direction');
@@ -522,7 +522,7 @@ class report_engagement_mailer_form extends moodleform {
                     $(document).ready(function(){
                         $('input:checkbox[name^=chk_indicator_]').on('click', function(){
                             checked = this.checked;
-                            console.log(checked);
+                            //console.log(checked);
                             $('input:checkbox[name^=chk_indicator_][name$=_' + $(this).attr('data-userid') + ']').each(function(){
                                 $(this).prop('checked', checked);
                             });
@@ -557,7 +557,7 @@ class report_engagement_mailer_form extends moodleform {
                             for (i = 0; i < cols_to_calculate.length; i++) {
                                 var col_data = [];
                                 var col_index = cols_to_calculate[i];
-                                temp_data = datatables[pattern].columns(col_index).data().eq(0);
+                                temp_data = datatables['t' + pattern].columns(col_index).data().eq(0);
                                 for (j = 0; j < temp_data.length; j++) {
                                     col_data.push($(temp_data[j]).find('.report_engagement_display').text());
                                 }
@@ -574,7 +574,7 @@ class report_engagement_mailer_form extends moodleform {
                             // Declare the number of groups
                             n = 40;
                             // Loop through each data point and calculate its % value
-                            datatables[pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
+                            datatables['t' + pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
                                 //console.log(this.data());
                                 var k = cols_to_calculate.indexOf(colIndex);
                                 if (k >= 0) {
@@ -593,7 +593,7 @@ class report_engagement_mailer_form extends moodleform {
                                 }
                             });
                         } else {
-                            datatables[pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
+                            datatables['t' + pattern].cells().every(function(rowIndex, colIndex, tlc, clc){
                                 $(this.node()).css('background-color', '');
                             });
                         }

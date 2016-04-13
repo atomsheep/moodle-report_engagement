@@ -49,6 +49,7 @@ class report_engagement_edit_form extends moodleform {
         $mform->disabledIf('queryenddatetime', 'queryspecifydatetime');
         
         $mform->addElement('header', 'weightings', get_string('weighting', 'report_engagement'));
+        $mform->setExpanded('weightings');
         $mform->addElement('static', 'weightings_desc', get_string('indicator', 'report_engagement'));
         $mform->addHelpButton('weightings_desc', 'indicator', 'report_engagement');
         foreach ($indicators as $name => $path) {

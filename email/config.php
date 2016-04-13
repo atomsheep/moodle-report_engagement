@@ -15,19 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
  *
  * @package    report_engagement
- * @copyright  2012 NetSpot Pty Ltd, 2015 Macquarie University
+ * @copyright  2015-2016 Macquarie University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2016040101;       // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2013101800;       // Requires this Moodle version
-$plugin->component = 'report_engagement'; // Full name of the plugin (used for diagnostics).
-$plugin->dependencies = array('mod_engagement' => 2016012901);
-$plugin->cron      = 60;
+$_CONFIG_MAILER = 'moodle'; // moodle, mailgun, or mandrill.
 
-$plugin->maturity = MATURITY_STABLE;
+$_CONFIG_MAILER_MANDRILL = [
+    'APIKEY' => ''
+];
+
+$_CONFIG_MAILER_MAILGUN = [
+    'APIKEY' => '', // Format key-XXX.
+    'APIBASE' => '', // Without https://
+    'DOMAIN' => ''
+];
