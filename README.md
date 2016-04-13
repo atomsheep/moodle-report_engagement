@@ -4,8 +4,6 @@ The Engagement Analytics set provides information about student progress against
 This was originally forked from https://github.com/netspotau/moodle-report_engagement
 
 ##Install
-### Using Moodle
-You can install the plugin from the Moodle plugin repository from within your Moodle installation.
 ### Using a downloaded zip file
 You can download a zip of this module from: https://github.com/dannyliu-mq/moodle-report_engagement/archive/master.zip
 Unzip it to your report/ folder and rename the extracted folder to 'engagement'.
@@ -23,7 +21,7 @@ This plugin provides the core subplugins needed (the indicators).
 Repo: http://github.com/dannyliu-mq/moodle-mod_engagement
 
 ###Engagement analytics block
-**The traffic light block was present as a companion plugin in the original plugin set, but is not recommended for use**
+**The traffic light block was present as a companion plugin in the original plugin set, but is not recommended for use.**
 Displays traffic lights showing at risk students.
 
 Repo: http://github.com/netspotau/moodle-block_engagement
