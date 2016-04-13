@@ -44,7 +44,7 @@ class report_engagement_indicator_helper_form extends moodleform {
             $mform->setType("coursename_$courseid", PARAM_TEXT);
             $mform->addElement('select',
                                "target_$courseid",
-                               get_string('indicator_helper_target', 'report_engagement') . " for {$this->_customdata['courses'][$courseid]->shortname}",
+                               get_string('indicator_helper_target', 'report_engagement', $this->_customdata['courses'][$courseid]->shortname),
                                $target);
             $mform->setDefault("target_$courseid", $this->_customdata['targetsselected'][$courseid]);
             $mform->addHelpButton("target_$courseid", 'indicator_helper_target', 'report_engagement');
