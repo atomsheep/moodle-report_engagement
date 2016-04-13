@@ -41,12 +41,6 @@ require_login($course);
 $context = context_course::instance($course->id);
 require_capability('report/engagement:manage', $context);
 
-
-//require_once($CFG->dirroot . '/report/engagement/lib.php');
-//require_once($CFG->dirroot . '/report/engagement/locallib.php');
-//require_once($CFG->dirroot . '/mod/engagement/indicator/rendererbase.php');
-//require_once($CFG->libdir . '/tablelib.php');
-
 switch ($method) {
     case 'initialise':
         // Enable the engagement analytics cache; set to 600 seconds.
