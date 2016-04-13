@@ -28,15 +28,18 @@ require_once($CFG->dirroot . '/report/engagement/locallib.php');
 require_once(dirname(__FILE__).'/indicator_helper_form.php');
 //require_once(dirname(__FILE__).'/indicator_helper_report.php');
 
-$id = required_param('id', PARAM_INT); // Course ID.
+$ids = optional_param_array('id', null, PARAM_INT); // Array of course IDs.
+if (is_null($ids)) {
+    $id = required_param('id', PARAM_INT); // Primary course ID.
+} else {
+    $id = $ids[0];
+}
 $targetgradeitemid = optional_param('target', null, PARAM_INT); // Grade item ID.
-$indicatortodiscover = optional_param('indicator', '', PARAM_TEXT); // Indicator.
-$discovertarget = optional_param('discover', '', PARAM_TEXT); // What to discover: w = overall weightings, i = individual indicator.
 $iteri = optional_param('iteri', 50, PARAM_INT); // Population size.
 $iterj = optional_param('iterj', 10, PARAM_INT); // Generations.
 
 $pageparams = array('id' => $id);
-$PAGE->set_url('/report/engagement/indicator_helper.php', $pageparams);
+$PAGE->set_url('/report/engagement/indicator_helper_ga.php', $pageparams);
 $PAGE->set_pagelayout('report');
 
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
@@ -94,15 +97,27 @@ foreach ($indicators as $name => $path) {
 }
 
 // Prepare form.
-$gradeitems = $DB->get_records_sql("SELECT * 
-                                      FROM {grade_items} 
-                                     WHERE courseid = :courseid
-                                       AND itemtype IN ('mod','manual')
-                                  ORDER BY sortorder ASC",
-                                  array('courseid' => $id));
-$formtarget = array();
-foreach ($gradeitems as $gradeitem) {
-    $formtarget[$gradeitem->id] = $gradeitem->itemname;
+$formtargets = array();
+$formtargetsselected = array();
+$courses = array();
+foreach ($ids as $courseid) {
+    $coursedata = $DB->get_record_sql("SELECT id, shortname, fullname
+                                          FROM {course}
+                                         WHERE id = :courseid",
+                                        array('courseid' => $courseid));
+    $gradeitems = $DB->get_records_sql("SELECT * 
+                                          FROM {grade_items} 
+                                         WHERE courseid = :courseid
+                                           AND itemtype IN ('mod','manual')
+                                      ORDER BY sortorder ASC",
+                                      array('courseid' => $courseid));
+    $formtarget = array();
+    foreach ($gradeitems as $gradeitem) {
+        $formtarget[$gradeitem->id] = $gradeitem->itemname;
+    }
+    $formtargets[$courseid] = $formtarget;
+    $formtargetsselected[$courseid] = $gradeitem->id;
+    $courses[$courseid] = $coursedata;
 }
 $formiteri = array();
 for ($i = 25; $i <= 200; $i += 25) {
@@ -114,7 +129,9 @@ for ($j = 5; $j <= 50; $j += 5) {
 }
 $mform = new report_engagement_indicator_helper_form(null, array(
                 'id' => $id,
-            'target' => $formtarget,
+            'targets' => $formtargets,
+            'targetsselected' => $formtargetsselected,
+            'courses' => $courses,
              'iteri' => $formiteri,
              'iterj' => $formiterj,
      'default_iteri' => $iteri,
@@ -202,38 +219,6 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
         </script>";
     return ($graphjs);
 }
-
-
-/*function try_indicator_setting($id, $indicator, $indicatorname, $weight, $settingkey, $settingvalue, $targetgradeitemid, $discoveredsettings, &$gradedatacache = null, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null) {
-    // Programmatically set indicator parameters.
-    $name = $indicatorname;
-    $weights = array();
-    $configdata = array();
-    $weights[$name] = $weight;
-    $defaults = $indicator->get_defaults();
-    $config = array();
-    foreach ($defaults as $key => $value) {
-        if ($key == $settingkey) {
-            $config["{$name}_{$key}"] = $settingvalue;
-        } else if (array_key_exists($key, $discoveredsettings)) {
-            $config["{$name}_{$key}"] = $discoveredsettings[$key];
-        } else {
-            $config["{$name}_{$key}"] = $value;
-        }
-    }
-    $configdata[$name] = $config;
-    // Update config and get indicator's risks.
-    $data = update_config_get_indicator_risks($id, $weights, $configdata, $name);
-    // Calculate and return correlation.
-    return correlate_target_with_risks($id, $name, $targetgradeitemid, $data, $gradedatacache, $xarray, $yarray, $titlexaxis, $removedusers);
-}*/
-
-/*function update_config_get_indicator_risks($id, $weights, $configdata, $name) {
-    // Update config.
-    report_engagement_update_indicator($id, $weights, $configdata);
-    // Get indicator's risks.
-    return get_indicator_risks($id, $weights, $name);
-}*/
 
 function get_indicator_risks($id, $weights, $name) {
     // Calculate indicator's risks.

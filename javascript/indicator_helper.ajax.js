@@ -30,8 +30,9 @@ var populationSize = 0; // Number of individuals in population.
 var populationSizeAfterSelection = 0; // Number of individuals to keep after selection, forming the parents of the next generation.
 var numberOfGenerations = 0; // Number of generations to iterate through.
 var pluginCacheTTL = 0; // Original plugin caching setting; for restoring.
-var courseId = 0; // Moodle course id.
-var targetGradeItemId = 0; // Moodle grade item id of the target variable.
+var courseIds = []; // Moodle course ids.
+var courseNames = []; // Course shortnames.
+var targetGradeItemIds = []; // Moodle grade item id of the target variable.
 
 var geneSettings = {}; // Stores the settings (e.g. min, max) for each possible gene.
 var discoverableIndicators = []; // String names of the discoverable indicators we are working with.
@@ -43,14 +44,19 @@ $(document).ready(function() {
 	$("input:submit[name=submitrundiscovery]").on("click", function(event, ui){
 		event.preventDefault();
 		// Set variables.
-		courseId = $("input:hidden[name=id]").val();
-		targetGradeItemId = $("select[name=target]").val();
+		$("select[name^=target_]").each(function(){
+			//console.log($(this).attr('name'));
+			var courseId = $(this).attr('name').replace('target_', '');
+			courseIds.push( courseId );
+			targetGradeItemIds.push( $("select[name=target_" + courseId + "]").val() );
+			courseNames.push( $("input:hidden[name=coursename_" + courseId + "]").val() );
+		});
 		populationSize = $("select[name=iteri]").val();
 		populationSizeAfterSelection = Math.floor(populationSize * populationPercentAfterSelection);
 		numberOfGenerations = $("select[name=iterj]").val();
 		// Kick off.
 		$.get(
-			"indicator_helper.ajax.php?id=" + courseId + "&method=initialise"
+			"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=initialise"
 		).done(function(data){
 			pluginCacheTTL = data;
 			runGeneticAlgorithm();
@@ -62,7 +68,7 @@ $(document).ready(function() {
 function runGeneticAlgorithm() {
 	// Get possible settings for selected indicator.
 	$.get(
-		"indicator_helper.ajax.php?id=" + courseId + "&method=get_possible_settings&indicator=" + $("select[name=indicator]").val()
+		"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=get_possible_settings&indicator=" + $("select[name=indicator]").val()
 	).done(function(data){
 		$("#output").html('');
 		// Parse settings and store in global variables.
@@ -87,10 +93,12 @@ function algorithmRunner() {
 	} else {
 		// Check to see if fitnesses are all calculated.
 		for (var i = 0; i < currentPopulation.length; i++) {
-			if (currentPopulation[i]["fitness"] == -1) {
-				// Keep waiting.
-				setTimeout(algorithmRunner, 500);
-				break;
+			for (var c = 0; c < courseIds.length; c++) {
+				if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) {
+					// Keep waiting.
+					setTimeout(algorithmRunner, 500);
+					break;
+				}
 			}
 		}
 		// Probably finished with this generation...
@@ -123,7 +131,7 @@ function algorithmRunner() {
 function algorithmStarted() {
 	//console.log(geneSettings, discoverableIndicators);
 	$("#output").append("<div>" + Object.keys(geneSettings).length + " genes</div>");
-	$("#progress-bar").attr('max', populationSize * numberOfGenerations);
+	$("#progress-bar").attr('max', populationSize * numberOfGenerations * courseIds.length);
 	$("#output-container").show();
 }
 
@@ -131,19 +139,27 @@ function algorithmFinished() {
 	//console.log('finished');
 	currentPopulation.sort(compareFitness).reverse();
 	// Final calculation and save settings.
-	$.get("indicator_helper.ajax.php?id=" + courseId 
-		+ "&method=try_settings&indicator=" + $("select[name=indicator]").val() 
-		+ "&targetgradeitemid=" + targetGradeItemId
-		+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[0]["genotype"])) 
-	).done(function(data) {
-		data = JSON.parse(data);
-		$("#output").append("<div>Best fitness: " + data["fitness"] + "</div>");
-		$("#output").append("<div>Finished. Best settings have been saved.</div>");
-		$("#output-progress").hide();
-	});
+	for (c = 0; c < courseIds.length; c++) {
+		var returnData = {'c':courseIds[c], 'cn':courseNames[c]};
+		$.ajaxq(
+			"final", 
+			{
+				url: "indicator_helper.ajax.php?id=" + courseIds[c]
+					+ "&method=try_settings" 
+					+ "&targetgradeitemid=" + targetGradeItemIds[c]
+					+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[0]["genotype"])) 
+					+ "&returndata=" + encodeURI(JSON.stringify(returnData)),
+				type: 'GET'
+			}
+		).done(function(data){
+			data = JSON.parse(data);
+			$("#output").append("<div>Best fitness for course " + data["returndata"]["cn"] + ": " + data["fitness"] + ". Finished with this course; best settings have been saved.</div>");
+			$("#output-progress").hide();
+		});
+	}
 	// Other server-side finalisation steps.
 	$.get(
-		"indicator_helper.ajax.php?id=" + courseId + "&method=finalise&plugincacheconfig=" + pluginCacheTTL
+		"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=finalise&plugincacheconfig=" + pluginCacheTTL
 	);
 }
 
@@ -154,9 +170,11 @@ function incrementProgressBar(value = 1) {
 function calculateCurrentPopulationAverageFitness() {
 	var fitnessSum = 0;
 	for (i = 0; i < currentPopulation.length; i++) {
-		fitnessSum += currentPopulation[i]["fitness"];
+		for (c = 0; c < courseIds.length; c++) {
+			fitnessSum += currentPopulation[i]["fitness"]["course" + courseIds[c]];
+		}
 	}
-	return fitnessSum / currentPopulation.length;
+	return fitnessSum / (currentPopulation.length * courseIds.length);
 }
 
 function makeInitialGeneration(genes) {
@@ -171,7 +189,7 @@ function makeInitialGeneration(genes) {
 			}
 		}
 		newIndividual["genotype"] = newGenotype;
-		newIndividual["fitness"] = -1;
+		newIndividual["fitness"] = newIndividualFitnessObject();
 		// Add new individual to population.
 		population.push(newIndividual);
 	}
@@ -193,32 +211,37 @@ function makeNextGeneration() {
 
 function calculateCurrentPopulationFitness() {
 	for (var i = 0; i < currentPopulation.length; i++) {
-		if (currentPopulation[i]["fitness"] == -1) { // Only calculate fitness if necessary.
-			//console.log("calculating fitness for generation [" + currentGenerationNumber + "] individual [" + i + "]");
-			var returnData = {'i':i};
-			// Push to server for calculation.
-			$.ajaxq(
-				"generation" + currentGenerationNumber, 
-				{
-					url: "indicator_helper.ajax.php?id=" + courseId 
-						+ "&method=try_settings&indicator=" + $("select[name=indicator]").val() 
-						+ "&targetgradeitemid=" + targetGradeItemId
-						+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[i]["genotype"])) 
-						+ "&returndata=" + encodeURI(JSON.stringify(returnData)),
-					type: 'GET'
-				}
-			).done(function(data){
-				data = JSON.parse(data);
-				currentPopulation[data["returndata"]["i"]]["fitness"] = data["fitness"];
-				//console.log('DONE on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
-				incrementProgressBar();
-			}).fail(function() {
-				//console.log('FAIL on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber);
-			});
-		} else {
-			// Fitness already known.
-			//console.log("fitness for generation [" + currentGenerationNumber + "] individual [" + i + "] already known: " + currentPopulation[i]["fitness"]);
+		// Calculate fitness for each individual in each course.
+		for (var c = 0; c < courseIds.length; c++) {
+			if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) { // Only calculate fitness if necessary.
+				console.log("calculating fitness for generation " + currentGenerationNumber + " individual " + i + " course " + c);
+				var returnData = {'i':i, 'c':courseIds[c]};
+				// Push to server for calculation.
+				$.ajaxq(
+					"generation" + currentGenerationNumber, 
+					{
+						url: "indicator_helper.ajax.php?id=" + courseIds[c]
+							+ "&method=try_settings" 
+							+ "&targetgradeitemid=" + targetGradeItemIds[c]
+							+ "&settings=" + encodeURI(JSON.stringify(currentPopulation[i]["genotype"])) 
+							+ "&returndata=" + encodeURI(JSON.stringify(returnData)),
+						type: 'GET'
+					}
+				).done(function(data){
+					data = JSON.parse(data);
+					currentPopulation[data["returndata"]["i"]]["fitness"]["course" + data["returndata"]["c"]] = data["fitness"];
+					//console.log('DONE on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
+					incrementProgressBar();
+				}).fail(function() {
+					//console.log('FAIL on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber);
+				});
+			} else {
+				// Fitness already known.
+				//console.log("fitness for generation [" + currentGenerationNumber + "] individual [" + i + "] already known: " + currentPopulation[i]["fitness"]);
+			}
 		}
+		// Then average this individual's fitnesses across all tested courses.
+		currentPopulation[i]["fitness"]["_overall"] = objectArrayAverage(currentPopulation[i]["fitness"], "_");
 	}
 }
 
@@ -277,9 +300,9 @@ function mutateCurrentPopulation(mutationRate, genes) {
 }
 
 function compareFitness(individual1, individual2) {
-	if (individual1["fitness"] < individual2["fitness"]) {
+	if (individual1["fitness"]["_overall"] < individual2["fitness"]["_overall"]) {
 		return -1;
-	} else if (individual1["fitness"] > individual2["fitness"]) {
+	} else if (individual1["fitness"]["_overall"] > individual2["fitness"]["_overall"]) {
 		return 1;
 	} else {
 		return 0;
@@ -301,8 +324,17 @@ function crossIndividuals(parent1, parent2, genes) {
 	}
 	// Return new individual.
 	newIndividual["genotype"] = newGenetics;
-	newIndividual["fitness"] = -1;
+	newIndividual["fitness"] = newIndividualFitnessObject();
 	return newIndividual;
+}
+
+function newIndividualFitnessObject() {
+	var individualFitness = {};
+	individualFitness["_overall"] = -1;
+	for (c = 0; c < courseIds.length; c++) {
+		individualFitness["course" + courseIds[c]] = -1;
+	}
+	return individualFitness;
 }
 
 function arrayAverage(arr) {
@@ -311,6 +343,20 @@ function arrayAverage(arr) {
 		arrSum += arr[i];
 	}
 	return arrSum / arr.length;
+}
+
+function objectArrayAverage(objArr, ignoreIfKeyStartsWith) {
+	var arrSum = 0;
+	var arrLength = 0;
+	for (var key in objArr) {
+		if (!objArr.hasOwnProperty(key)) continue;
+		if (typeof ignoreIfKeyStartsWith !== 'undefined') {
+			if (key.startsWith(ignoreIfKeyStartsWith)) continue;
+		}
+		arrSum += objArr[key];
+		arrLength++;
+	}
+	return arrSum / arrLength;
 }
 
 function randomFromInterval(min, max)
