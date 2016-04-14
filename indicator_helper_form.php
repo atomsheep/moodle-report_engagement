@@ -36,8 +36,8 @@ class report_engagement_indicator_helper_form extends moodleform {
         
         $mform->addElement('header', 'settings', get_string('indicator_helper_settings', 'report_engagement'));
         
-        $mform->addElement('hidden', 'id', $this->_customdata['id']);
-        $mform->setType('id', PARAM_INT);
+        $mform->addElement('hidden', 'ids', urlencode(implode(",", $this->_customdata['ids'])));
+        $mform->setType('ids', PARAM_TEXT);
         
         foreach ($this->_customdata['targets'] as $courseid => $target) {
             $mform->addElement('hidden', "coursename_$courseid", urlencode($this->_customdata['courses'][$courseid]->shortname));
