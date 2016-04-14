@@ -81,7 +81,8 @@ function runGeneticAlgorithm() {
 		// Iterate through generations.
 		currentPopulation = initialGeneration;
 		currentGenerationNumber = 1;
-		makeNextGeneration();
+		//makeNextGeneration();
+		calculateCurrentPopulationFitness();
 		algorithmRunner();
 	});
 }
@@ -108,7 +109,7 @@ function algorithmRunner() {
 			rollingAverageFitness = arrayAverage(fitnessHistory.slice(-4));
 			if ((Math.abs(rollingAverageFitness - averageFitness) / averageFitness < 0.01) || (rollingAverageFitness == 0)) {
 				// Have probably found the optimum or gotten stuck.
-				$("#output").append("<div>Terminating algorithm early due to lack of progress.</div>");
+				$("#output").append("<div>Terminating algorithm early due to lack of improvement in fitness.</div>");
 				algorithmFinished();
 				return;
 			}
@@ -214,7 +215,7 @@ function calculateCurrentPopulationFitness() {
 		// Calculate fitness for each individual in each course.
 		for (var c = 0; c < courseIds.length; c++) {
 			if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) { // Only calculate fitness if necessary.
-				console.log("calculating fitness for generation " + currentGenerationNumber + " individual " + i + " course " + c);
+				console.log("requesting from server: fitness for generation " + currentGenerationNumber + " individual " + i + " course " + c);
 				var returnData = {'i':i, 'c':courseIds[c]};
 				// Push to server for calculation.
 				$.ajaxq(
