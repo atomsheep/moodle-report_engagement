@@ -183,12 +183,24 @@ if ($runmethod == 'correlate') {
                                                  $data, $xarray, $yarray, $titlexaxis, $removedusers);
         $corrfinal = round($corrfinal, 4);
         $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
+        $html .= html_writer::start_tag('div');
+        $html .= html_writer::start_tag('a', array("href" => new moodle_url('/report/engagement/edit.php', array('id' => $courseid)),
+                                                   "target" => "_blank"));
+        $html .= get_string('indicator_helper_viewsettings', 'report_engagement');
+        $html .= html_writer::end_tag('a');
+        $html .= html_writer::end_tag('div');
+        $html .= html_writer::start_tag('div', array("id" => "rgraph-container-$courseid",
+                                                     "style" => "display:none;"));
+        $html .= html_writer::start_tag('canvas', array("id" => "rgraph-canvas-$courseid",
+                                                        "width" => "600",
+                                                        "height" => "250"));
+        $html .= html_writer::end_tag('canvas');
+        $html .= html_writer::end_tag('div');
         echo($html);
-        $graphhtml = '<div id="rgraph-container-'.$courseid.'" style="display:none;"><div><canvas id="rgraph-canvas-'.$courseid.'" width="600" height="250"></canvas></div></div>';
         $titlexaxis = json_encode($titlexaxis);
         $graphtitle = json_encode($courses[$courseid]->shortname);
         $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers, $courseid, $graphtitle);
-        echo($graphhtml . $graphcode);
+        echo($graphcode);
     }
 }
 
