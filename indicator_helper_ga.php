@@ -149,6 +149,7 @@ if ($formdata && isset($formdata->submitruncorrelate)) {
 }
 
 if ($runmethod == 'correlate') {
+    // Get discoverable indicators.
     foreach ($ids as $courseid) {
         $discoveredweightings = $DB->get_records_menu('report_engagement', array('course' => $courseid), '', 'indicator, weight');
         // Set up variables for report.
@@ -178,11 +179,17 @@ if ($runmethod == 'correlate') {
             }
         }
         // Calculate correlation and draw representative graph.
+        $discoverableindicators = report_engagement_indicator_helper_get_indicator_objects($courseid, "", true);
+        $indicatorstorun = array_merge(array("__total"), array_keys($discoverableindicators));
         $targetgradeitemid = required_param("target_$courseid", PARAM_INT); // Target grade item ID.
-        $corrfinal = report_engagement_indicator_helper_correlate_target_with_risks($courseid, '__total', $targetgradeitemid, $data, 
-                                                                                    $xarray, $yarray, $titlexaxis, $removedusers);
-        $corrfinal = round($corrfinal, 4);
-        $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
+        $html = "";
+        foreach ($indicatorstorun as $name) {
+            $out = array('name' => $name);
+            $corr = report_engagement_indicator_helper_correlate_target_with_risks($courseid, $name, $targetgradeitemid, $data,
+                                                                                   $xarray, $yarray, $titlexaxis, $removedusers);
+            $out['corr'] = round($corr, 4);
+            $html .= html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $out));
+        }
         $html .= html_writer::start_tag('div');
         $html .= html_writer::start_tag('a', array("href" => new moodle_url('/report/engagement/edit.php', array('id' => $courseid)),
                                                    "target" => "_blank"));
