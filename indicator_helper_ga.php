@@ -169,7 +169,7 @@ if ($runmethod == 'correlate') {
         }
         // Calculate indicator risks.
         foreach ($indicatorobjects as $name => $indicator) {
-            $temparray = get_indicator_risks($courseid, $discoveredweightings, $name);
+            $temparray = report_engagement_indicator_helper_get_indicator_risks($courseid, $discoveredweightings, $name);
             $data = array_replace_recursive($data, $temparray);
         }
         foreach ($data as $userid => $risks) {
@@ -179,8 +179,8 @@ if ($runmethod == 'correlate') {
         }
         // Calculate correlation and draw representative graph.
         $targetgradeitemid = required_param("target_$courseid", PARAM_INT); // Target grade item ID.
-        $corrfinal = correlate_target_with_risks($courseid, '__total', $targetgradeitemid,
-                                                 $data, $xarray, $yarray, $titlexaxis, $removedusers);
+        $corrfinal = report_engagement_indicator_helper_correlate_target_with_risks($courseid, '__total', $targetgradeitemid, $data, 
+                                                                                    $xarray, $yarray, $titlexaxis, $removedusers);
         $corrfinal = round($corrfinal, 4);
         $html = html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $corrfinal));
         $html .= html_writer::start_tag('div');
@@ -249,134 +249,3 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
         </script>";
     return ($graphjs);
 }
-
-function get_indicator_risks($id, $weights, $name) {
-    // Calculate indicator's risks.
-    $classname = "indicator_$name";
-    $currentindicator = new $classname($id);
-    $indicatorrisks = $currentindicator->get_course_risks();
-    unset($currentindicator);
-    $data = array();
-    foreach ($indicatorrisks as $user => $risk) {
-        $data[$user]["indicator_$name"]['raw'] = $risk->risk;
-        $data[$user]["indicator_$name"]['weight'] = $weights[$name];
-    }
-    return $data;
-}
-
-function correlate_target_with_risks($id, $name, $targetgradeitemid, $data, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null, &$gradedatacache = null) {
-    global $CFG, $DB;
-    // Gather grade data in preparation for calculating correlation.
-    $userarray = array_keys($data);
-    $gradeitems = $DB->get_records_sql("SELECT id, itemname, itemtype, itemmodule, iteminstance 
-                                          FROM {grade_items} 
-                                         WHERE courseid = :courseid
-                                           AND id = :gradeitemid
-                                      ORDER BY sortorder",
-                                      array('courseid' => $id, 'gradeitemid' => $targetgradeitemid));
-    if (!isset($gradedatacache)) {
-        require_once($CFG->libdir.'/gradelib.php');
-        $gradedata = array();
-        foreach ($gradeitems as $gradeitem) {
-            switch ($gradeitem->itemtype) {
-                case 'manual':
-                    $grades = $DB->get_records_sql("SELECT * 
-                                                      FROM {grade_grades} 
-                                                     WHERE itemid = :itemid",
-                                                     array('itemid' => $gradeitem->id));
-                    foreach ($grades as $grade) {
-                        $gradedata[$grade->userid] = $grade->finalgrade;
-                    }
-                    break;
-                default:
-                    $grades = grade_get_grades($id, 
-                                               $gradeitem->itemtype, 
-                                               $gradeitem->itemmodule, 
-                                               $gradeitem->iteminstance, 
-                                               $userarray);
-                    foreach ($grades->items[0]->grades as $userid => $grade) {
-                        $gradedata[$userid] = $grade;
-                    }
-            }
-        }
-        $gradedatacache = $gradedata;
-    } else {
-        $gradedata = $gradedatacache;
-    }
-    // Calculate correlation between selected grade item target and raw risk.
-    $array1 = array();
-    $array2 = array();
-    foreach ($userarray as $userid) {
-        $grade = $gradedata[$userid];
-        $risk = $data[$userid]["indicator_$name"]['raw'];
-        if ($grade !== null && $risk !== null) {
-            $array1[$userid] = floatval($grade);
-            $array2[$userid] = $risk;
-        }
-    }
-    // Remove outliers before calculating correlation coefficient.
-    $intersectusers = array_intersect_key(remove_outliers($array1, 2), remove_outliers($array2, 2));
-    $array1b = array();
-    $array2b = array();
-    foreach ($intersectusers as $userid => $value) {
-        $array1b[] = $array1[$userid];
-        $array2b[] = $array2[$userid];
-    }
-    // Save to output by reference variables.
-    if (is_array($xarray) && is_array($yarray)) {
-        $xarray = $array1;
-        $yarray = $array2;
-    }
-    if (isset($titlexaxis)) {
-        $titlexaxis = array_values($gradeitems)[0]->itemname;
-    }
-    if (isset($removedusers)) {
-        $removedusers = array_diff_key($array1, $intersectusers);
-    }
-    // Calculate and return Pearson correlation coefficient.
-    return pearson_correlation_coefficient($array1b, $array2b);
-}
-
-function pearson_correlation_coefficient($x, $y){
-    $length = count($x);
-    $mean1 = array_sum($x) / $length;
-    $mean2 = array_sum($y) / $length;
-    $a = 0;
-    $b = 0;
-    $axb = 0;
-    $a2 = 0;
-    $b2 = 0;
-    for($i = 0; $i < $length; $i++) {
-        $a = $x[$i] - $mean1;
-        $b = $y[$i] - $mean2;
-        $axb = $axb + ($a * $b);
-        $a2 = $a2 + pow($a, 2);
-        $b2 = $b2 + pow($b, 2);
-    }
-    $corr = $axb / sqrt($a2 * $b2);
-    return $corr;
-}
-
-function shuffle_assoc($list) { 
-    if (!is_array($list)) {
-        return $list;
-    }
-    $keys = array_keys($list); 
-    shuffle($keys); 
-    $random = array(); 
-    foreach ($keys as $key) { 
-        $random[$key] = $list[$key]; 
-    }
-    return $random;
-}
-
-// Courtesy of http://stackoverflow.com/questions/15174952/finding-and-removing-outliers-in-php .
-function remove_outliers($dataset, $magnitude = 1) {
-    $count = count($dataset);
-    $mean = array_sum($dataset) / $count; // Calculate the mean
-    $deviation = sqrt(array_sum(array_map("sd_square", $dataset, array_fill(0, $count, $mean))) / $count) * $magnitude; // Calculate standard deviation and times by magnitude
-    return array_filter($dataset, function($x) use ($mean, $deviation) { return ($x <= $mean + $deviation && $x >= $mean - $deviation); }); // Return filtered array of values that lie within $mean +- $deviation.
-}
-function sd_square($x, $mean) {
-    return pow($x - $mean, 2);
-} 

@@ -313,3 +313,153 @@ function report_engagement_populate_snippets_from_lang($category) {
     }
 }
 
+// Courtesy of http://stackoverflow.com/questions/15174952/finding-and-removing-outliers-in-php .
+function report_engagement_indicator_helper_remove_outliers($dataset, $magnitude = 1) {
+    $count = count($dataset);
+    $mean = array_sum($dataset) / $count; // Calculate the mean
+    $deviation = sqrt(array_sum(array_map("report_engagement_indicator_helper_sd_square", $dataset, array_fill(0, $count, $mean))) / $count) * $magnitude; // Calculate standard deviation and times by magnitude
+    return array_filter($dataset, function($x) use ($mean, $deviation) { return ($x <= $mean + $deviation && $x >= $mean - $deviation); }); // Return filtered array of values that lie within $mean +- $deviation.
+}
+function report_engagement_indicator_helper_sd_square($x, $mean) {
+    return pow($x - $mean, 2);
+}
+
+function report_engagement_indicator_helper_pearson_correlation_coefficient($x, $y){
+    $length = count($x);
+    $mean1 = array_sum($x) / $length;
+    $mean2 = array_sum($y) / $length;
+    $a = 0;
+    $b = 0;
+    $axb = 0;
+    $a2 = 0;
+    $b2 = 0;
+    for($i = 0; $i < $length; $i++) {
+        $a = $x[$i] - $mean1;
+        $b = $y[$i] - $mean2;
+        $axb = $axb + ($a * $b);
+        $a2 = $a2 + pow($a, 2);
+        $b2 = $b2 + pow($b, 2);
+    }
+    $corr = $axb / sqrt($a2 * $b2);
+    return $corr;
+}
+
+function report_engagement_indicator_helper_correlate_target_with_risks($id, $name, $targetgradeitemid, $data, &$xarray = null, &$yarray = null, &$titlexaxis = null, &$removedusers = null, &$gradedatacache = null) {
+    global $CFG, $DB;
+    // Gather grade data in preparation for calculating correlation.
+    $userarray = array_keys($data);
+    $gradeitems = $DB->get_records_sql("SELECT id, itemname, itemtype, itemmodule, iteminstance 
+                                          FROM {grade_items} 
+                                         WHERE courseid = :courseid
+                                           AND id = :gradeitemid
+                                      ORDER BY sortorder",
+                                      array('courseid' => $id, 'gradeitemid' => $targetgradeitemid));
+    if (!isset($gradedatacache)) {
+        require_once($CFG->libdir.'/gradelib.php');
+        $gradedata = array();
+        foreach ($gradeitems as $gradeitem) {
+            switch ($gradeitem->itemtype) {
+                case 'manual':
+                    $grades = $DB->get_records_sql("SELECT * 
+                                                      FROM {grade_grades} 
+                                                     WHERE itemid = :itemid",
+                                                     array('itemid' => $gradeitem->id));
+                    foreach ($grades as $grade) {
+                        $gradedata[$grade->userid] = $grade->finalgrade;
+                    }
+                    break;
+                default:
+                    $grades = grade_get_grades($id, 
+                                               $gradeitem->itemtype, 
+                                               $gradeitem->itemmodule, 
+                                               $gradeitem->iteminstance, 
+                                               $userarray);
+                    foreach ($grades->items[0]->grades as $userid => $grade) {
+                        $gradedata[$userid] = $grade;
+                    }
+            }
+        }
+        $gradedatacache = $gradedata;
+    } else {
+        $gradedata = $gradedatacache;
+    }
+    // Calculate correlation between selected grade item target and raw risk.
+    $array1 = array();
+    $array2 = array();
+    foreach ($userarray as $userid) {
+        $grade = $gradedata[$userid];
+        $risk = $data[$userid]["indicator_$name"]['raw'];
+        if ($grade !== null && $risk !== null) {
+            $array1[$userid] = floatval($grade);
+            $array2[$userid] = $risk;
+        }
+    }
+    // Remove outliers before calculating correlation coefficient.
+    $intersectusers = array_intersect_key(report_engagement_indicator_helper_remove_outliers($array1, 2), 
+                                          report_engagement_indicator_helper_remove_outliers($array2, 2));
+    $array1b = array();
+    $array2b = array();
+    foreach ($intersectusers as $userid => $value) {
+        $array1b[] = $array1[$userid];
+        $array2b[] = $array2[$userid];
+    }
+    // Save to output by reference variables.
+    if (is_array($xarray) && is_array($yarray)) {
+        $xarray = $array1;
+        $yarray = $array2;
+    }
+    if (isset($titlexaxis)) {
+        $titlexaxis = array_values($gradeitems)[0]->itemname;
+    }
+    if (isset($removedusers)) {
+        $removedusers = array_diff_key($array1, $intersectusers);
+    }
+    // Calculate and return Pearson correlation coefficient.
+    return report_engagement_indicator_helper_pearson_correlation_coefficient($array1b, $array2b);
+}
+
+function report_engagement_indicator_helper_get_indicator_risks($id, $weights, $name) {
+    // Calculate indicator's risks.
+    $classname = "indicator_$name";
+    $currentindicator = new $classname($id);
+    $indicatorrisks = $currentindicator->get_course_risks();
+    unset($currentindicator);
+    $data = array();
+    foreach ($indicatorrisks as $user => $risk) {
+        $data[$user]["indicator_$name"]['raw'] = $risk->risk;
+        $data[$user]["indicator_$name"]['weight'] = $weights[$name];
+    }
+    return $data;
+}
+
+function report_engagement_indicator_helper_get_indicator_objects($id, $indicatorname = "", $onlydiscoverable = false) {
+    global $CFG;
+    $pluginman = core_plugin_manager::instance();
+    $indicators = get_plugin_list('engagementindicator');
+    $indicatorobjects = array(); // Keys are names, values are the objects.
+    foreach ($indicators as $name => $path) {
+        $plugin = $pluginman->get_plugin_info('engagementindicator_'.$name);
+        if (!$plugin->is_enabled()) {
+            unset($indicators[$name]);
+            break;
+        }
+        if (file_exists("$path/indicator.class.php")) {
+            require_once("$path/indicator.class.php");
+            $classname = "indicator_$name";
+            $indicator = new $classname($id);
+            if ($onlydiscoverable) {
+                // Check if indicator is set up for parameter discovery.
+                if (method_exists($indicator, 'get_helper_initial_settings')) {
+                    $indicatorobjects[$name] = $indicator;
+                }
+            } else {
+                $indicatorobjects[$name] = $indicator;
+            }
+        }
+    }
+    if ($indicatorname != "" and array_key_exists($indicatorname, $indicatorobjects)) {
+        return $indicatorobjects[$indicatorname];
+    } else {
+        return $indicatorobjects;
+    }
+}
