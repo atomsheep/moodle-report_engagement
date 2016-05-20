@@ -22,9 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-var populationPercentAfterSelection = 0.2; // Proportion (percentage) of the population to keep after selection.
-var fitnessPreference = 0.9; // Preference for keeping fit individuals in the population. E.g. 0.8 means 80% of remaining population will be from fittest, 20% randomly from the rest.
-var mutationRate = 0.05; // Chance of mutation.
+var populationPercentAfterSelection = 0.4; // Proportion (percentage) of the population to keep after selection.
+var fitnessPreference = 0.6; // Preference for keeping fit individuals in the population. E.g. 0.8 means 80% of remaining population will be from fittest, 20% randomly from the rest.
+var mutationRate = 0.1; // Chance of mutation.
 
 var populationSize = 0; // Number of individuals in population.
 var populationSizeAfterSelection = 0; // Number of individuals to keep after selection, forming the parents of the next generation.
@@ -38,7 +38,7 @@ var geneSettings = {}; // Stores the settings (e.g. min, max) for each possible 
 var discoverableIndicators = []; // String names of the discoverable indicators we are working with.
 var currentPopulation = []; // Stores the current population.
 var currentGenerationNumber = 0; // Stores which generation we are up to.
-var fitnessHistory = []; // 0-based array storing average fitness of each generation.
+var fitnessHistory = {'overall':[], 'elite':[]}; // 0-based arrays storing average fitness of each generation.
 
 $(document).ready(function() {
 	$("input:submit[name=submitrundiscovery]").on("click", function(event, ui){
@@ -104,19 +104,21 @@ function algorithmRunner() {
 		}
 		// Probably finished with this generation...
 		averageFitness = calculateCurrentPopulationAverageFitness();
+		averageEliteFitness = calculateCurrentPopulationAverageFitness(fitnessPreference / 5); // Average fitness of the most elite.
 		// See if we are moving anywhere.
-		if (fitnessHistory.length > 4) {
-			rollingAverageFitness = arrayAverage(fitnessHistory.slice(-4));
-			if ((Math.abs(rollingAverageFitness - averageFitness) / averageFitness < 0.01) || (rollingAverageFitness == 0)) {
+		if (fitnessHistory['elite'].length > 4) {
+			rollingAverageFitness = arrayAverage(fitnessHistory['elite'].slice(-4));
+			if ((Math.abs(rollingAverageFitness - averageEliteFitness) / averageEliteFitness < 0.01) || (rollingAverageFitness == 0)) {
 				// Have probably found the optimum or gotten stuck.
 				$("#output").append("<div>Terminating algorithm early due to lack of improvement in fitness.</div>");
 				algorithmFinished();
 				return;
 			}
 		}
-		fitnessHistory.push(averageFitness);
+		fitnessHistory['overall'].push(averageFitness);
+		fitnessHistory['elite'].push(averageEliteFitness);
 		//console.log("current generation " + currentGenerationNumber + " average fitness " + averageFitness);
-		$("#output").append("<div>Generation " + currentGenerationNumber + " average fitness " + averageFitness + "</div>");
+		$("#output").append("<div>Generation " + currentGenerationNumber + " average fitness: overall " + averageFitness + ", elite " + averageEliteFitness + "</div>");
 		// Iterate to next generation.
 		currentGenerationNumber++;
 		if (currentGenerationNumber <= numberOfGenerations) {
@@ -168,14 +170,19 @@ function incrementProgressBar(value = 1) {
 	$("#progress-bar").attr('value', parseInt($("#progress-bar").attr('value')) + value);
 }
 
-function calculateCurrentPopulationAverageFitness() {
-	var fitnessSum = 0;
-	for (i = 0; i < currentPopulation.length; i++) {
+function calculateCurrentPopulationAverageFitness(elitePortion = 1) {
+	var fitnessSum = 0.0;
+	// Sort currentPopulation by fitness.
+	currentPopulation.sort(compareFitness).reverse();
+	// Work out which proportion of top (elite) to calculate average fitness for.
+	var calculateUntil = Math.floor(currentPopulation.length * (elitePortion));
+	// Calculate average fitness.
+	for (i = 0; i < calculateUntil; i++) {
 		for (c = 0; c < courseIds.length; c++) {
 			fitnessSum += currentPopulation[i]["fitness"]["course" + courseIds[c]];
 		}
 	}
-	return fitnessSum / (currentPopulation.length * courseIds.length);
+	return fitnessSum / (calculateUntil * courseIds.length);
 }
 
 function makeInitialGeneration(genes) {
