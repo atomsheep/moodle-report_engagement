@@ -108,7 +108,7 @@ function algorithmRunner() {
 		// See if we are moving anywhere.
 		if (fitnessHistory['elite'].length > 4) {
 			rollingAverageFitness = arrayAverage(fitnessHistory['elite'].slice(-4));
-			if ((Math.abs(rollingAverageFitness - averageEliteFitness) / averageEliteFitness < 0.01) || (rollingAverageFitness == 0)) {
+			if ((Math.abs(rollingAverageFitness - averageEliteFitness) / averageEliteFitness < 0.005) || (rollingAverageFitness == 0)) {
 				// Have probably found the optimum or gotten stuck.
 				$("#output").append("<div>Terminating algorithm early due to lack of improvement in fitness.</div>");
 				algorithmFinished();
@@ -140,7 +140,7 @@ function algorithmStarted() {
 
 function algorithmFinished() {
 	//console.log('finished');
-	currentPopulation.sort(compareFitness).reverse();
+	currentPopulation = currentPopulation.sort(compareFitness).reverse();
 	// Final calculation and save settings.
 	for (c = 0; c < courseIds.length; c++) {
 		var returnData = {'c':courseIds[c], 'cn':courseNames[c]};
@@ -173,7 +173,7 @@ function incrementProgressBar(value = 1) {
 function calculateCurrentPopulationAverageFitness(elitePortion = 1) {
 	var fitnessSum = 0.0;
 	// Sort currentPopulation by fitness.
-	currentPopulation.sort(compareFitness).reverse();
+	currentPopulation = currentPopulation.sort(compareFitness).reverse();
 	// Work out which proportion of top (elite) to calculate average fitness for.
 	var calculateUntil = Math.floor(currentPopulation.length * (elitePortion));
 	// Calculate average fitness.
@@ -258,7 +258,7 @@ function naturalSelection() {
 	calculateCurrentPopulationFitness();
 	// Sort according to fitness.
 	var tempPopulation = currentPopulation.slice();
-	tempPopulation.sort(compareFitness).reverse();
+	tempPopulation = tempPopulation.sort(compareFitness).reverse();
 	// Keep some of the population - fittest plus some randoms.
 	var numberOfFittest = Math.floor(populationSizeAfterSelection * fitnessPreference);
 	var numberOfTheRest = populationSizeAfterSelection - numberOfFittest;
