@@ -160,10 +160,21 @@ function algorithmFinished() {
 			$("#output-progress").hide();
 		});
 	}
-	// Other server-side finalisation steps.
-	$.get(
-		"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=finalise&plugincacheconfig=" + pluginCacheTTL
-	);
+	algorithmFinishedFinally();
+}
+
+function algorithmFinishedFinally() {
+	if ($.ajaxq.isRunning("final")) {
+		// Keep waiting.
+		setTimeout(algorithmFinishedFinally, 500);
+	} else {
+		// Other server-side finalisation steps.
+		$.get(
+			"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=finalise&plugincacheconfig=" + pluginCacheTTL
+		).done(function() {
+			$("#output").append("Finished.");
+		});
+	}
 }
 
 function incrementProgressBar(value = 1) {
@@ -219,6 +230,25 @@ function makeNextGeneration() {
 
 function calculateCurrentPopulationFitness() {
 	for (var i = 0; i < currentPopulation.length; i++) {
+		// Normalise indicator weightings in genotype to 100% sum.
+		var weightingTotal = 0.0;
+		var weightingTotalNormalised = 0;
+		var lastGene = '';
+		for (var gene in currentPopulation[i]["genotype"]) {
+			if (gene.substring(0,2) == "__") {
+				weightingTotal += currentPopulation[i]["genotype"][gene];
+			}
+		}
+		for (var gene in currentPopulation[i]["genotype"]) {
+			if (gene.substring(0,2) == "__") {
+				currentPopulation[i]["genotype"][gene] = Math.round(currentPopulation[i]["genotype"][gene] / weightingTotal * 100.0);
+				weightingTotalNormalised += currentPopulation[i]["genotype"][gene];
+			}
+			lastGene = gene;
+		}
+		if (weightingTotalNormalised != 100) {
+			currentPopulation[i]["genotype"][lastGene] += (100 - weightingTotalNormalised);
+		}
 		// Calculate fitness for each individual in each course.
 		for (var c = 0; c < courseIds.length; c++) {
 			if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) { // Only calculate fitness if necessary.
