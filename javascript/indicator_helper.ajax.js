@@ -269,9 +269,12 @@ function calculateCurrentPopulationFitness() {
 					}
 				).done(function(data){
 					data = JSON.parse(data);
-					currentPopulation[data["returndata"]["i"]]["fitness"]["course" + data["returndata"]["c"]] = data["fitness"];
-					//console.log('DONE on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
+					var individual = data["returndata"]["i"];
+					currentPopulation[individual]["fitness"]["course" + data["returndata"]["c"]] = data["fitness"];
+					//console.log('DONE on individual ' + individual + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
 					incrementProgressBar();
+					// Then average this individual's fitnesses across all tested courses.
+					currentPopulation[individual]["fitness"]["_overall"] = objectArrayAverage(currentPopulation[individual]["fitness"], "_");
 				}).fail(function() {
 					//console.log('FAIL on individual ' + data["returndata"]["i"] + ' in generation ' + currentGenerationNumber);
 				});
@@ -280,8 +283,6 @@ function calculateCurrentPopulationFitness() {
 				//console.log("fitness for generation [" + currentGenerationNumber + "] individual [" + i + "] already known: " + currentPopulation[i]["fitness"]);
 			}
 		}
-		// Then average this individual's fitnesses across all tested courses.
-		currentPopulation[i]["fitness"]["_overall"] = objectArrayAverage(currentPopulation[i]["fitness"], "_");
 	}
 }
 
