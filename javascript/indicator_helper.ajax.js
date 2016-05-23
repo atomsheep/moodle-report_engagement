@@ -239,15 +239,17 @@ function calculateCurrentPopulationFitness() {
 				weightingTotal += currentPopulation[i]["genotype"][gene];
 			}
 		}
-		for (var gene in currentPopulation[i]["genotype"]) {
-			if (gene.substring(0,2) == "__") {
-				currentPopulation[i]["genotype"][gene] = Math.round(currentPopulation[i]["genotype"][gene] / weightingTotal * 100.0);
-				weightingTotalNormalised += currentPopulation[i]["genotype"][gene];
+		if (weightingTotal != 100) {
+			for (var gene in currentPopulation[i]["genotype"]) {
+				if (gene.substring(0,2) == "__") {
+					currentPopulation[i]["genotype"][gene] = Math.round(currentPopulation[i]["genotype"][gene] / weightingTotal * 100.0);
+					weightingTotalNormalised += currentPopulation[i]["genotype"][gene];
+				}
+				lastGene = gene;
 			}
-			lastGene = gene;
-		}
-		if (weightingTotalNormalised != 100) {
-			currentPopulation[i]["genotype"][lastGene] += (100 - weightingTotalNormalised);
+			if (weightingTotalNormalised != 100) {
+				currentPopulation[i]["genotype"][lastGene] += (100 - weightingTotalNormalised);
+			}
 		}
 		// Calculate fitness for each individual in each course.
 		for (var c = 0; c < courseIds.length; c++) {
