@@ -24,7 +24,8 @@
 
 var populationPercentAfterSelection = 0.4; // Proportion (percentage) of the population to keep after selection.
 var fitnessPreference = 0.6; // Preference for keeping fit individuals in the population. E.g. 0.8 means 80% of remaining population will be from fittest, 20% randomly from the rest.
-var mutationRate = 0.1; // Chance of mutation.
+var mutationRate = 0.1; // Chance of mutation expressed between 0 and 1.
+var elitism = 2; // Whole number of fittest individuals to keep aside (protect from selection, mutation).
 
 var populationSize = 0; // Number of individuals in population.
 var populationSizeAfterSelection = 0; // Number of individuals to keep after selection, forming the parents of the next generation.
@@ -37,8 +38,12 @@ var targetGradeItemIds = []; // Moodle grade item id of the target variable.
 var geneSettings = {}; // Stores the settings (e.g. min, max) for each possible gene.
 var discoverableIndicators = []; // String names of the discoverable indicators we are working with.
 var currentPopulation = []; // Stores the current population.
+var populationHistory = [];
 var currentGenerationNumber = 0; // Stores which generation we are up to.
 var fitnessHistory = {'overall':[], 'elite':[]}; // 0-based arrays storing average fitness of each generation.
+var individualHistory = {}; // Stores each individual throughout history. Mainly for debugging.
+
+var stopRunning = false;
 
 $(document).ready(function() {
 	$("input:submit[name=submitrundiscovery]").on("click", function(event, ui){
@@ -70,6 +75,7 @@ function runGeneticAlgorithm() {
 	$.get(
 		"indicator_helper.ajax.php?id=" + courseIds[0] + "&method=get_possible_settings&indicator=" + $("select[name=indicator]").val()
 	).done(function(data){
+		//console.log("returned from get_possible_settings");
 		$("#output").html('');
 		// Parse settings and store in global variables.
 		data = JSON.parse(data);
@@ -83,26 +89,35 @@ function runGeneticAlgorithm() {
 		currentGenerationNumber = 1;
 		//makeNextGeneration();
 		calculateCurrentPopulationFitness();
+		populationHistory[currentGenerationNumber] = currentPopulation.slice();
 		algorithmRunner();
 	});
 }
 
 function algorithmRunner() {
+	//console.log("in algorithmRunner");
+	if (stopRunning) {
+		//console.log('stopRunning true');
+		return;
+	}
 	if ($.ajaxq.isRunning('generation' + currentGenerationNumber)) {
 		// Keep waiting.
-		setTimeout(algorithmRunner, 500);
+		setTimeout(algorithmRunner, 5000);
 	} else {
 		// Check to see if fitnesses are all calculated.
 		for (var i = 0; i < currentPopulation.length; i++) {
 			for (var c = 0; c < courseIds.length; c++) {
 				if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) {
 					// Keep waiting.
-					setTimeout(algorithmRunner, 500);
+					setTimeout(algorithmRunner, 5000);
 					break;
 				}
 			}
 		}
 		// Probably finished with this generation...
+		//console.log("Probably finished with generation " + currentGenerationNumber);
+		populationHistory[currentGenerationNumber] = currentPopulation.slice().sort(compareFitness).reverse();
+		// Calculate average fitnesses.
 		averageFitness = calculateCurrentPopulationAverageFitness();
 		averageEliteFitness = calculateCurrentPopulationAverageFitness(fitnessPreference / 5); // Average fitness of the most elite.
 		// See if we are moving anywhere.
@@ -111,22 +126,23 @@ function algorithmRunner() {
 			if ((Math.abs(rollingAverageFitness - averageEliteFitness) / averageEliteFitness < 0.005) || (rollingAverageFitness == 0)) {
 				// Have probably found the optimum or gotten stuck.
 				$("#output").append("<div>Terminating algorithm early due to lack of improvement in fitness.</div>");
-				algorithmFinished();
-				return;
+				stopRunning = true;
+				//algorithmFinished();
+				//return;
 			}
 		}
 		fitnessHistory['overall'].push(averageFitness);
 		fitnessHistory['elite'].push(averageEliteFitness);
 		//console.log("current generation " + currentGenerationNumber + " average fitness " + averageFitness);
-		$("#output").append("<div>Generation " + currentGenerationNumber + " average fitness: overall " + averageFitness + ", elite " + averageEliteFitness + "</div>");
-		// Iterate to next generation.
-		currentGenerationNumber++;
-		if (currentGenerationNumber <= numberOfGenerations) {
+		$("#output").append("<div>Generation " + currentGenerationNumber + " average fitness: overall " + averageFitness.toFixed(4) + ", elite " + averageEliteFitness.toFixed(4) + ". Fittest individual (id " + currentPopulation[0]["guid"] + ") has fitness " + currentPopulation[0]["fitness"]["_overall"] + "</div>");
+		if (stopRunning || currentGenerationNumber > numberOfGenerations) {
+			stopRunning = true;
+			algorithmFinished();
+		} else {
+			// Iterate to next generation.
+			currentGenerationNumber++;
 			makeNextGeneration();
 			algorithmRunner();
-		} else {
-			// Finished!
-			algorithmFinished();
 		}
 	}
 }
@@ -139,11 +155,16 @@ function algorithmStarted() {
 }
 
 function algorithmFinished() {
-	//console.log('finished');
-	currentPopulation = currentPopulation.sort(compareFitness).reverse();
+	//console.log('in algorithmFinished');
+	//currentPopulation = currentPopulation.sort(compareFitness).reverse();
 	// Final calculation and save settings.
 	for (c = 0; c < courseIds.length; c++) {
-		var returnData = {'c':courseIds[c], 'cn':courseNames[c]};
+		//console.log("finishing, trying: ", currentPopulation[0]);
+		var returnData = {
+			'c':courseIds[c],
+			'cn':courseNames[c],
+			'guid':currentPopulation[0]["guid"]
+		};
 		$.ajaxq(
 			"final", 
 			{
@@ -164,6 +185,7 @@ function algorithmFinished() {
 }
 
 function algorithmFinishedFinally() {
+	//console.log("in algorithmFinishedFinally");
 	if ($.ajaxq.isRunning("final")) {
 		// Keep waiting.
 		setTimeout(algorithmFinishedFinally, 500);
@@ -182,6 +204,7 @@ function incrementProgressBar(value = 1) {
 }
 
 function calculateCurrentPopulationAverageFitness(elitePortion = 1) {
+	//console.log("in calculateCurrentPopulationAverageFitness");
 	var fitnessSum = 0.0;
 	// Sort currentPopulation by fitness.
 	currentPopulation = currentPopulation.sort(compareFitness).reverse();
@@ -209,6 +232,7 @@ function makeInitialGeneration(genes) {
 		}
 		newIndividual["genotype"] = newGenotype;
 		newIndividual["fitness"] = newIndividualFitnessObject();
+		newIndividual["guid"] = generateGuid();
 		// Add new individual to population.
 		population.push(newIndividual);
 	}
@@ -216,10 +240,12 @@ function makeInitialGeneration(genes) {
 }
 
 function makeNextGeneration() {
+	//console.log("in makeNextGeneration");
 	// Natural selection: eliminate less fit individuals (but keeping a proportion of the less fit).
 	var remainingPopulation = naturalSelection();
 	// Breeding: make new individuals from remaining population.
 	currentPopulation = breedPopulation(remainingPopulation, geneSettings);
+	currentPopulation = currentPopulation.sort(compareFitness).reverse();
 	// Mutation: introduce random mutations.
 	mutateCurrentPopulation(mutationRate, geneSettings);
 	// Calculate fitness of individuals in the new (i.e. now current) population.
@@ -229,17 +255,18 @@ function makeNextGeneration() {
 }
 
 function calculateCurrentPopulationFitness() {
+	//console.log("in calculateCurrentPopulationFitness", currentGenerationNumber);
 	for (var i = 0; i < currentPopulation.length; i++) {
 		// Normalise indicator weightings in genotype to 100% sum.
 		var weightingTotal = 0.0;
-		var weightingTotalNormalised = 0;
-		var lastGene = '';
 		for (var gene in currentPopulation[i]["genotype"]) {
 			if (gene.substring(0,2) == "__") {
 				weightingTotal += currentPopulation[i]["genotype"][gene];
 			}
 		}
 		if (weightingTotal != 100) {
+			var weightingTotalNormalised = 0;
+			var lastGene = '';
 			for (var gene in currentPopulation[i]["genotype"]) {
 				if (gene.substring(0,2) == "__") {
 					currentPopulation[i]["genotype"][gene] = Math.round(currentPopulation[i]["genotype"][gene] / weightingTotal * 100.0);
@@ -251,11 +278,20 @@ function calculateCurrentPopulationFitness() {
 				currentPopulation[i]["genotype"][lastGene] += (100 - weightingTotalNormalised);
 			}
 		}
+		// Store the individual in individualHistory.
+		if (!(currentPopulation[i]["guid"] in individualHistory)) {
+			individualHistory[currentPopulation[i]["guid"]] = [];
+		}
+		individualHistory[currentPopulation[i]["guid"]].push(JSON.parse(JSON.stringify(currentPopulation[i])));
 		// Calculate fitness for each individual in each course.
 		for (var c = 0; c < courseIds.length; c++) {
 			if (currentPopulation[i]["fitness"]["course" + courseIds[c]] == -1) { // Only calculate fitness if necessary.
-				console.log("requesting from server: fitness for generation " + currentGenerationNumber + " individual " + i + " course " + c);
-				var returnData = {'i':i, 'c':courseIds[c]};
+				//console.log("requesting from server: fitness for generation " + currentGenerationNumber + " individual " + i + " course " + c);
+				var returnData = {
+					'i':i,
+					'c':courseIds[c],
+					'guid':currentPopulation[i]["guid"]
+				};
 				// Push to server for calculation.
 				$.ajaxq(
 					"generation" + currentGenerationNumber, 
@@ -269,9 +305,12 @@ function calculateCurrentPopulationFitness() {
 					}
 				).done(function(data){
 					data = JSON.parse(data);
+					var fitness = parseFloat(data["fitness"].toFixed(4));
 					var individual = data["returndata"]["i"];
-					currentPopulation[individual]["fitness"]["course" + data["returndata"]["c"]] = data["fitness"];
-					//console.log('DONE on individual ' + individual + ' in generation ' + currentGenerationNumber + ', fitness ' + data["fitness"]);
+					var courseid = parseFloat(data["returndata"]["c"]);
+					currentPopulation[individual]["fitness"]["course" + courseid] = fitness;
+					//console.log('DONE on individual ' + individual + ' in generation ' + currentGenerationNumber + ', fitness ' + fitness);
+					//console.log(data, currentPopulation[individual]);
 					incrementProgressBar();
 					// Then average this individual's fitnesses across all tested courses.
 					currentPopulation[individual]["fitness"]["_overall"] = objectArrayAverage(currentPopulation[individual]["fitness"], "_");
@@ -287,13 +326,12 @@ function calculateCurrentPopulationFitness() {
 }
 
 function naturalSelection() {
-	// Calculate the fitness for each individual in the current population.
-	calculateCurrentPopulationFitness();
+	//console.log("in naturalSelection");
 	// Sort according to fitness.
 	var tempPopulation = currentPopulation.slice();
 	tempPopulation = tempPopulation.sort(compareFitness).reverse();
 	// Keep some of the population - fittest plus some randoms.
-	var numberOfFittest = Math.floor(populationSizeAfterSelection * fitnessPreference);
+	var numberOfFittest = Math.floor((populationSizeAfterSelection * fitnessPreference) + elitism);
 	var numberOfTheRest = populationSizeAfterSelection - numberOfFittest;
 	var remainingPopulation = [];
 	for (var i = 1; i <= numberOfFittest; i++) { // Keeping the fittest.
@@ -308,6 +346,7 @@ function naturalSelection() {
 }
 
 function breedPopulation(population, genes) {
+	//console.log("in breedPopulation");
 	var newPopulation = [];
 	for (i = 1; i <= populationSize - populationSizeAfterSelection; i++) {
 		shuffle(population);
@@ -328,16 +367,30 @@ function breedPopulation(population, genes) {
 }
 
 function mutateCurrentPopulation(mutationRate, genes) {
-	for (var i = 0; i < currentPopulation.length; i++) {
+	// This function assumes that currentPopulation has already been sorted by fitness descending, i.e. 0-th individual is fittest.
+	//console.log("in mutateCurrentPopulation");
+	var startFrom = 0;
+	if (elitism > 0 && elitism < populationSize) {
+		startFrom = elitism;
+	}
+	for (var i = startFrom; i < currentPopulation.length; i++) {
 		for (var gene in genes) {
 			if (genes.hasOwnProperty(gene)) {
 				if (Math.random() < mutationRate) {
 					//console.log("mutating individual " + i + " gene " + gene);
 					currentPopulation[i]["genotype"][gene] = randomFromInterval(genes[gene]["min"], genes[gene]["max"]);
+					resetFitness(currentPopulation[i]);
 				}
 			}
 		}
 	}
+}
+
+function resetFitness(individual) {
+	Object.keys(individual["fitness"]).forEach(function(key) {
+		individual["fitness"][key] = -1;
+	});
+	return;
 }
 
 function compareFitness(individual1, individual2) {
@@ -366,6 +419,7 @@ function crossIndividuals(parent1, parent2, genes) {
 	// Return new individual.
 	newIndividual["genotype"] = newGenetics;
 	newIndividual["fitness"] = newIndividualFitnessObject();
+	newIndividual["guid"] = generateGuid();
 	return newIndividual;
 }
 
@@ -404,6 +458,10 @@ function randomFromInterval(min, max)
 {
 	return (Math.random() * (max - min + 1) + min);
 }        
+
+function generateGuid() {
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
+}
 
 function shuffle(array) {
   // http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
