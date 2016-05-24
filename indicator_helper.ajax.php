@@ -43,9 +43,11 @@ require_capability('report/engagement:manage', $context);
 
 switch ($method) {
     case 'initialise':
-        // Enable the engagement analytics cache; set to 600 seconds.
+        // Back up current cache setting.
         $plugincacheconfig = get_config('engagement', 'cachettl');
-        set_config('cachettl', '600', 'engagement');
+        // Disable the engagement analytics cache.
+        set_config('cachettl', '0', 'engagement');
+        // Return original cache setting.
         echo($plugincacheconfig);
         break;
     case 'finalise':
@@ -72,6 +74,17 @@ switch ($method) {
         echo(json_encode($return));
         break;
     case 'try_settings':
+        // Prevent race conditions.
+        $startwaittime = time();
+        while (get_config('engagement', 'indicator_helper_running') == 1) {
+            usleep(500000);
+            if (time() - $startwaittime > 60) {
+                // Something probably has gone wrong; reset and exit.
+                set_config('indicator_helper_running', 0, 'engagement');
+                return;
+            }
+        }
+        set_config('indicator_helper_running', 1, 'engagement');
         // Parse AJAX inputs.
         $targetgradeitemid = required_param('targetgradeitemid', PARAM_INT);
         $settings = (array) json_decode(required_param('settings', PARAM_TEXT)); // Settings as JSON string.
@@ -81,9 +94,11 @@ switch ($method) {
         // Calculate correlation.
         $corr = try_settings($id, $targetgradeitemid, $settings, $discoverableindicators);
         // Return fitness and other data as necessary.
-        $fitness = -1 * $corr;
+        $fitness = round(-1 * $corr, 4);
         $output = ["fitness" => $fitness, "returndata" => $returndata];
         echo(json_encode($output));
+        // Reset race conditions setting.
+        set_config('indicator_helper_running', 0, 'engagement');
         break;
 }
 
