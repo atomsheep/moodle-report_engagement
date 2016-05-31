@@ -184,9 +184,12 @@ if ($runmethod == 'correlate') {
         $targetgradeitemid = required_param("target_$courseid", PARAM_INT); // Target grade item ID.
         $html = "";
         foreach ($indicatorstorun as $name) {
+			$xarray[$name] = array();
+			$yarray[$name] = array();
+			$removedusers[$name] = array();
             $out = array('name' => $name);
             $corr = report_engagement_indicator_helper_correlate_target_with_risks($courseid, $name, $targetgradeitemid, $data,
-                                                                                   $xarray, $yarray, $titlexaxis, $removedusers);
+                                                                                   $xarray[$name], $yarray[$name], $titlexaxis, $removedusers[$name]);
             $out['corr'] = round($corr, 4);
             $html .= html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $out));
         }
@@ -196,18 +199,22 @@ if ($runmethod == 'correlate') {
         $html .= get_string('indicator_helper_viewsettings', 'report_engagement');
         $html .= html_writer::end_tag('a');
         $html .= html_writer::end_tag('div');
-        $html .= html_writer::start_tag('div', array("id" => "rgraph-container-$courseid",
-                                                     "style" => "display:none;"));
-        $html .= html_writer::start_tag('canvas', array("id" => "rgraph-canvas-$courseid",
-                                                        "width" => "600",
-                                                        "height" => "250"));
-        $html .= html_writer::end_tag('canvas');
-        $html .= html_writer::end_tag('div');
-        echo($html);
-        $titlexaxis = json_encode($titlexaxis);
-        $graphtitle = json_encode($courses[$courseid]->shortname);
-        $graphcode = draw_correlation_graph('total', $xarray, $yarray, $titlexaxis, $removedusers, $courseid, $graphtitle);
-        echo($graphcode);
+		echo($html);
+        foreach ($indicatorstorun as $name) {
+			$graphhtml = "";
+			$graphhtml .= html_writer::start_tag('div', array("id" => "rgraph-container-{$courseid}-{$name}",
+														 "style" => "display:none;"));
+			$graphhtml .= html_writer::start_tag('canvas', array("id" => "rgraph-canvas-{$courseid}-{$name}",
+															"width" => "600",
+															"height" => "250"));
+			$graphhtml .= html_writer::end_tag('canvas');
+			$graphhtml .= html_writer::end_tag('div');
+			$titlexaxis = json_encode($titlexaxis);
+			$graphtitle = json_encode($courses[$courseid]->shortname);
+			$graphcode = draw_correlation_graph($name, $xarray[$name], $yarray[$name], $titlexaxis, $removedusers[$name], $courseid, $graphtitle);
+			echo($graphhtml);
+			echo($graphcode);
+		}
     }
 }
 
@@ -230,12 +237,12 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
     $graphymax = max($yarray);
     $graphymin = min($yarray);
     $graphdata = json_encode($grapharray);
-    $riskrating = json_encode(get_string('indicator_helper_riskrating', 'report_engagement'));
+    $riskrating = json_encode(get_string('indicator_helper_riskrating', 'report_engagement') . " {$name}");
     $graphjs = "<script>
         $(document).ready(function() {
-            document.getElementById('rgraph-container-$courseid').style.display = 'block';
+            document.getElementById('rgraph-container-{$courseid}-{$name}').style.display = 'block';
             var scatter_{$name}_{$courseid} = new RGraph.Scatter({
-                id: 'rgraph-canvas-$courseid',
+                id: 'rgraph-canvas-{$courseid}-{$name}',
                 data: $graphdata,
                 options: {
                     xmax: $graphxmax,
