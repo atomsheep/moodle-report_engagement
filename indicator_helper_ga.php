@@ -187,9 +187,11 @@ if ($runmethod == 'correlate') {
 			$xarray[$name] = array();
 			$yarray[$name] = array();
 			$removedusers[$name] = array();
+			$titlexaxis[$name] = array();
             $out = array('name' => $name);
             $corr = report_engagement_indicator_helper_correlate_target_with_risks($courseid, $name, $targetgradeitemid, $data,
-                                                                                   $xarray[$name], $yarray[$name], $titlexaxis, $removedusers[$name]);
+                                                                                   $xarray[$name], $yarray[$name], 
+																				   $titlexaxis[$name], $removedusers[$name]);
             $out['corr'] = round($corr, 4);
             $html .= html_writer::tag('div', get_string('indicator_helper_correlationoutput', 'report_engagement', $out));
         }
@@ -209,9 +211,10 @@ if ($runmethod == 'correlate') {
 															"height" => "250"));
 			$graphhtml .= html_writer::end_tag('canvas');
 			$graphhtml .= html_writer::end_tag('div');
-			$titlexaxis = json_encode($titlexaxis);
+			$titlexaxisencoded = json_encode($titlexaxis[$name]);
 			$graphtitle = json_encode($courses[$courseid]->shortname);
-			$graphcode = draw_correlation_graph($name, $xarray[$name], $yarray[$name], $titlexaxis, $removedusers[$name], $courseid, $graphtitle);
+			$graphcode = draw_correlation_graph($name, $xarray[$name], $yarray[$name], $titlexaxisencoded, 
+												$removedusers[$name], $courseid, $graphtitle);
 			echo($graphhtml);
 			echo($graphcode);
 		}
@@ -252,6 +255,7 @@ function draw_correlation_graph($name, $xarray, $yarray, $titlexaxis, $removedus
                     scaleDecimals: 2,
                     gutterLeft: 75,
                     gutterBottom: 50,
+					gutterTop: 50,
                     titleXaxisPos: 0.20,
                     titleYaxisPos: 0.15,
                     titleXaxis: $titlexaxis,
